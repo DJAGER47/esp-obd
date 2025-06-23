@@ -57,56 +57,60 @@ void app_main(void)
     /* Configure the peripheral according to the LED type */
     configure_led();
 
-    float max_power = 0;
-    uint8_t optimal_resistance = 0;
+    // float max_power = 0;
+    // uint8_t optimal_resistance = 0;
 
-    // Начинаем с максимального сопротивления
-    x9c103s_set_resistance(&pot, 99);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    // // Начинаем с максимального сопротивления
+    // x9c103s_set_resistance(&pot, 99);
+    // vTaskDelay(100 / portTICK_PERIOD_MS);
 
-    for (int res = 99; res >= 0; res -= 10)
-    {
-        float voltage, current, power;
+    // for (int res = 99; res >= 0; res -= 10)
+    // {
+    //     float voltage, current, power;
 
-        // Устанавливаем текущее сопротивление
-        x9c103s_set_resistance(&pot, res);
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+    //     // Устанавливаем текущее сопротивление
+    //     x9c103s_set_resistance(&pot, res);
+    //     vTaskDelay(50 / portTICK_PERIOD_MS);
 
-        // Читаем показания
-        if (ina226_read_values(&voltage, &current, &power) == ESP_OK)
-        {
-            // Логируем данные для Serial Plotter
-            printf("RES:%d,V:%.2f,I:%.2f,P:%.2f\n",
-                   res, voltage, current, power);
+    //     // Читаем показания
+    //     if (ina226_read_values(&voltage, &current, &power) == ESP_OK)
+    //     {
+    //         // Логируем данные для Serial Plotter
+    //         printf("RES:%d,V:%.2f,I:%.2f,P:%.2f\n",
+    //                res, voltage, current, power);
 
-            // Ищем максимальную мощность
-            if (power > max_power)
-            {
-                max_power = power;
-                optimal_resistance = res;
-            }
+    //         // Ищем максимальную мощность
+    //         if (power > max_power)
+    //         {
+    //             max_power = power;
+    //             optimal_resistance = res;
+    //         }
 
-            // Мигаем светодиодом
-            s_led_state = !s_led_state;
-            blink_led();
-        }
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
+    //         // Мигаем светодиодом
+    //         s_led_state = !s_led_state;
+    //         blink_led();
+    //     }
+    //     vTaskDelay(500 / portTICK_PERIOD_MS);
+    // }
 
-    // Устанавливаем оптимальное сопротивление
-    x9c103s_set_resistance(&pot, optimal_resistance);
-    ESP_LOGI(TAG, "Optimal resistance: %d, Max power: %.2fW",
-             optimal_resistance, max_power);
+    // // Устанавливаем оптимальное сопротивление
+    // x9c103s_set_resistance(&pot, optimal_resistance);
+    // ESP_LOGI(TAG, "Optimal resistance: %d, Max power: %.2fW",
+    //          optimal_resistance, max_power);
 
     while (1) {
         // Устанавливаем оптимальное сопротивление
-        x9c103s_set_resistance(&pot, optimal_resistance);
+        // x9c103s_set_resistance(&pot, optimal_resistance);
         
         float voltage, current, power;
         if (ina226_read_values(&voltage, &current, &power) == ESP_OK) {
-            printf("OPTIMAL: R:%d, V:%.2f, I:%.2f, P:%.2f\n",
-                   optimal_resistance, voltage, current, power);
+            printf("OPTIMAL: V:%.2f, I:%.2f, P:%.2f\n",
+                   voltage, current, power);
         }
+        
+        // Моргаем светодиодом
+        s_led_state = !s_led_state;
+        blink_led();
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
 }
