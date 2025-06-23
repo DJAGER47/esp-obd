@@ -30,11 +30,11 @@ static esp_err_t ina226_read_reg(uint8_t reg, uint16_t *value) {
     uint8_t read_data[2];
     
     esp_err_t err = i2c_master_transmit_receive(dev_handle, 
-                                              &write_data, 1,
-                                              read_data, 2,
-                                              pdMS_TO_TICKS(1000));
-    if (err == ESP_OK) {
-        *value = (read_data[0] << 8) | read_data[1];
+                                        &write_data, 1,
+                                        read_data, 2,
+                                        pdMS_TO_TICKS(1000));
+        if (err == ESP_OK) {
+            *value = (read_data[0] << 8) | read_data[1];
     }
     return err;
 }
@@ -66,7 +66,7 @@ esp_err_t ina226_init(const ina226_config_t *config) {
     i2c_device_config_t dev_cfg = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
         .device_address = INA226_ADDR,
-        .scl_speed_hz = I2C_MASTER_FREQ_HZ,
+        .scl_speed_hz = I2C_MASTER_FREQ_HZ
     };
 
     err = i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle);
@@ -74,24 +74,6 @@ esp_err_t ina226_init(const ina226_config_t *config) {
         ESP_LOGE(TAG, "Failed to add INA226 device: %s", esp_err_to_name(err));
         return err;
     }
-
-    // Остальная часть инициализации остается прежней
-    uint16_t cfg = 0x4127; // 16 samples avg, 1.1ms conversion time
-    err = ina226_write_reg(INA226_REG_CONFIG, cfg);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to configure INA226: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    float current_lsb = config->max_current / 32768.0;
-    uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
-    err = ina226_write_reg(INA226_REG_CALIB, cal);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to calibrate INA226: %s", esp_err_to_name(err));
-        return err;
-    }
-
-    ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
 
     // Вывод всех регистров INA226 в 16-ричном формате
     ESP_LOGI(TAG, "INA226 register dump:");
@@ -111,6 +93,24 @@ esp_err_t ina226_init(const ina226_config_t *config) {
                     regs[i], esp_err_to_name(err));
         }
     }
+
+    // Остальная часть инициализации остается прежней
+    uint16_t cfg = 0x4127; // 16 samples avg, 1.1ms conversion time
+    err = ina226_write_reg(INA226_REG_CONFIG, cfg);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure INA226: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    float current_lsb = config->max_current / 32768.0;
+    uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
+    err = ina226_write_reg(INA226_REG_CALIB, cal);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to calibrate INA226: %s", esp_err_to_name(err));
+        return err;
+    }
+
+    ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
 
     return ESP_OK;
 }
