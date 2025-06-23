@@ -92,6 +92,26 @@ esp_err_t ina226_init(const ina226_config_t *config) {
     }
 
     ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
+
+    // Вывод всех регистров INA226 в 16-ричном формате
+    ESP_LOGI(TAG, "INA226 register dump:");
+    uint16_t reg_value;
+    const uint8_t regs[] = {INA226_REG_CONFIG, INA226_REG_SHUNT_VOLT,
+                            INA226_REG_BUS_VOLT, INA226_REG_POWER,
+                            INA226_REG_CURRENT, INA226_REG_CALIB};
+    const char *reg_names[] = {"CONFIG", "SHUNT_VOLT", "BUS_VOLT",
+                              "POWER", "CURRENT", "CALIB"};
+    
+    for (int i = 0; i < sizeof(regs)/sizeof(regs[0]); i++) {
+        err = ina226_read_reg(regs[i], &reg_value);
+        if (err == ESP_OK) {
+            ESP_LOGI(TAG, "  %s: 0x%04X", reg_names[i], reg_value);
+        } else {
+            ESP_LOGE(TAG, "Failed to read register 0x%02X: %s",
+                    regs[i], esp_err_to_name(err));
+        }
+    }
+
     return ESP_OK;
 }
 

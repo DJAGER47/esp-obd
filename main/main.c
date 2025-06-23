@@ -4,11 +4,7 @@
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
-#ifdef CONFIG_INA226_USE_NEW_DRIVER
-#include "ina226_new.h"
-#else
 #include "ina226.h"
-#endif
 #include "x9c103s.h"
 
 static const char *TAG = "example";
@@ -41,12 +37,6 @@ void app_main(void)
         .shunt_resistance = 0.1f, // Сопротивление шунта 0.1 Ом
         .max_current = 2.0f       // Максимальный ток 2A
     };
-
-#ifdef CONFIG_INA226_USE_NEW_DRIVER
-    ESP_LOGI(TAG, "Using NEW INA226 driver");
-#else
-    ESP_LOGI(TAG, "Using OLD INA226 driver");
-#endif
 
     if (ina226_init(&ina_cfg) != ESP_OK)
     {
