@@ -1,18 +1,21 @@
-
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
+#ifdef CONFIG_INA226_USE_NEW_DRIVER
+#include "ina226_new.h"
+#else
 #include "ina226.h"
+#endif
 #include "x9c103s.h"
 
 static const char *TAG = "example";
 
 // Конфигурация X9C103S
-#define X9C103S_CS_PIN  7
-#define X9C103S_UD_PIN  6
+#define X9C103S_CS_PIN 7
+#define X9C103S_UD_PIN 6
 #define X9C103S_INC_PIN 9
 
 // GPIO для светодиода
@@ -35,12 +38,20 @@ void app_main(void)
 {
     /* Initialize INA226 with configuration */
     ina226_config_t ina_cfg = {
-        .shunt_resistance = 0.1f,  // Сопротивление шунта 0.1 Ом
-        .max_current = 2.0f        // Максимальный ток 2A
+        .shunt_resistance = 0.1f, // Сопротивление шунта 0.1 Ом
+        .max_current = 2.0f       // Максимальный ток 2A
     };
-    if (ina226_init(&ina_cfg) != ESP_OK) {
+
+#ifdef CONFIG_INA226_USE_NEW_DRIVER
+    ESP_LOGI(TAG, "Using NEW INA226 driver");
+#else
+    ESP_LOGI(TAG, "Using OLD INA226 driver");
+#endif
+
+    if (ina226_init(&ina_cfg) != ESP_OK)
+    {
         ESP_LOGE(TAG, "Failed to initialize INA226");
-        return;  // Прерываем выполнение при ошибке инициализации
+        return; // Прерываем выполнение при ошибке инициализации
     }
 
     /* Initialize X9C103S */
@@ -56,49 +67,56 @@ void app_main(void)
     /* Configure the peripheral according to the LED type */
     configure_led();
 
-    // Функция измерения характеристик
-    void perform_measurements(x9c103s_dev_t *pot) {
-        float max_power = 0;
-        uint8_t optimal_resistance = 0;
-        
-        // Начинаем с максимального сопротивления
-        x9c103s_set_resistance(pot, 99);
-        vTaskDelay(100 / portTICK_PERIOD_MS);
-        
-        for (int res = 99; res >= 0; res -= 10) {
-            float voltage, current, power;
-            
-            // Устанавливаем текущее сопротивление
-            x9c103s_set_resistance(pot, res);
-            vTaskDelay(50 / portTICK_PERIOD_MS);
-            
-            // Читаем показания
-            if (ina226_read_values(&voltage, &current, &power) == ESP_OK) {
-                // Логируем данные для Serial Plotter
-                printf("RES:%d,V:%.2f,I:%.2f,P:%.2f\n",
-                      res, voltage, current, power);
-                
-                // Ищем максимальную мощность
-                if (power > max_power) {
-                    max_power = power;
-                    optimal_resistance = res;
-                }
-                
-                // Мигаем светодиодом
-                s_led_state = !s_led_state;
-                blink_led();
+    float max_power = 0;
+    uint8_t optimal_resistance = 0;
+
+    // Начинаем с максимального сопротивления
+    x9c103s_set_resistance(&pot, 99);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
+
+    for (int res = 99; res >= 0; res -= 10)
+    {
+        float voltage, current, power;
+
+        // Устанавливаем текущее сопротивление
+        x9c103s_set_resistance(&pot, res);
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+
+        // Читаем показания
+        if (ina226_read_values(&voltage, &current, &power) == ESP_OK)
+        {
+            // Логируем данные для Serial Plotter
+            printf("RES:%d,V:%.2f,I:%.2f,P:%.2f\n",
+                   res, voltage, current, power);
+
+            // Ищем максимальную мощность
+            if (power > max_power)
+            {
+                max_power = power;
+                optimal_resistance = res;
             }
-            vTaskDelay(500 / portTICK_PERIOD_MS);
+
+            // Мигаем светодиодом
+            s_led_state = !s_led_state;
+            blink_led();
         }
-        
-        // Устанавливаем оптимальное сопротивление
-        x9c103s_set_resistance(pot, optimal_resistance);
-        ESP_LOGI(TAG, "Optimal resistance: %d, Max power: %.2fW",
-                optimal_resistance, max_power);
+        vTaskDelay(500 / portTICK_PERIOD_MS);
     }
 
+    // Устанавливаем оптимальное сопротивление
+    x9c103s_set_resistance(&pot, optimal_resistance);
+    ESP_LOGI(TAG, "Optimal resistance: %d, Max power: %.2fW",
+             optimal_resistance, max_power);
+
     while (1) {
-        perform_measurements(&pot);
+        // Устанавливаем оптимальное сопротивление
+        x9c103s_set_resistance(&pot, optimal_resistance);
+        
+        float voltage, current, power;
+        if (ina226_read_values(&voltage, &current, &power) == ESP_OK) {
+            printf("OPTIMAL: R:%d, V:%.2f, I:%.2f, P:%.2f\n",
+                   optimal_resistance, voltage, current, power);
+        }
         vTaskDelay(2000 / portTICK_PERIOD_MS);
     }
 }
