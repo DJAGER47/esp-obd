@@ -4,6 +4,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+// Время преобразования INA226 в мс (из конфига регистра)
+#define INA226_CONVERSION_TIME_MS 1.1
+
 #define INA226_ADDR 0x40
 #define I2C_MASTER_SCL_IO 8
 #define I2C_MASTER_SDA_IO 10
@@ -22,7 +25,12 @@ static i2c_master_dev_handle_t dev_handle;
 
 static esp_err_t ina226_write_reg(uint8_t reg, uint16_t value) {
     uint8_t data[3] = {reg, (uint8_t)(value >> 8), (uint8_t)(value & 0xFF)};
+    ina226_wait_conversion();
     return i2c_master_transmit(dev_handle, data, sizeof(data), pdMS_TO_TICKS(1000));
+}
+
+void ina226_wait_conversion(void) {
+    vTaskDelay(pdMS_TO_TICKS(INA226_CONVERSION_TIME_MS));
 }
 
 static esp_err_t ina226_read_reg(uint8_t reg, uint16_t *value) {

@@ -57,6 +57,11 @@ esp_err_t ina226_init(const ina226_config_t *config);
  * }
  * @endcode
  */
+/**
+ * @brief Ожидание завершения преобразования INA226
+ */
+void ina226_wait_conversion(void);
+
 esp_err_t ina226_read_values(float *voltage, float *current, float *power);
 
 #endif
