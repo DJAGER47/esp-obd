@@ -52,128 +52,88 @@ void app_main(void)
 {
     ESP_LOGI(TAG, "Starting application");
 
-    /* Initialize INA226 with configuration */
+    ESP_LOGI(TAG, "Initializing INA226...");
     ina226_config_t ina_cfg = {
         .shunt_resistance = 0.1f, ///< Сопротивление шунта 0.1 Ом
         .max_current = 2.0f       ///< Максимальный ток 2A
     };
-
-    ESP_LOGI(TAG, "Initializing INA226...");
-    // Инициализация INA226 с повторными попытками
-    int retry_count = 0;
-    esp_err_t ret;
-    do {
-        ret = ina226_init(&ina_cfg);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "INA226 init failed (attempt %d): %s",
-                    retry_count + 1, esp_err_to_name(ret));
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-            retry_count++;
-        }
-    } while (ret != ESP_OK && retry_count < 3);
-
+    esp_err_t ret = ina226_init(&ina_cfg);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize INA226 after %d attempts", retry_count);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        esp_restart();
+        ESP_LOGE(TAG, "INA226 init failed",);
     }
-    ESP_LOGI(TAG, "INA226 initialized successfully after %d attempts", retry_count + 1);
+    ESP_LOGI(TAG, "INA226 initialized successfully");
 
-    /* Initialize X9C103S */
+
+
     ESP_LOGI(TAG, "Initializing X9C103S...");
     x9c103s_dev_t pot = {
         .cs_pin = X9C103S_CS_PIN,
         .ud_pin = X9C103S_UD_PIN,
         .inc_pin = X9C103S_INC_PIN
     };
-    // Инициализация X9C103S с повторными попытками
-    retry_count = 0;
-    do {
-        ret = x9c103s_init(&pot);
-        if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "X9C103S init failed (attempt %d): %s",
-                    retry_count + 1, esp_err_to_name(ret));
-            vTaskDelay(500 / portTICK_PERIOD_MS);
-            retry_count++;
-        }
-    } while (ret != ESP_OK && retry_count < 3);
-
+    ret = x9c103s_init(&pot);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to initialize X9C103S after %d attempts", retry_count);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-        esp_restart();
+        ESP_LOGE(TAG, "X9C103S init failed");
     }
-    ESP_LOGI(TAG, "X9C103S initialized successfully after %d attempts", retry_count + 1);
+    ESP_LOGI(TAG, "X9C103S initialized successfully");
 
-    /* Configure the peripheral according to the LED type */
+
     configure_led();
 
-    float max_power = 0;
-    uint8_t optimal_resistance = 99; // Начинаем с максимального сопротивления
+    //-----------------------------------------------------------------------
 
-    ESP_LOGI(TAG, "Starting resistance optimization...");
-    x9c103s_set_resistance(&pot, optimal_resistance);
-    vTaskDelay(100 / portTICK_PERIOD_MS);
+    // float max_power = 0;
+    // uint8_t optimal_resistance = 99; // Начинаем с максимального сопротивления
 
-    // Поиск оптимального сопротивления (шаг 10%)
-    for (int res = 99; res >= 0; res -= 10)
-    {
-        float voltage, current, power;
+    // ESP_LOGI(TAG, "Starting resistance optimization...");
+    // x9c103s_set_resistance(&pot, optimal_resistance);
+    // vTaskDelay(100 / portTICK_PERIOD_MS);
 
-        // Устанавливаем текущее сопротивление
-        x9c103s_set_resistance(&pot, res);
-        vTaskDelay(50 / portTICK_PERIOD_MS);
+    // // Поиск оптимального сопротивления (шаг 10%)
+    // for (int res = 99; res >= 0; res -= 10)
+    // {
+    //     float voltage, current, power;
 
-        // Читаем показания
-        if (ina226_read_values(&voltage, &current, &power) == ESP_OK)
-        {
-            // Логируем данные
-            ESP_LOGI(TAG, "Resistance: %d%%, V: %.2fV, I: %.2fA, P: %.2fW",
-                    res, voltage, current, power);
+    //     // Устанавливаем текущее сопротивление
+    //     x9c103s_set_resistance(&pot, res);
+    //     vTaskDelay(50 / portTICK_PERIOD_MS);
 
-            // Ищем максимальную мощность
-            if (power > max_power)
-            {
-                max_power = power;
-                optimal_resistance = res;
-            }
+    //     // Читаем показания
+    //     if (ina226_read_values(&voltage, &current, &power) == ESP_OK)
+    //     {
+    //         // Логируем данные
+    //         ESP_LOGI(TAG, "Resistance: %d%%, V: %.2fV, I: %.2fA, P: %.2fW",
+    //                 res, voltage, current, power);
 
-            // Мигаем светодиодом
-            s_led_state = !s_led_state;
-            blink_led();
-        }
-        vTaskDelay(500 / portTICK_PERIOD_MS);
-    }
+    //         // Ищем максимальную мощность
+    //         if (power > max_power)
+    //         {
+    //             max_power = power;
+    //             optimal_resistance = res;
+    //         }
 
-    // Устанавливаем оптимальное сопротивление
-    x9c103s_set_resistance(&pot, optimal_resistance);
-    ESP_LOGI(TAG, "Optimal resistance: %d%%, Max power: %.2fW",
-             optimal_resistance, max_power);
+    //         // Мигаем светодиодом
+    //         s_led_state = !s_led_state;
+    //         blink_led();
+    //     }
+    //     vTaskDelay(500 / portTICK_PERIOD_MS);
+    // }
+
+    // // Устанавливаем оптимальное сопротивление
+    // x9c103s_set_resistance(&pot, optimal_resistance);
+    // ESP_LOGI(TAG, "Optimal resistance: %d%%, Max power: %.2fW",
+    //          optimal_resistance, max_power);
 
     // Основной цикл работы
     while (1) {
         float voltage, current, power;
-        // Чтение значений с обработкой ошибок
-        retry_count = 0;
-        do {
-            ret = ina226_read_values(&voltage, &current, &power);
-            if (ret != ESP_OK) {
-                ESP_LOGE(TAG, "Read failed (attempt %d): %s",
-                        retry_count + 1, esp_err_to_name(ret));
-                vTaskDelay(100 / portTICK_PERIOD_MS);
-                retry_count++;
-                continue;
-            }
-            ESP_LOGI(TAG, "Current readings - V: %.2fV, I: %.2fA, P: %.2fW",
-                    voltage, current, power);
-            break;
-        } while (retry_count < 3);
-
+        ret = ina226_read_values(&voltage, &current, &power);
         if (ret != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to read values after %d attempts", retry_count);
+            ESP_LOGE(TAG, "Read failed");
+            continue;
         }
+        ESP_LOGI(TAG, "Current readings - V: %.2fV, I: %.2fA, P: %.2fW", voltage, current, power);
         
-        // Мигаем светодиодом
         s_led_state = !s_led_state;
         blink_led();
         vTaskDelay(2000 / portTICK_PERIOD_MS);
