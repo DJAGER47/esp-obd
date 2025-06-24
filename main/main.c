@@ -59,7 +59,7 @@ void app_main(void)
     };
     esp_err_t ret = ina226_init(&ina_cfg);
     if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "INA226 init failed",);
+        ESP_LOGE(TAG, "INA226 init failed");
     }
     ESP_LOGI(TAG, "INA226 initialized successfully");
 
