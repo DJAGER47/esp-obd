@@ -35,7 +35,7 @@ typedef struct {
  *
  * @note Перед использованием необходимо настроить I2C интерфейс
  */
-esp_err_t ina226_init(const ina226_config_t *config);
+void ina226_init(const ina226_config_t *config);
 
 /**
  * @brief Чтение измеренных значений с датчика
@@ -57,11 +57,6 @@ esp_err_t ina226_init(const ina226_config_t *config);
  * }
  * @endcode
  */
-/**
- * @brief Ожидание завершения преобразования INA226
- */
-void ina226_wait_conversion(void);
-
 esp_err_t ina226_read_values(float *voltage, float *current, float *power);
 
 #endif

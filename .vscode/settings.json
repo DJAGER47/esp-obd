@@ -1,6 +1,6 @@
 {
   "C_Cpp.intelliSenseEngine": "default",
-  "idf.espIdfPath": "/home/plavrovskiy/esp/v5.4.1/esp-idf",
+  "idf.espIdfPath": "/home/plavrovskiy/esp/v5.5/esp-idf",
   "idf.toolsPath": "/home/plavrovskiy/.espressif",
   "idf.pythonInstallPath": "/usr/bin/python",
   "idf.openOcdConfigs": [
@@ -16,5 +16,11 @@
   "files.associations": {
     "numeric": "c",
     "x9c103s.h": "c"
-  }
+  },
+  "clangd.path": "/home/plavrovskiy/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
+  "clangd.arguments": [
+    "--background-index",
+    "--query-driver=/home/plavrovskiy/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-gcc",
+    "--compile-commands-dir=/home/plavrovskiy/esp_prj/blink/build"
+  ]
 }

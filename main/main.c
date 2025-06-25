@@ -57,10 +57,7 @@ void app_main(void)
         .shunt_resistance = 0.1f, ///< Сопротивление шунта 0.1 Ом
         .max_current = 2.0f       ///< Максимальный ток 2A
     };
-    esp_err_t ret = ina226_init(&ina_cfg);
-    if (ret != ESP_OK) {
-        ESP_LOGE(TAG, "INA226 init failed");
-    }
+    ina226_init(&ina_cfg);
     ESP_LOGI(TAG, "INA226 initialized successfully");
 
 
@@ -71,7 +68,7 @@ void app_main(void)
         .ud_pin = X9C103S_UD_PIN,
         .inc_pin = X9C103S_INC_PIN
     };
-    ret = x9c103s_init(&pot);
+    esp_err_t ret = x9c103s_init(&pot);
     if (ret != ESP_OK) {
         ESP_LOGE(TAG, "X9C103S init failed");
     }
@@ -136,6 +133,6 @@ void app_main(void)
         
         s_led_state = !s_led_state;
         blink_led();
-        vTaskDelay(2000 / portTICK_PERIOD_MS);
+        vTaskDelay(10000 / portTICK_PERIOD_MS);
     }
 }
