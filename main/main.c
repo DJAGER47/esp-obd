@@ -1,31 +1,17 @@
-/**
- * @file main.c
- * @brief Основной файл примера работы с INA226 и X9C103S
- *
- * Содержит инициализацию периферии и основной цикл работы:
- * - Мониторинг напряжения/тока через INA226
- * - Управление цифровым потенциометром X9C103S
- * - Управление светодиодом
- */
-
 #include <stdio.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
 #include "sdkconfig.h"
+#include "io.h"
 #include "ina226.h"
 #include "x9c103s.h"
 
-static const char *TAG = "example"; ///< Тег для логов
+static const char *TAG = "MAIN";
 
-/// Конфигурация X9C103S
-#define X9C103S_CS_PIN  7  ///< GPIO для выбора чипа
-#define X9C103S_UD_PIN  6  ///< GPIO для направления изменения
-#define X9C103S_INC_PIN 9  ///< GPIO для шага изменения
 
-/// GPIO для светодиода (настраивается в menuconfig)
-#define LED_GPIO CONFIG_BLINK_GPIO
 static uint8_t s_led_state = 0; ///< Текущее состояние светодиода
 
 /**
@@ -129,10 +115,10 @@ void app_main(void)
             ESP_LOGE(TAG, "Read failed");
             continue;
         }
-        ESP_LOGI(TAG, "Current readings - V: %.2fV, I: %.2fA, P: %.2fW", voltage, current, power);
+        printf("Current readings - V: %.2fV, I: %.2fA, P: %.2fW\n\r", voltage, current, power);
         
         s_led_state = !s_led_state;
         blink_led();
-        vTaskDelay(10000 / portTICK_PERIOD_MS);
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
 }

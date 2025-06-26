@@ -1,3 +1,4 @@
+#include "io.h"
 #include "ina226.h"
 #include "driver/i2c_master.h"
 #include "esp_log.h"
@@ -5,13 +6,8 @@
 #include "freertos/task.h"
 
 #define INA226_ADDR 0x40
-#define I2C_MASTER_SCL_IO 8
-#define I2C_MASTER_SDA_IO 10
-#define I2C_MASTER_FREQ_HZ 100000
 
-static const char *TAG = "INA226";
-static i2c_master_dev_handle_t dev_handle;
-static i2c_master_bus_handle_t bus_handle;
+#define I2C_MASTER_FREQ_HZ 100000
 
 // Регистры INA226 (остаются теми же)
 #define INA226_REG_CONFIG     0x00
@@ -21,6 +17,23 @@ static i2c_master_bus_handle_t bus_handle;
 #define INA226_REG_CURRENT    0x04
 #define INA226_REG_CALIB      0x05
 
+static const char *TAG = "INA226";
+static i2c_master_dev_handle_t dev_handle;
+static i2c_master_bus_handle_t bus_handle;
+static i2c_master_bus_config_t i2c_bus_config = {
+        .clk_source = I2C_CLK_SRC_DEFAULT,
+        .i2c_port = I2C_NUM_0,
+        .scl_io_num = I2C_MASTER_SCL_IO,
+        .sda_io_num = I2C_MASTER_SDA_IO,
+        .glitch_ignore_cnt = 7,
+        .flags.enable_internal_pullup = true
+    };
+static i2c_device_config_t dev_cfg = {
+        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
+        .device_address = INA226_ADDR,
+        .scl_speed_hz = I2C_MASTER_FREQ_HZ
+    };
+
 static esp_err_t ina226_write_reg(uint8_t reg, uint16_t value) {
     if (dev_handle == NULL) {
         ESP_LOGE(TAG, "Device handle is NULL");
@@ -28,7 +41,7 @@ static esp_err_t ina226_write_reg(uint8_t reg, uint16_t value) {
     }
     
     uint8_t data[3] = {reg, (uint8_t)(value >> 8), (uint8_t)(value & 0xFF)};
-    esp_err_t err = i2c_master_transmit(dev_handle, data, sizeof(data), -1); // pdMS_TO_TICKS(1000));
+    esp_err_t err = i2c_master_transmit(dev_handle, data, sizeof(data), pdMS_TO_TICKS(1000));
     if (err == ESP_ERR_INVALID_STATE) {
         ESP_LOGE(TAG, "I2C bus in invalid state, try reinitializing");
     }
@@ -47,7 +60,7 @@ static esp_err_t ina226_read_reg(uint8_t reg, uint16_t *value) {
     esp_err_t err = i2c_master_transmit_receive(dev_handle,
                                         &write_data, 1,
                                         read_data, 2,
-                                        -1);
+                                        pdMS_TO_TICKS(1000));
     if (err == ESP_OK) {
         *value = (read_data[0] << 8) | read_data[1];
     } else if (err == ESP_ERR_INVALID_STATE) {
@@ -57,22 +70,7 @@ static esp_err_t ina226_read_reg(uint8_t reg, uint16_t *value) {
 }
 
 void ina226_init(const ina226_config_t *config) {
-    // Настройка I2C master
-    i2c_master_bus_config_t i2c_bus_config = {
-        .clk_source = I2C_CLK_SRC_DEFAULT,
-        .i2c_port = I2C_NUM_0,
-        .scl_io_num = I2C_MASTER_SCL_IO,
-        .sda_io_num = I2C_MASTER_SDA_IO,
-        .glitch_ignore_cnt = 7,
-        .flags.enable_internal_pullup = true
-    };
     ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_config, &bus_handle));
-
-    i2c_device_config_t dev_cfg = {
-        .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = INA226_ADDR,
-        .scl_speed_hz = I2C_MASTER_FREQ_HZ
-    };
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
 
     // Вывод всех регистров INA226 в 16-ричном формате
@@ -104,6 +102,8 @@ void ina226_init(const ina226_config_t *config) {
     ESP_ERROR_CHECK(ina226_write_reg(INA226_REG_CALIB, cal));
     
     ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
+    // ESP_ERROR_CHECK(i2c_master_bus_rm_device(dev_handle));
+    // ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
 
     // while(1) {
     //     uint16_t bus_voltage;
@@ -116,10 +116,8 @@ void ina226_init(const ina226_config_t *config) {
 }
 
 esp_err_t ina226_read_values(float *voltage, float *current, float *power) {
-    if (voltage == NULL || current == NULL || power == NULL) {
-        ESP_LOGE(TAG, "%s", "Invalid arguments in ina226_read_values");
-        return ESP_ERR_INVALID_ARG;
-    }
+    // ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_config, &bus_handle));
+    // ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
 
     uint16_t bus_voltage, shunt_voltage, current_raw, power_raw;
     esp_err_t err;
@@ -128,34 +126,33 @@ esp_err_t ina226_read_values(float *voltage, float *current, float *power) {
     err = ina226_read_reg(INA226_REG_BUS_VOLT, &bus_voltage);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read BUS_VOLT", esp_err_to_name(err));
-        return err;
     }
     
     // Чтение напряжения на шунте
     err = ina226_read_reg(INA226_REG_SHUNT_VOLT, &shunt_voltage);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read SHUNT_VOLT", esp_err_to_name(err));
-        return err;
     }
     
     // Чтение тока
     err = ina226_read_reg(INA226_REG_CURRENT, &current_raw);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read CURRENT", esp_err_to_name(err));
-        return err;
     }
     
     // Чтение мощности
     err = ina226_read_reg(INA226_REG_POWER, &power_raw);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read POWER", esp_err_to_name(err));
-        return err;
     }
 
     // Конвертация в физические величины
     *voltage = bus_voltage * 0.00125f; // 1.25mV на бит
     *current = current_raw * 0.001f;   // 1mA на бит (зависит от калибровки)
     *power = power_raw * 0.025f;       // 25mW на бит
+
+    // ESP_ERROR_CHECK(i2c_master_bus_rm_device(dev_handle));
+    // ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
     
     return ESP_OK;
 }
