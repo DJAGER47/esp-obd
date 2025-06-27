@@ -40,8 +40,8 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Initializing INA226...");
     ina226_config_t ina_cfg = {
-        .shunt_resistance = 0.1f, ///< Сопротивление шунта 0.1 Ом
-        .max_current = 2.0f       ///< Максимальный ток 2A
+        .shunt_resistance = 100, ///< Сопротивление шунта 100 мл.Ом
+        .max_current = 2       ///< Максимальный ток 2A
     };
     ina226_init(&ina_cfg);
     ESP_LOGI(TAG, "INA226 initialized successfully");
@@ -115,7 +115,7 @@ void app_main(void)
             ESP_LOGE(TAG, "Read failed");
             continue;
         }
-        printf("Current readings - V: %.2fV, I: %.2fA, P: %.2fW\n\r", voltage, current, power);
+        // printf("Current readings - V: %.2fV, I: %.2fA, P: %.2fW\n\r", voltage, current, power);
         
         s_led_state = !s_led_state;
         blink_led();

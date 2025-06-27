@@ -6,10 +6,9 @@
 #include "freertos/task.h"
 
 #define INA226_ADDR 0x40
-
 #define I2C_MASTER_FREQ_HZ 100000
 
-// Регистры INA226 (остаются теми же)
+// Регистры INA226
 #define INA226_REG_CONFIG     0x00
 #define INA226_REG_SHUNT_VOLT 0x01
 #define INA226_REG_BUS_VOLT   0x02
@@ -97,62 +96,52 @@ void ina226_init(const ina226_config_t *config) {
     uint16_t cfg = 0x4127; // 16 samples avg, 1.1ms conversion time
     ESP_ERROR_CHECK(ina226_write_reg(INA226_REG_CONFIG, cfg));
     
-    float current_lsb = config->max_current / 32768.0;
-    uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
+    // float current_lsb = config->max_current / 32768.0;
+    // uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
+    uint16_t cal = (uint16_t)(167772 / (config->max_current * config->shunt_resistance));
     ESP_ERROR_CHECK(ina226_write_reg(INA226_REG_CALIB, cal));
     
     ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
-    // ESP_ERROR_CHECK(i2c_master_bus_rm_device(dev_handle));
-    // ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
-
-    // while(1) {
-    //     uint16_t bus_voltage;
-    //     esp_err_t err = ina226_read_reg(INA226_REG_BUS_VOLT, &bus_voltage);
-    //     if (err == ESP_OK) {
-    //         float voltage = bus_voltage * 0.00125f; // 1.25mV на бит
-    //         ESP_LOGI(TAG, "Current readings - V: %.2fV", voltage);
-    //     }
-    // }
 }
 
 esp_err_t ina226_read_values(float *voltage, float *current, float *power) {
-    // ESP_ERROR_CHECK(i2c_new_master_bus(&i2c_bus_config, &bus_handle));
-    // ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &dev_cfg, &dev_handle));
-
-    uint16_t bus_voltage, shunt_voltage, current_raw, power_raw;
+    uint16_t bus_voltage, power_raw;
+    int16_t shunt_voltage, current_raw;
     esp_err_t err;
     
+    // Чтение напряжения на шунте
+    err = ina226_read_reg(INA226_REG_SHUNT_VOLT, (uint16_t*)&shunt_voltage);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "%s: %s", "Failed to read SHUNT_VOLT", esp_err_to_name(err));
+    }
+
     // Чтение напряжения на шине
     err = ina226_read_reg(INA226_REG_BUS_VOLT, &bus_voltage);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read BUS_VOLT", esp_err_to_name(err));
     }
     
-    // Чтение напряжения на шунте
-    err = ina226_read_reg(INA226_REG_SHUNT_VOLT, &shunt_voltage);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "%s: %s", "Failed to read SHUNT_VOLT", esp_err_to_name(err));
-    }
-    
     // Чтение тока
-    err = ina226_read_reg(INA226_REG_CURRENT, &current_raw);
+    err = ina226_read_reg(INA226_REG_CURRENT, (uint16_t*)&current_raw);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read CURRENT", esp_err_to_name(err));
     }
-    
+
     // Чтение мощности
     err = ina226_read_reg(INA226_REG_POWER, &power_raw);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "%s: %s", "Failed to read POWER", esp_err_to_name(err));
     }
+    
 
     // Конвертация в физические величины
+    float shunt = shunt_voltage * 0.0000025f; // 2.5 µV
     *voltage = bus_voltage * 0.00125f; // 1.25mV на бит
     *current = current_raw * 0.001f;   // 1mA на бит (зависит от калибровки)
     *power = power_raw * 0.025f;       // 25mW на бит
 
-    // ESP_ERROR_CHECK(i2c_master_bus_rm_device(dev_handle));
-    // ESP_ERROR_CHECK(i2c_del_master_bus(bus_handle));
-    
+
+    printf("Current readings - Shunt: %.6fV V: %.2fV, I: %.2fA, P: %.2fW\n\r", shunt, *voltage, *current, *power);
+
     return ESP_OK;
 }
