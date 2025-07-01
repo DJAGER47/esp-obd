@@ -2,6 +2,7 @@
 #define INA226_H
 
 #include <stdint.h>
+
 #include "esp_err.h"
 
 /**
@@ -11,8 +12,8 @@
  * (температурным коэффициентом сопротивления)
  */
 typedef struct {
-    float shunt_resistance;  ///< Сопротивление шунта в Ом
-    uint8_t max_current;       ///< Максимальный измеряемый ток в Амперах
+  float shunt_resistance;  ///< Сопротивление шунта в Ом
+  uint8_t max_current;     ///< Максимальный измеряемый ток в Амперах
 } ina226_config_t;
 
 /**
