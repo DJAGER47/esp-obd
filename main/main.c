@@ -40,8 +40,8 @@ void app_main(void)
 
     ESP_LOGI(TAG, "Initializing INA226...");
     ina226_config_t ina_cfg = {
-        .shunt_resistance = 100, ///< Сопротивление шунта 100 мл.Ом
-        .max_current = 2       ///< Максимальный ток 2A
+        .shunt_resistance = 0.1f, ///< Сопротивление шунта 100 мл.Ом
+        .max_current = 1          ///< Максимальный ток
     };
     ina226_init(&ina_cfg);
     ESP_LOGI(TAG, "INA226 initialized successfully");

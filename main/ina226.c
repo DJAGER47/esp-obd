@@ -15,10 +15,13 @@
 #define INA226_REG_POWER      0x03
 #define INA226_REG_CURRENT    0x04
 #define INA226_REG_CALIB      0x05
+#define INA226_REG_ManufID    0xFE
 
 static const char *TAG = "INA226";
 static i2c_master_dev_handle_t dev_handle;
 static i2c_master_bus_handle_t bus_handle;
+static float current_lsb = 0;
+
 static i2c_master_bus_config_t i2c_bus_config = {
         .clk_source = I2C_CLK_SRC_DEFAULT,
         .i2c_port = I2C_NUM_0,
@@ -77,9 +80,9 @@ void ina226_init(const ina226_config_t *config) {
     uint16_t reg_value;
     const uint8_t regs[] = {INA226_REG_CONFIG, INA226_REG_SHUNT_VOLT,
                             INA226_REG_BUS_VOLT, INA226_REG_POWER,
-                            INA226_REG_CURRENT, INA226_REG_CALIB};
+                            INA226_REG_CURRENT, INA226_REG_CALIB, INA226_REG_ManufID};
     const char *reg_names[] = {"CONFIG", "SHUNT_VOLT", "BUS_VOLT",
-                              "POWER", "CURRENT", "CALIB"};
+                              "POWER", "CURRENT", "CALIB", "MANUFID"};
     
     for (int i = 0; i < sizeof(regs)/sizeof(regs[0]); i++) {
         esp_err_t err = ina226_read_reg(regs[i], &reg_value);
@@ -93,14 +96,14 @@ void ina226_init(const ina226_config_t *config) {
 
     
     // Остальная часть инициализации остается прежней
-    uint16_t cfg = 0x4127; // 16 samples avg, 1.1ms conversion time
+    uint16_t cfg = 0x4327; // 16 samples avg, 1.1ms conversion time
     ESP_ERROR_CHECK(ina226_write_reg(INA226_REG_CONFIG, cfg));
-    
-    // float current_lsb = config->max_current / 32768.0;
-    // uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
-    uint16_t cal = (uint16_t)(167772 / (config->max_current * config->shunt_resistance));
+
+    current_lsb = config->max_current / 32768.0;
+    uint16_t cal = (uint16_t)(0.00512 / (current_lsb * config->shunt_resistance));
     ESP_ERROR_CHECK(ina226_write_reg(INA226_REG_CALIB, cal));
     
+    ESP_LOGI(TAG, "cfg 0x%04X | cal 0x%04X", cfg, cal);
     ESP_LOGI(TAG, "INA226 initialized with new I2C driver");
 }
 
@@ -135,13 +138,13 @@ esp_err_t ina226_read_values(float *voltage, float *current, float *power) {
     
 
     // Конвертация в физические величины
-    float shunt = shunt_voltage * 0.0000025f; // 2.5 µV
-    *voltage = bus_voltage * 0.00125f; // 1.25mV на бит
-    *current = current_raw * 0.001f;   // 1mA на бит (зависит от калибровки)
-    *power = power_raw * 0.025f;       // 25mW на бит
+    float shunt = shunt_voltage * 0.0000025f; // 2.5 µV на бит
+    *voltage = bus_voltage * 0.00125f;        // 1.25 mV на бит
+    *current = current_raw * current_lsb;
+    *power = power_raw * current_lsb * 25.0f;
 
 
-    printf("Current readings - Shunt: %.6fV V: %.2fV, I: %.2fA, P: %.2fW\n\r", shunt, *voltage, *current, *power);
+    printf("Current readings - Shunt: %.6fV V: %.2fV, I: %.3fA, P: %.3fW\n\r", shunt, *voltage, *current, *power);
 
     return ESP_OK;
 }

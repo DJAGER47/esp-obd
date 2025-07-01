@@ -11,18 +11,9 @@
  * (температурным коэффициентом сопротивления)
  */
 typedef struct {
-    uint8_t shunt_resistance;  ///< Сопротивление шунта в мл.Ом
+    float shunt_resistance;  ///< Сопротивление шунта в Ом
     uint8_t max_current;       ///< Максимальный измеряемый ток в Амперах
 } ina226_config_t;
-
-/**
- * @example
- * // Пример конфигурации для шунта 0.1 Ом и максимального тока 2А
- * ina226_config_t config = {
- *     .shunt_resistance = 0.1f,
- *     .max_current = 2.0f
- * };
- */
 
 /**
  * @brief Инициализация датчика INA226
