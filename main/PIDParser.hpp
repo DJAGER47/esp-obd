@@ -71,7 +71,7 @@ class PIDParser {
   // Парсинг PID 0x2F - Fuel Tank Level Input
   float parseFuelConsumption(const twai_message_t& message) {
     // Используем стандартную формулу из OBD2
-    float level    = OBD2::PidCalculator::calculateFuelLevel(message.data[0]);
+    float level    = OBD2::PidCalculator::calculateFuelLevel(&message.data[0]);
     float fuelUsed = fuelCalc_.getTankCapacity() * (level / 100.0f);
     fuelCalc_.updateTotals(fuelUsed, 0);
     return fuelUsed;

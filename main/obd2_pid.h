@@ -57,8 +57,6 @@ enum class PID : uint8_t {
  * Источник: https://en.wikipedia.org/wiki/OBD-II_PIDs
  */
 class PidCalculator {
-  using OBD2;
-
  public:
   // Расчет оборотов двигателя (PID 0x0C) - использует байты A и B (3 и 4)
   static float calculateRpm(const uint8_t* data) {
