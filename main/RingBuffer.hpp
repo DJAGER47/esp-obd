@@ -8,12 +8,12 @@ class RingBuffer {
       head(0),
       tail(0) {}
 
-  bool push(const T& item) {
+  bool push(const T* item) {
     size_t next_head = (head + 1) % Size;
     if (next_head == tail)
       return false;  // буфер полон
 
-    buffer[head] = item;
+    buffer[head] = *item;
     head         = next_head;
     return true;
   }
