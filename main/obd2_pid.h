@@ -9,11 +9,14 @@
  */
 namespace OBD2 {
 
-static const uint8_t A = 3;
-static const uint8_t B = 4;
-static const uint8_t C = 5;
-static const uint8_t D = 6;
-static const uint8_t E = 7;
+static const uint8_t LEN  = 0;
+static const uint8_t MODE = 1;
+static const uint8_t PID  = 2;
+static const uint8_t A    = 3;
+static const uint8_t B    = 4;
+static const uint8_t C    = 5;
+static const uint8_t D    = 6;
+static const uint8_t E    = 7;
 
 // Режимы работы
 enum class Mode : uint8_t {
