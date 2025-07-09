@@ -1,6 +1,6 @@
 #pragma once
 
-#include <gpio_num.h>
+#include "driver/gpio.h"
 
 // 0	GPIO0	ADC1
 // 1	GPIO1	ADC1
@@ -18,4 +18,4 @@
 
 // GPIO_NUM_5
 
-#define LED_GPIO CONFIG_BLINK_GPIO  ///< LED 8
+#define LED_GPIO GPIO_NUM_8  ///< GPIO8 для светодиода
