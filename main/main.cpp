@@ -82,23 +82,23 @@ class CANDriver {
       twai_message_t message;
       if (self->rx_buffer.pop(&message)) {
         if (message.identifier == OBD2_CAN_ID) {
-          // Определяем PID (первый байт данных)
-          uint32_t pid = message.data[0];
-          float value  = self->pid_parser.parsePID(pid, message);
+          // Проверяем длину данных
+          if (message.data_length_code < 2) {
+            ESP_LOGE(
+                TAG, "Invalid message length: %d", message.data_length_code);
+            continue;
+          }
 
-          ESP_LOGI(TAG,
-                   "PID: 0x%X, Value: %.2f, Data: %02X %02X %02X %02X %02X "
-                   "%02X %02X %02X",
-                   pid,
-                   value,
-                   message.data[0],
-                   message.data[1],
-                   message.data[2],
-                   message.data[3],
-                   message.data[4],
-                   message.data[5],
-                   message.data[6],
-                   message.data[7]);
+          // Определяем PID из первого байта данных
+          OBD2::PID pid = static_cast<OBD2::PID>(message.data[0]);
+          float value   = self->pid_parser.parsePID(pid, message);
+
+          if (value > 0) {
+            ESP_LOGI(TAG,
+                     "PID: 0x%02X, Value: %.2f",
+                     static_cast<uint8_t>(pid),
+                     value);
+          }
         }
         vTaskDelay(pdMS_TO_TICKS(10));
       }
