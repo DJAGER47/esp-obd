@@ -54,11 +54,43 @@ void can_init() {
   ESP_LOGI(TAG, "TWAI driver initialized successfully");
 }
 
-void can_receive_task(void *arg) {
+// Обработчик прерываний для CAN сообщений
+static void IRAM_ATTR can_isr_handler(void *arg) {
   twai_message_t message;
+  while (twai_receive(&message, 0) == ESP_OK) {
+    uint8_t next_head = (can_rx_head + 1) % CAN_RX_BUFFER_SIZE;
+    if (next_head != can_rx_tail) {
+      can_rx_buffer[can_rx_head] = message;
+      can_rx_head                = next_head;
+    }
+  }
+}
+
+void can_receive_task(void *arg) {
+  // Регистрация обработчика прерываний
+  twai_reconfigure_alerts(TWAI_ALERT_RX_DATA, NULL);
+  twai_register_alerts_callback(can_isr_handler, NULL);
+
   while (1) {
-    // Получение сообщений из очереди
-    if (twai_receive(&message, pdMS_TO_TICKS(100)) == ESP_OK) {
+    // Обработка сообщений из буфера
+    if (can_rx_tail != can_rx_head) {
+      twai_message_t message = can_rx_buffer[can_rx_tail];
+      can_rx_tail            = (can_rx_tail + 1) % CAN_RX_BUFFER_SIZE;
+
+      // Логирование полученного сообщения
+      ESP_LOGI(TAG,
+               "Received: ID: 0x%X, DLC: %d, Data: %02X %02X %02X %02X %02X "
+               "%02X %02X %02X",
+               message.identifier,
+               message.data_length_code,
+               message.data[0],
+               message.data[1],
+               message.data[2],
+               message.data[3],
+               message.data[4],
+               message.data[5],
+               message.data[6],
+               message.data[7]);
       ESP_LOGI(TAG,
                "Received: ID: 0x%X, DLC: %d, Data: %02X %02X %02X %02X %02X "
                "%02X %02X %02X",

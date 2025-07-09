@@ -1,5 +1,7 @@
 #pragma once
 
+#include <gpio_num.h>
+
 // 0	GPIO0	ADC1
 // 1	GPIO1	ADC1
 // 2	GPIO2	ADC1, boot mode / strapping pin
@@ -13,5 +15,7 @@
 // 10	GPIO10
 // 20	GPIO20
 // 21	GPIO21
+
+// GPIO_NUM_5
 
 #define LED_GPIO CONFIG_BLINK_GPIO  ///< LED 8
