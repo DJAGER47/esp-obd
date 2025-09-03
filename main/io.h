@@ -18,4 +18,6 @@
 
 // GPIO_NUM_5
 
-#define LED_GPIO GPIO_NUM_8  ///< GPIO8 для светодиода
+#define LED_GPIO   GPIO_NUM_8   // GPIO8 для светодиода
+#define CAN_TX_PIN GPIO_NUM_20  // GPIO20 для CAN TX
+#define CAN_RX_PIN GPIO_NUM_21  // GPIO21 для CAN RX
