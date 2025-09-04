@@ -59,7 +59,7 @@ extern "C" void app_main() {
 
     // Пример использования OBD2 для запроса RPM двигателя
     // obd.queryPID(0x01, 0x0C);  // Сервис 01, PID 0C (RPM)
-    // float rpm = obd.rpm();
+    // double rpm = obd.rpm();
     // ESP_LOGI(TAG, "Engine RPM: %.2f", rpm);
 
     vTaskDelay(1000 / portTICK_PERIOD_MS);

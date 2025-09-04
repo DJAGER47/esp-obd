@@ -1,6 +1,4 @@
-#ifndef _ISOTP_H
-#define _ISOTP_H
-
+#pragma once
 #include "twai_errors.h"
 #include "twai_interface.h"
 
@@ -86,5 +84,3 @@ class IsoTp {
   void log_print(const char *format, ...);
   void log_print_buffer(uint32_t id, uint8_t *buffer, uint16_t len);
 };
-
-#endif

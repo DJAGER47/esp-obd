@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "esp_log.h"
 #include "obd2.h"
 
 /*  Find distance traveled with malfunction
@@ -20,19 +19,19 @@ uint16_t OBD2::distTravelWithMIL() {
 /*  Find fuel Rail Pressure (relative to manifold
 vacuum) in kPa Return:
  -------
-  * float - Fuel Rail Pressure (relative to manifold vacuum) in kPa
+  * double - Fuel Rail Pressure (relative to manifold vacuum) in kPa
 */
-float OBD2::fuelRailPressure() {
+double OBD2::fuelRailPressure() {
   return processPID(SERVICE_01, FUEL_RAIL_PRESSURE, 1, 2, 0.079);
 }
 
 /*  Find fuel Rail Gauge Pressure (diesel,
 or gasoline direct injection) in kPa Return:
  -------
-  * float - Fuel Rail Gauge Pressure (diesel, or gasoline direct injection) in
+  * double - Fuel Rail Gauge Pressure (diesel, or gasoline direct injection) in
  kPa
 */
-float OBD2::fuelRailGuagePressure() {
+double OBD2::fuelRailGuagePressure() {
   return processPID(SERVICE_01, FUEL_RAIL_GUAGE_PRESSURE, 1, 2, 10.0);
 }
 
@@ -50,24 +49,24 @@ constexpr uint8_t OXYGEN_SENSOR_8_B             = 43;  // 0x2B - ratio V
 /*  Find commanded Exhaust Gas Recirculation (EGR) in
 % Return:
  -------
-  * float - Commanded Exhaust Gas Recirculation (EGR) in %*/
-float OBD2::commandedEGR() {
+  * double - Commanded Exhaust Gas Recirculation (EGR) in %*/
+double OBD2::commandedEGR() {
   return processPID(SERVICE_01, COMMANDED_EGR, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find Exhaust Gas Recirculation (EGR) error in %
 Return:
  -------
-  * float - Exhaust Gas Recirculation (EGR) error in %*/
-float OBD2::egrError() {
+  * double - Exhaust Gas Recirculation (EGR) error in %*/
+double OBD2::egrError() {
   return processPID(SERVICE_01, EGR_ERROR, 1, 1, 100.0 / 128.0, -100);
 }
 
 /*  Find commanded evaporative purge in %
 Return:
  -------
-  * float - Commanded evaporative purge in %*/
-float OBD2::commandedEvapPurge() {
+  * double - Commanded evaporative purge in %*/
+double OBD2::commandedEvapPurge() {
   return processPID(
       SERVICE_01, COMMANDED_EVAPORATIVE_PURGE, 1, 1, 100.0 / 255.0);
 }
@@ -75,8 +74,8 @@ float OBD2::commandedEvapPurge() {
 /*  Find fuel tank level input in %
 Return:
  -------
-  * float - Fuel tank level input in %*/
-float OBD2::fuelLevel() {
+  * double - Fuel tank level input in %*/
+double OBD2::fuelLevel() {
   return processPID(SERVICE_01, FUEL_TANK_LEVEL_INPUT, 1, 1, 100.0 / 255.0);
 }
 
@@ -101,9 +100,9 @@ uint16_t OBD2::distSinceCodesCleared() {
 /*  Find evap. system vapor pressure in Pa
 Return:
  -------
-  * float - Evap. system vapor pressure in Pa
+  * double - Evap. system vapor pressure in Pa
 */
-float OBD2::evapSysVapPressure() {
+double OBD2::evapSysVapPressure() {
   return processPID(SERVICE_01, EVAP_SYSTEM_VAPOR_PRESSURE, 1, 2, 1.0 / 4.0);
 }
 
@@ -128,25 +127,25 @@ constexpr uint8_t OXYGEN_SENSOR_8_C             = 59;  // 0x3B - ratio mA
 */
 
 //  Find catalyst temperature in C
-float OBD2::catTempB1S1() {
+double OBD2::catTempB1S1() {
   return processPID(
       SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_1, 1, 2, 1.0 / 10.0, -40.0);
 }
 
 //  Find catalyst temperature in C
-float OBD2::catTempB2S1() {
+double OBD2::catTempB2S1() {
   return processPID(
       SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, 1, 2, 1.0 / 10.0, -40.0);
 }
 
 //  Find catalyst temperature in C
-float OBD2::catTempB1S2() {
+double OBD2::catTempB1S2() {
   return processPID(
       SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, 1, 2, 1.0 / 10.0, -40.0);
 }
 
 //  Find catalyst temperature in C
-float OBD2::catTempB2S2() {
+double OBD2::catTempB2S2() {
   return processPID(
       SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, 1, 2, 1.0 / 10.0, -40.0);
 }

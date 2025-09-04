@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "esp_log.h"
 #include "obd2.h"
 
 /*  Find status this drive cycle
@@ -21,26 +20,26 @@ uint32_t OBD2::monitorDriveCycleStatus() {
 /*  Find control module voltage in V
 Return:
  -------
-  * float - Control module voltage in V
+  * double - Control module voltage in V
 */
-float OBD2::ctrlModVoltage() {
+double OBD2::ctrlModVoltage() {
   return processPID(SERVICE_01, CONTROL_MODULE_VOLTAGE, 1, 2, 1.0 / 1000.0);
 }
 
 /*  Find absolute load value in %
 Return:
  -------
-  * float - Absolute load value in %*/
-float OBD2::absLoad() {
+  * double - Absolute load value in %*/
+double OBD2::absLoad() {
   return processPID(SERVICE_01, ABS_LOAD_VALUE, 1, 2, 100.0 / 255.0);
 }
 
 /*  Find commanded air-fuel equivalence
 ratio Return:
  -------
-  * float - Commanded air-fuel equivalence ratio
+  * double - Commanded air-fuel equivalence ratio
 */
-float OBD2::commandedAirFuelRatio() {
+double OBD2::commandedAirFuelRatio() {
   return processPID(
       SERVICE_01, FUEL_AIR_COMMANDED_EQUIV_RATIO, 1, 2, 2.0 / 65536.0);
 }
@@ -48,8 +47,8 @@ float OBD2::commandedAirFuelRatio() {
 /*  Find relative throttle position in %
 Return:
  -------
-  * float - Relative throttle position in %*/
-float OBD2::relativeThrottle() {
+  * double - Relative throttle position in %*/
+double OBD2::relativeThrottle() {
   return processPID(
       SERVICE_01, RELATIVE_THROTTLE_POSITION, 1, 1, 100.0 / 255.0);
 }
@@ -57,57 +56,57 @@ float OBD2::relativeThrottle() {
 /*  Find ambient air temperature in C
 Return:
  -------
-  * float - Ambient air temperature in C
+  * double - Ambient air temperature in C
 */
-float OBD2::ambientAirTemp() {
+double OBD2::ambientAirTemp() {
   return processPID(SERVICE_01, AMBIENT_AIR_TEMP, 1, 1, 1, -40);
 }
 
 /*  Find absolute throttle position B in %
 Return:
  -------
-  * float - Absolute throttle position B in %*/
-float OBD2::absThrottlePosB() {
+  * double - Absolute throttle position B in %*/
+double OBD2::absThrottlePosB() {
   return processPID(SERVICE_01, ABS_THROTTLE_POSITION_B, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find absolute throttle position C in %
 Return:
  -------
-  * float - Absolute throttle position C in %*/
-float OBD2::absThrottlePosC() {
+  * double - Absolute throttle position C in %*/
+double OBD2::absThrottlePosC() {
   return processPID(SERVICE_01, ABS_THROTTLE_POSITION_C, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find absolute throttle position D in %
 Return:
  -------
-  * float - Absolute throttle position D in %*/
-float OBD2::absThrottlePosD() {
+  * double - Absolute throttle position D in %*/
+double OBD2::absThrottlePosD() {
   return processPID(SERVICE_01, ABS_THROTTLE_POSITION_D, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find absolute throttle position E in %
 Return:
  -------
-  * float - Absolute throttle position E in %*/
-float OBD2::absThrottlePosE() {
+  * double - Absolute throttle position E in %*/
+double OBD2::absThrottlePosE() {
   return processPID(SERVICE_01, ABS_THROTTLE_POSITION_E, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find absolute throttle position F in %
 Return:
  -------
-  * float - Absolute throttle position F in %*/
-float OBD2::absThrottlePosF() {
+  * double - Absolute throttle position F in %*/
+double OBD2::absThrottlePosF() {
   return processPID(SERVICE_01, ABS_THROTTLE_POSITION_F, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find commanded throttle actuator in
 % Return:
  -------
-  * float - Commanded throttle actuator in %*/
-float OBD2::commandedThrottleActuator() {
+  * double - Commanded throttle actuator in %*/
+double OBD2::commandedThrottleActuator() {
   return processPID(
       SERVICE_01, COMMANDED_THROTTLE_ACTUATOR, 1, 1, 100.0 / 255.0);
 }
@@ -137,9 +136,9 @@ constexpr uint8_t MAX_VALUES_EQUIV_V_I_PRESSURE = 79;  // 0x4F - ratio V mA kPa
 /*  Find maximum value for air flow rate from mass air
 flow sensor in g/s Return:
  -------
-  * float - Maximum value for air flow rate from mass air flow sensor in g/s
+  * double - Maximum value for air flow rate from mass air flow sensor in g/s
 */
-float OBD2::maxMafRate() {
+double OBD2::maxMafRate() {
   return processPID(SERVICE_01, MAX_MAF_RATE, 1, 1, 10.0);
 }
 
@@ -155,26 +154,26 @@ uint8_t OBD2::fuelType() {
 /*  Find ethanol fuel in %
 Return:
  -------
-  * float - Ethanol fuel in %*/
-float OBD2::ethanolPercent() {
+  * double - Ethanol fuel in %*/
+double OBD2::ethanolPercent() {
   return processPID(SERVICE_01, ETHANOL_FUEL_PERCENT, 1, 1, 100.0 / 255.0);
 }
 
 /*  Find absolute evap. system vapor
 pressure in kPa Return:
  -------
-  * float - Absolute evap. system vapor pressure in kPa
+  * double - Absolute evap. system vapor pressure in kPa
 */
-float OBD2::absEvapSysVapPressure() {
+double OBD2::absEvapSysVapPressure() {
   return processPID(SERVICE_01, ABS_EVAP_SYS_VAPOR_PRESSURE, 1, 2, 1.0 / 200.0);
 }
 
 /*  Find evap. system vapor pressure in Pa
 Return:
  -------
-  * float - Evap. system vapor pressure in Pa
+  * double - Evap. system vapor pressure in Pa
 */
-float OBD2::evapSysVapPressure2() {
+double OBD2::evapSysVapPressure2() {
   return processPID(SERVICE_01, EVAP_SYS_VAPOR_PRESSURE, 1, 2, 1, -32767);
 }
 
@@ -188,17 +187,17 @@ constexpr uint8_t LONG_TERM_SEC_OXY_SENS_TRIM_2_4  = 88;  // 0x58 - %
 /*  Find absolute fuel rail pressure in kPa
 Return:
  -------
-  * float - absolute fuel rail pressure in kPa
+  * double - absolute fuel rail pressure in kPa
 */
-float OBD2::absFuelRailPressure() {
+double OBD2::absFuelRailPressure() {
   return processPID(SERVICE_01, FUEL_RAIL_ABS_PRESSURE, 1, 2, 10.0);
 }
 
 /*  Find relative accelerator pedal position in %
 Return:
  -------
-  * float - Relative accelerator pedal position in %*/
-float OBD2::relativePedalPos() {
+  * double - Relative accelerator pedal position in %*/
+double OBD2::relativePedalPos() {
   return processPID(
       SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, 1, 1, 100.0 / 255.0);
 }
@@ -206,8 +205,8 @@ float OBD2::relativePedalPos() {
 /*  Find hybrid battery pack remaining life in %
 Return:
  -------
-  * float - Hybrid battery pack remaining life in %*/
-float OBD2::hybridBatLife() {
+  * double - Hybrid battery pack remaining life in %*/
+double OBD2::hybridBatLife() {
   return processPID(
       SERVICE_01, HYBRID_BATTERY_REMAINING_LIFE, 1, 1, 100.0 / 255.0);
 }
@@ -215,18 +214,18 @@ float OBD2::hybridBatLife() {
 /*  Find engine oil temperature in C
 Return:
  -------
-  * float - Engine oil temperature in C
+  * double - Engine oil temperature in C
 */
-float OBD2::oilTemp() {
+double OBD2::oilTemp() {
   return processPID(SERVICE_01, ENGINE_OIL_TEMP, 1, 1, 1, -40.0);
 }
 
 /*  Find fuel injection timing in degrees
 Return:
  -------
-  * float - Fuel injection timing in degrees
+  * double - Fuel injection timing in degrees
 */
-float OBD2::fuelInjectTiming() {
+double OBD2::fuelInjectTiming() {
   return processPID(
       SERVICE_01, FUEL_INJECTION_TIMING, 1, 2, 1.0 / 128.0, -210.0);
 }
@@ -234,9 +233,9 @@ float OBD2::fuelInjectTiming() {
 /*  Find engine fuel rate in L/h
 Return:
  -------
-  * float - Engine fuel rate in L/h
+  * double - Engine fuel rate in L/h
 */
-float OBD2::fuelRate() {
+double OBD2::fuelRate() {
   return processPID(SERVICE_01, ENGINE_FUEL_RATE, 1, 2, 1.0 / 20.0);
 }
 

@@ -1,5 +1,4 @@
-#ifndef TWAI_ERRORS_H
-#define TWAI_ERRORS_H
+#pragma once
 
 #include <cstdint>
 
@@ -18,5 +17,3 @@ enum class TwaiError : uint32_t {
   INVALID_MESSAGE,
   TIMEOUT
 };
-
-#endif  // TWAI_ERRORS_H

@@ -1,5 +1,4 @@
-#ifndef ITWAI_INTERFACE_H
-#define ITWAI_INTERFACE_H
+#pragma once
 
 #include "driver/twai.h"
 #include "twai_errors.h"
@@ -33,5 +32,3 @@ class ITwaiInterface {
  protected:
   ~ITwaiInterface() = default;
 };
-
-#endif  // ITWAI_INTERFACE_H

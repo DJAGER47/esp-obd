@@ -4,7 +4,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "esp_log.h"
 #include "obd2.h"
 
 /* Monitor status since DTCs cleared (Includes malfunction indicator
@@ -40,24 +39,24 @@ uint16_t OBD2::fuelSystemStatus() {
 /* Find the current engine load in %
 Return:
  -------
-  * float - Engine load %*/
-float OBD2::engineLoad() {
+  * double - Engine load %*/
+double OBD2::engineLoad() {
   return processPID(SERVICE_01, ENGINE_LOAD, 1, 1, 100.0 / 255.0);
 }
 
 /* Find the current engine coolant temp in C
 Return:
  -------
-  * float - Engine load %*/
-float OBD2::engineCoolantTemp() {
+  * double - Engine load %*/
+double OBD2::engineCoolantTemp() {
   return processPID(SERVICE_01, ENGINE_COOLANT_TEMP, 1, 1, 1, -40.0);
 }
 
 /* Find fuel trim %
 Return:
  -------
-  * float - Fuel trim %*/
-float OBD2::shortTermFuelTrimBank_1() {
+  * double - Fuel trim %*/
+double OBD2::shortTermFuelTrimBank_1() {
   return processPID(
       SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_1, 1, 1, 100.0 / 128.0, -100.0);
 }
@@ -65,8 +64,8 @@ float OBD2::shortTermFuelTrimBank_1() {
 /* Find fuel trim %
 Return:
  -------
-  * float - Fuel trim %*/
-float OBD2::longTermFuelTrimBank_1() {
+  * double - Fuel trim %*/
+double OBD2::longTermFuelTrimBank_1() {
   return processPID(
       SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_1, 1, 1, 100.0 / 128.0, -100.0);
 }
@@ -74,8 +73,8 @@ float OBD2::longTermFuelTrimBank_1() {
 /* Find fuel trim %
 Return:
  -------
-  * float - Fuel trim %*/
-float OBD2::shortTermFuelTrimBank_2() {
+  * double - Fuel trim %*/
+double OBD2::shortTermFuelTrimBank_2() {
   return processPID(
       SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_2, 1, 1, 100.0 / 128.0, -100.0);
 }
@@ -83,8 +82,8 @@ float OBD2::shortTermFuelTrimBank_2() {
 /* Find fuel trim %
 Return:
  -------
-  * float - Fuel trim %*/
-float OBD2::longTermFuelTrimBank_2() {
+  * double - Fuel trim %*/
+double OBD2::longTermFuelTrimBank_2() {
   return processPID(
       SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_2, 1, 1, 100.0 / 128.0, -100.0);
 }
@@ -92,9 +91,9 @@ float OBD2::longTermFuelTrimBank_2() {
 /* Find fuel pressure in kPa
 Return:
  -------
-  * float - Fuel pressure in kPa
+  * double - Fuel pressure in kPa
 */
-float OBD2::fuelPressure() {
+double OBD2::fuelPressure() {
   return processPID(SERVICE_01, FUEL_PRESSURE, 1, 1, 3.0);
 }
 
@@ -110,9 +109,9 @@ uint8_t OBD2::manifoldPressure() {
 /* Queries and parses received message for/returns vehicle RMP data
 Return:
  -------
-  * float - Vehicle RPM
+  * double - Vehicle RPM
 */
-float OBD2::rpm() {
+double OBD2::rpm() {
   return processPID(SERVICE_01, ENGINE_RPM, 1, 2, 1.0 / 4.0);
 }
 
@@ -126,37 +125,37 @@ int32_t OBD2::kph() {
 }
 
 /*
- float OBD2::timingAdvance() *  Find timing advance in degrees before Top Dead
+ double OBD2::timingAdvance() *  Find timing advance in degrees before Top Dead
 Center (TDC) Return:
  -------
-  * float - Timing advance in degrees before Top Dead Center (TDC)*/
-float OBD2::timingAdvance() {
+  * double - Timing advance in degrees before Top Dead Center (TDC)*/
+double OBD2::timingAdvance() {
   return processPID(SERVICE_01, TIMING_ADVANCE, 1, 1, 1.0 / 2.0, -64.0);
 }
 
 /*  Find intake air temperature in C
 Return:
  -------
-  * float - Intake air temperature in C
+  * double - Intake air temperature in C
 */
-float OBD2::intakeAirTemp() {
+double OBD2::intakeAirTemp() {
   return processPID(SERVICE_01, INTAKE_AIR_TEMP, 1, 1, 1, -40.0);
 }
 
 /*  Find mass air flow sensor (MAF) air flow rate rate in g/s
 Return:
  -------
-  * float - Mass air flow sensor (MAF) air flow rate rate in g/s
+  * double - Mass air flow sensor (MAF) air flow rate rate in g/s
 */
-float OBD2::mafRate() {
+double OBD2::mafRate() {
   return processPID(SERVICE_01, MAF_FLOW_RATE, 1, 2, 1.0 / 100.0);
 }
 
 /*  Find throttle position in %
 Return:
  -------
-  * float - Throttle position in %*/
-float OBD2::throttle() {
+  * double - Throttle position in %*/
+double OBD2::throttle() {
   return processPID(SERVICE_01, THROTTLE_POSITION, 1, 1, 100.0 / 255.0);
 }
 

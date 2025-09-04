@@ -1,34 +1,39 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 
-#include "esp_log.h"
 #include "obd2.h"
 
 // Determine which of PIDs 0x1 through 0x20 are supported (bit encoded)
 // uint32_t - Bit encoded booleans of supported PIDs 0x1-0x20
 uint32_t OBD2::supportedPIDs_1_20() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_1_20, 1, 4);
+  return static_cast<uint32_t>(
+      processPID(SERVICE_01, SUPPORTED_PIDS_1_20, 1, 4));
 }
 
 // Determine which of PIDs 0x1 through 0x20 are supported (bit encoded)
 // uint32_t - Bit encoded booleans of supported PIDs 0x21-0x20
 uint32_t OBD2::supportedPIDs_21_40() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_21_40, 1, 4);
+  return static_cast<uint32_t>(
+      processPID(SERVICE_01, SUPPORTED_PIDS_21_40, 1, 4));
 }
 
 // Determine which of PIDs 0x41 through 0x60 are supported (bit encoded)
 // uint32_t - Bit encoded booleans of supported PIDs 0x41-0x60
 uint32_t OBD2::supportedPIDs_41_60() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_41_60, 1, 4);
+  return static_cast<uint32_t>(
+      processPID(SERVICE_01, SUPPORTED_PIDS_41_60, 1, 4));
 }
 
 // Determine which of PIDs 0x61 through 0x80 are supported (bit encoded)
 // uint32_t - Bit encoded booleans of supported PIDs 0x61-0x80
 uint32_t OBD2::supportedPIDs_61_80() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_61_80, 1, 4);
+  return static_cast<uint32_t>(
+      processPID(SERVICE_01, SUPPORTED_PIDS_61_80, 1, 4));
 }
 
 /* Checks if a particular PID is
@@ -46,7 +51,7 @@ uint32_t OBD2::supportedPIDs_61_80() {
    -------
     * bool - Whether or not the queried PID is supported by the ECU.*/
 bool OBD2::isPidSupported(uint8_t pid) {
-  uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
+  const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
 
   switch (pidInterval) {
     case SUPPORTED_PIDS_1_20:
@@ -232,7 +237,7 @@ std::function<double()> OBD2::selectCalculator(uint16_t pid) {
     case SHORT_TERM_SEC_OXY_SENS_TRIM_2_4:
     case LONG_TERM_SEC_OXY_SENS_TRIM_2_4:
       return [this]() -> double {
-        return ((double)response_A * (100.0 / 128.0)) - 100.0;
+        return (response_A * (100.0 / 128.0)) - 100.0;
       };
 
     case FUEL_INJECTION_TIMING:

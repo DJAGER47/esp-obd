@@ -227,7 +227,7 @@ void OBD2::removeChar(char* from, const char* remove) {
   * uint8_t numExpectedBytes - Number of valid bytes from the response to
  process
   * double scaleFactor       - Amount to scale the response by
-  * float bias               - Amount to bias the response by
+  * double bias               - Amount to bias the response by
 
  Return:
  -------
@@ -333,9 +333,7 @@ double OBD2::conditionResponse(double (*func)()) {
   -------
   * void
 */
-void OBD2::queryPID(const uint8_t& service,
-                    const uint16_t& pid,
-                    const uint8_t& num_responses) {
+void OBD2::queryPID(uint8_t service, uint16_t pid, uint8_t num_responses) {
   formatQueryArray(service, pid, num_responses);
   // sendCommand(query);
 }
@@ -354,19 +352,19 @@ void OBD2::queryPID(const uint8_t& service,
  prevents OBD scanners from sending mulitple of the same response.
   * uint8_t numExpectedBytes - Number of valid bytes from the response to
  process
-  * float scaleFactor        - Amount to scale the response by
-  * float bias               - Amount to bias the response by
+  * double scaleFactor        - Amount to scale the response by
+  * double bias               - Amount to bias the response by
 
  Return:
  -------
   * double - The PID value if successfully received, else 0.0
 */
-double OBD2::processPID(const uint8_t& service,
-                        const uint16_t& pid,
-                        const uint8_t& num_responses,
-                        const uint8_t& numExpectedBytes,
-                        const double& scaleFactor,
-                        const float& bias) {
+double OBD2::processPID(const uint8_t service,
+                        const uint16_t pid,
+                        const uint8_t num_responses,
+                        const uint8_t numExpectedBytes,
+                        const double scaleFactor,
+                        const double bias) {
   // if (nb_query_state == SEND_COMMAND) {
   //   queryPID(service, pid, num_responses);
   //   nb_query_state = WAITING_RESP;

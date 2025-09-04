@@ -1,5 +1,4 @@
-#ifndef TWAI_DRIVER_H
-#define TWAI_DRIVER_H
+#pragma once
 
 #include "driver/twai.h"
 #include "twai_errors.h"
@@ -20,5 +19,3 @@ class TwaiDriver final : public ITwaiInterface {
   twai_filter_config_t f_config;
   bool driver_installed;
 };
-
-#endif  // TWAI_DRIVER_H

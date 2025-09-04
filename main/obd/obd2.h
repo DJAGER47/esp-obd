@@ -166,18 +166,16 @@ class OBD2 {
   OBD2(IsoTp* driver, uint16_t timeout = 1000);
 
   uint64_t findResponse();
-  void queryPID(const uint8_t& service,
-                const uint16_t& pid,
-                const uint8_t& num_responses = 1);
-  double processPID(const uint8_t& service,
-                    const uint16_t& pid,
-                    const uint8_t& num_responses,
-                    const uint8_t& numExpecteduint8_ts,
-                    const double& scaleFactor = 1,
-                    const float& bias         = 0);
-  double conditionResponse(const uint8_t& numExpecteduint8_ts,
-                           const double& scaleFactor = 1,
-                           const double& bias        = 0);
+  void queryPID(uint8_t service, uint16_t pid, uint8_t num_responses = 1);
+  double processPID(uint8_t service,
+                    uint16_t pid,
+                    uint8_t num_responses,
+                    uint8_t numExpecteduint8_ts,
+                    double scaleFactor = 1,
+                    double bias        = 0);
+  double conditionResponse(uint8_t numExpecteduint8_ts,
+                           double scaleFactor = 1,
+                           double bias        = 0);
   double conditionResponse(double (*func)());
 
   // pid
@@ -192,21 +190,21 @@ class OBD2 {
   uint32_t monitorStatus();
   uint16_t freezeDTC();
   uint16_t fuelSystemStatus();
-  float engineLoad();
-  float engineCoolantTemp();
-  float shortTermFuelTrimBank_1();
-  float longTermFuelTrimBank_1();
-  float shortTermFuelTrimBank_2();
-  float longTermFuelTrimBank_2();
-  float fuelPressure();
+  double engineLoad();
+  double engineCoolantTemp();
+  double shortTermFuelTrimBank_1();
+  double longTermFuelTrimBank_1();
+  double shortTermFuelTrimBank_2();
+  double longTermFuelTrimBank_2();
+  double fuelPressure();
   uint8_t manifoldPressure();
-  float rpm();
+  double rpm();
   int32_t kph();
-  float mph();
-  float timingAdvance();
-  float intakeAirTemp();
-  float mafRate();
-  float throttle();
+  double mph();
+  double timingAdvance();
+  double intakeAirTemp();
+  double mafRate();
+  double throttle();
   uint8_t commandedSecAirStatus();
   uint8_t oxygenSensorsPresent_2banks();
   uint8_t obdStandards();
@@ -216,52 +214,52 @@ class OBD2 {
 
   // 21 - 40
   uint16_t distTravelWithMIL();
-  float fuelRailPressure();
-  float fuelRailGuagePressure();
-  float commandedEGR();
-  float egrError();
-  float commandedEvapPurge();
-  float fuelLevel();
+  double fuelRailPressure();
+  double fuelRailGuagePressure();
+  double commandedEGR();
+  double egrError();
+  double commandedEvapPurge();
+  double fuelLevel();
   uint8_t warmUpsSinceCodesCleared();
   uint16_t distSinceCodesCleared();
-  float evapSysVapPressure();
+  double evapSysVapPressure();
   uint8_t absBaroPressure();
-  float catTempB1S1();
-  float catTempB2S1();
-  float catTempB1S2();
-  float catTempB2S2();
+  double catTempB1S1();
+  double catTempB2S1();
+  double catTempB1S2();
+  double catTempB2S2();
 
   // 41 - 60
   uint32_t monitorDriveCycleStatus();
-  float ctrlModVoltage();
-  float absLoad();
-  float commandedAirFuelRatio();
-  float relativeThrottle();
-  float ambientAirTemp();
-  float absThrottlePosB();
-  float absThrottlePosC();
-  float absThrottlePosD();
-  float absThrottlePosE();
-  float absThrottlePosF();
-  float commandedThrottleActuator();
+  double ctrlModVoltage();
+  double absLoad();
+  double commandedAirFuelRatio();
+  double relativeThrottle();
+  double ambientAirTemp();
+  double absThrottlePosB();
+  double absThrottlePosC();
+  double absThrottlePosD();
+  double absThrottlePosE();
+  double absThrottlePosF();
+  double commandedThrottleActuator();
   uint16_t timeRunWithMIL();
   uint16_t timeSinceCodesCleared();
-  float maxMafRate();
+  double maxMafRate();
   uint8_t fuelType();
-  float ethanolPercent();
-  float absEvapSysVapPressure();
-  float evapSysVapPressure2();
-  float absFuelRailPressure();
-  float relativePedalPos();
-  float hybridBatLife();
-  float oilTemp();
-  float fuelInjectTiming();
-  float fuelRate();
+  double ethanolPercent();
+  double absEvapSysVapPressure();
+  double evapSysVapPressure2();
+  double absFuelRailPressure();
+  double relativePedalPos();
+  double hybridBatLife();
+  double oilTemp();
+  double fuelInjectTiming();
+  double fuelRate();
   uint8_t emissionRqmts();
 
   // 61 - 80
-  float demandedTorque();
-  float torque();
+  double demandedTorque();
+  double torque();
   uint16_t referenceTorque();
   uint16_t auxSupported();
 

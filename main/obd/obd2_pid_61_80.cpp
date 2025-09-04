@@ -4,14 +4,13 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "esp_log.h"
 #include "obd2.h"
 
 /*  Find driver's demanded engine torque in %
 Return:
  -------
-  * float - Driver's demanded engine torque in %*/
-float OBD2::demandedTorque() {
+  * double - Driver's demanded engine torque in %*/
+double OBD2::demandedTorque() {
   return processPID(
       SERVICE_01, DEMANDED_ENGINE_PERCENT_TORQUE, 1, 1, 1, -125.0);
 }
@@ -19,8 +18,8 @@ float OBD2::demandedTorque() {
 /*  Find actual engine torque in %
 Return:
  -------
-  * float - Actual engine torque in %*/
-float OBD2::torque() {
+  * double - Actual engine torque in %*/
+double OBD2::torque() {
   return processPID(SERVICE_01, ACTUAL_ENGINE_TORQUE, 1, 1, 1, -125.0);
 }
 
