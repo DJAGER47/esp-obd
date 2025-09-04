@@ -1,6 +1,7 @@
 #include "twai_driver.h"
 
 #include "esp_log.h"
+#include "twai_errors.h"
 
 static const char* TAG = "TwaiDriver";
 
@@ -32,13 +33,7 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin,
   f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 }
 
-TwaiDriver::~TwaiDriver() {
-  if (driver_installed) {
-    stop_and_uninstall();
-  }
-}
-
-esp_err_t TwaiDriver::install_and_start() {
+TwaiError TwaiDriver::install_and_start() {
   esp_err_t ret = twai_driver_install(&g_config, &t_config, &f_config);
   if (ret == ESP_OK) {
     ESP_LOGI(TAG, "Driver installed");
@@ -46,45 +41,48 @@ esp_err_t TwaiDriver::install_and_start() {
     if (ret == ESP_OK) {
       ESP_LOGI(TAG, "Driver started");
       driver_installed = true;
+      return TwaiError::OK;
     } else {
-      ESP_LOGE(TAG, "Failed to start driver");
+      ESP_LOGE(TAG, "Failed to start driver: %s", esp_err_to_name(ret));
       twai_driver_uninstall();
+      return TwaiError::DRIVER_START_FAILED;
     }
   } else {
-    ESP_LOGE(TAG, "Failed to install driver");
+    ESP_LOGE(TAG, "Failed to install driver: %s", esp_err_to_name(ret));
+    return TwaiError::DRIVER_INSTALL_FAILED;
   }
-  return ret;
 }
 
-esp_err_t TwaiDriver::stop_and_uninstall() {
-  esp_err_t ret = twai_stop();
-  if (ret == ESP_OK) {
-    ESP_LOGI(TAG, "Driver stopped");
-    ret = twai_driver_uninstall();
-    if (ret == ESP_OK) {
-      ESP_LOGI(TAG, "Driver uninstalled");
-      driver_installed = false;
-    } else {
-      ESP_LOGE(TAG, "Failed to uninstall driver");
-    }
-  } else {
-    ESP_LOGE(TAG, "Failed to stop driver");
-  }
-  return ret;
-}
-
-esp_err_t TwaiDriver::transmit(const twai_message_t* message,
+TwaiError TwaiDriver::transmit(const twai_message_t* message,
                                TickType_t ticks_to_wait) {
   if (!driver_installed) {
-    return ESP_ERR_INVALID_STATE;
+    return TwaiError::INVALID_STATE;
   }
-  return twai_transmit(message, ticks_to_wait);
+
+  esp_err_t ret = twai_transmit(message, ticks_to_wait);
+  if (ret == ESP_OK) {
+    return TwaiError::OK;
+  } else if (ret == ESP_ERR_TIMEOUT) {
+    return TwaiError::TIMEOUT;
+  } else {
+    ESP_LOGE(TAG, "Failed to transmit message: %s", esp_err_to_name(ret));
+    return TwaiError::TRANSMIT_FAILED;
+  }
 }
 
-esp_err_t TwaiDriver::receive(twai_message_t* message,
+TwaiError TwaiDriver::receive(twai_message_t* message,
                               TickType_t ticks_to_wait) {
   if (!driver_installed) {
-    return ESP_ERR_INVALID_STATE;
+    return TwaiError::INVALID_STATE;
   }
-  return twai_receive(message, ticks_to_wait);
+
+  esp_err_t ret = twai_receive(message, ticks_to_wait);
+  if (ret == ESP_OK) {
+    return TwaiError::OK;
+  } else if (ret == ESP_ERR_TIMEOUT) {
+    return TwaiError::TIMEOUT;
+  } else {
+    ESP_LOGE(TAG, "Failed to receive message: %s", esp_err_to_name(ret));
+    return TwaiError::RECEIVE_FAILED;
+  }
 }

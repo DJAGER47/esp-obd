@@ -12,13 +12,12 @@
 // Глобальный экземпляр CAN драйвера
 TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
 
-// Глобальный экземпляр OBD2
-// OBD2 obd;
-
 // Функция для нового потока
 void iso_tp_task(void *pvParameters) {
   // Создаем экземпляр IsoTp, передавая ссылку на CAN драйвер
-  IsoTp iso_tp(can_driver);
+  ITwaiInterface &twai_interface = can_driver;
+  IsoTp iso_tp(twai_interface);
+  OBD2 obd(&iso_tp);
 
   // Здесь можно добавить логику работы с IsoTp
   // Например, отправка и прием сообщений
@@ -33,11 +32,11 @@ extern "C" void app_main() {
   ESP_LOGI("APP", "Starting application");
 
   // Инициализация CAN драйвера
-  esp_err_t err = can_driver.install_and_start();
-  if (err != ESP_OK) {
+  TwaiError err = can_driver.install_and_start();
+  if (err != TwaiError::OK) {
     ESP_LOGE(TAG,
-             "Failed to install and start TWAI driver: %s",
-             esp_err_to_name(err));
+             "Failed to install and start TWAI driver: %d",
+             static_cast<int>(err));
     return;
   }
 

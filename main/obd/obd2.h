@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 
 #include "esp_err.h"
 #include "iso-tp.h"
@@ -159,30 +160,10 @@ typedef enum {
 // Pointers to existing response uint8_ts, to be used for new calculators
 // without breaking backward compatability with code that may use the above
 // response uint8_ts.
-static uint8_t response_A;
-static uint8_t response_B;
-static uint8_t response_C;
-static uint8_t response_D;
-static uint8_t response_E;
-static uint8_t response_F;
-static uint8_t response_G;
-static uint8_t response_H;
 
 class OBD2 {
  public:
-  char payload[128];  // Буфер для приема данных
-  int8_t nb_rx_state = OBD_GETTING_MSG;
-  uint64_t response  = 0;
-  uint16_t recuint8_ts;
-  uint8_t numPayChars;
-  uint16_t timeout_ms;
-
-  struct dtcResponse {
-    uint8_t codesFound = 0;
-    char codes[DTC_MAX_CODES][DTC_CODE_LEN];
-  } DTC_Response;
-
-  void begin(IsoTp* driver, const uint16_t& timeout = 1000);
+  OBD2(IsoTp* driver, uint16_t timeout = 1000);
 
   uint64_t findResponse();
   void queryPID(const uint8_t& service,
@@ -205,7 +186,7 @@ class OBD2 {
   uint32_t supportedPIDs_41_60();
   uint32_t supportedPIDs_61_80();
   bool isPidSupported(uint8_t pid);
-  double (*selectCalculator(uint16_t pid))();
+  std::function<double()> selectCalculator(uint16_t pid);
 
   // 1 - 20
   uint32_t monitorStatus();
@@ -299,6 +280,28 @@ class OBD2 {
   void log_print(const char* format, ...);
 
   IsoTp* iso_tp_;
+
+  char payload[128];  // Буфер для приема данных
+  int8_t nb_rx_state = OBD_GETTING_MSG;
+  uint64_t response  = 0;
+  uint16_t recuint8_ts;
+  uint8_t numPayChars;
+  uint16_t timeout_ms;
+
+  uint8_t response_A;
+  uint8_t response_B;
+  uint8_t response_C;
+  uint8_t response_D;
+  uint8_t response_E;
+  uint8_t response_F;
+  uint8_t response_G;
+  uint8_t response_H;
+
+  struct dtcResponse {
+    uint8_t codesFound = 0;
+    char codes[DTC_MAX_CODES][DTC_CODE_LEN];
+  } DTC_Response;
+
   char query[QUERY_LEN] = {'\0'};
   bool longQuery        = false;
   bool isMode0x22Query  = false;

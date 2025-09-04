@@ -1,5 +1,7 @@
 #include "iso-tp.h"
 
+#include <inttypes.h>
+
 #include "esp_log.h"
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
@@ -10,16 +12,16 @@ uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-static const char* TAG = "ISO_TP";
+static const char* const TAG = "ISO_TP";
 
-IsoTp::IsoTp(TwaiDriver& bus) :
+IsoTp::IsoTp(ITwaiInterface& bus) :
     _bus(bus) {}
 
 void IsoTp::log_print(const char* format, ...) {
 #ifdef ISO_TP_DEBUG
   va_list args;
   va_start(args, format);
-  ESP_LOGI(TAG, format, args);
+  esp_log_writev(ESP_LOG_INFO, TAG, format, args);
   va_end(args);
 #endif
 }
@@ -31,7 +33,7 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
 
   offset += snprintf(log_buffer + offset,
                      sizeof(log_buffer) - offset,
-                     "Buffer: %X [%d] ",
+                     "Buffer: %" PRIX32 " [%d] ",
                      id,
                      len);
 
@@ -53,12 +55,12 @@ uint8_t IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   message.data_length_code = len;
   memcpy(message.data, data, len);
   message.flags = 0;  // Standard frame
-  return (_bus.transmit(&message, 0) == ESP_OK) ? 0 : 1;
+  return (_bus.transmit(&message, 0) == TwaiError::OK) ? 0 : 1;
 }
 
 uint8_t IsoTp::can_receive(void) {
   twai_message_t message;
-  if (_bus.receive(&message, 0) == ESP_OK) {
+  if (_bus.receive(&message, 0) == TwaiError::OK) {
     rxId  = message.identifier;
     rxLen = message.data_length_code;
     memcpy(rxBuffer, message.data, rxLen);
@@ -254,6 +256,7 @@ uint8_t IsoTp::rcv_fc(struct Message_t* msg) {
     case ISOTP_FC_CTS:
       msg->tp_state = ISOTP_SEND_CF;
       break;
+
     case ISOTP_FC_WT:
       fc_wait_frames++;
       if (fc_wait_frames >= MAX_FCWAIT_FRAME) {
@@ -264,8 +267,10 @@ uint8_t IsoTp::rcv_fc(struct Message_t* msg) {
       }
       log_print("Start waiting for next FC");
       break;
+
     case ISOTP_FC_OVFLW:
       log_print("Overflow in receiver side");
+      // fall through
     default:
       msg->tp_state = ISOTP_IDLE;
       retval        = 1;

@@ -1,7 +1,8 @@
 #ifndef _ISOTP_H
 #define _ISOTP_H
 
-#include "twai_driver.h"
+#include "twai_errors.h"
+#include "twai_interface.h"
 
 #define ISO_TP_DEBUG
 
@@ -56,12 +57,12 @@ struct Message_t {
 
 class IsoTp {
  public:
-  IsoTp(TwaiDriver &bus);
+  IsoTp(ITwaiInterface &bus);
   uint8_t send(Message_t *msg);
   uint8_t receive(Message_t *msg);
 
  private:
-  TwaiDriver &_bus;
+  ITwaiInterface &_bus;
   uint32_t rxId;
   uint8_t rxLen;
   uint8_t rxBuffer[8];

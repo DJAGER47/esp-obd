@@ -90,7 +90,7 @@ bool OBD2::isPidSupported(uint8_t pid) {
  for this PID. Returns nullptr if the PID is calculated using the default
  scaleFactor + Bias formula as implemented in conditionResponse(). (Maintained
  for backward compatibility)*/
-double (*OBD2::selectCalculator(uint16_t pid))() {
+std::function<double()> OBD2::selectCalculator(uint16_t pid) {
   switch (pid) {
     case ENGINE_LOAD:
     case ENGINE_COOLANT_TEMP:
@@ -127,12 +127,12 @@ double (*OBD2::selectCalculator(uint16_t pid))() {
       return nullptr;
 
     case ENGINE_RPM:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 4.0;
       };
 
     case MAF_FLOW_RATE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 100.0;
       };
 
@@ -159,7 +159,7 @@ double (*OBD2::selectCalculator(uint16_t pid))() {
     case OXYGEN_SENSOR_6_C:
     case OXYGEN_SENSOR_7_C:
     case OXYGEN_SENSOR_8_C:
-      return []() -> double {
+      return [this]() -> double {
         return response_A / 200.0;
       };
 
@@ -169,23 +169,23 @@ double (*OBD2::selectCalculator(uint16_t pid))() {
     case TIME_RUN_WITH_MIL_ON:
     case TIME_SINCE_CODES_CLEARED:
     case ENGINE_REFERENCE_TORQUE:
-      return []() -> double {
+      return [this]() -> double {
         return (response_A << 8) | response_B;
       };
 
     case FUEL_RAIL_PRESSURE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) * 0.079;
       };
 
     case FUEL_RAIL_GUAGE_PRESSURE:
     case FUEL_RAIL_ABS_PRESSURE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) * 10.0;
       };
 
     case EVAP_SYSTEM_VAPOR_PRESSURE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 4.0;
       };
 
@@ -193,37 +193,37 @@ double (*OBD2::selectCalculator(uint16_t pid))() {
     case CATALYST_TEMP_BANK_2_SENSOR_1:
     case CATALYST_TEMP_BANK_1_SENSOR_2:
     case CATALYST_TEMP_BANK_2_SENSOR_2:
-      return []() -> double {
+      return [this]() -> double {
         return (((response_A << 8) | response_B) / 10) - 40.0;
       };
 
     case CONTROL_MODULE_VOLTAGE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 1000.0;
       };
 
     case ABS_LOAD_VALUE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) * (100.0 / 255.0);
       };
 
     case FUEL_AIR_COMMANDED_EQUIV_RATIO:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) * 2.0 / 65536.0;
       };
 
     case MAX_VALUES_EQUIV_V_I_PRESSURE:
-      return []() -> double {
+      return [this]() -> double {
         return response_A;
       };
 
     case MAX_MAF_RATE:
-      return []() -> double {
+      return [this]() -> double {
         return response_A * 10.0;
       };
 
     case ABS_EVAP_SYS_VAPOR_PRESSURE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 200.0;
       };
 
@@ -231,17 +231,17 @@ double (*OBD2::selectCalculator(uint16_t pid))() {
     case LONG_TERM_SEC_OXY_SENS_TRIM_1_3:
     case SHORT_TERM_SEC_OXY_SENS_TRIM_2_4:
     case LONG_TERM_SEC_OXY_SENS_TRIM_2_4:
-      return []() -> double {
+      return [this]() -> double {
         return ((double)response_A * (100.0 / 128.0)) - 100.0;
       };
 
     case FUEL_INJECTION_TIMING:
-      return []() -> double {
+      return [this]() -> double {
         return (((response_A << 8) | response_B) / 128) - 210;
       };
 
     case ENGINE_FUEL_RATE:
-      return []() -> double {
+      return [this]() -> double {
         return ((response_A << 8) | response_B) / 20.0;
       };
 
