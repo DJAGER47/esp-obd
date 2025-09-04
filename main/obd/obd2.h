@@ -124,8 +124,7 @@ constexpr uint8_t AUX_INPUT_OUTPUT_SUPPORTED     = 101;  // 0x65 - bit encoded
 //-------------------------------------------------------------------------------------//
 // Class constants
 //-------------------------------------------------------------------------------------//
-constexpr float KPH_MPH_CONVERT = 0.6213711922;
-constexpr int8_t QUERY_LEN      = 9;
+constexpr int8_t QUERY_LEN = 9;
 
 constexpr int8_t OBD_GENERAL_ERROR     = -1;
 constexpr int8_t OBD_SUCCESS           = 0;
@@ -199,11 +198,16 @@ class OBD2 {
                            const double& scaleFactor = 1,
                            const double& bias        = 0);
   double conditionResponse(double (*func)());
-  double (*selectCalculator(uint16_t pid))();
-  bool isPidSupported(uint8_t pid);
 
+  // pid
   uint32_t supportedPIDs_1_20();
+  uint32_t supportedPIDs_21_40();
+  uint32_t supportedPIDs_41_60();
+  uint32_t supportedPIDs_61_80();
+  bool isPidSupported(uint8_t pid);
+  double (*selectCalculator(uint16_t pid))();
 
+  // 1 - 20
   uint32_t monitorStatus();
   uint16_t freezeDTC();
   uint16_t fuelSystemStatus();
@@ -229,8 +233,7 @@ class OBD2 {
   bool auxInputStatus();
   uint16_t runTime();
 
-  uint32_t supportedPIDs_21_40();
-
+  // 21 - 40
   uint16_t distTravelWithMIL();
   float fuelRailPressure();
   float fuelRailGuagePressure();
@@ -247,8 +250,7 @@ class OBD2 {
   float catTempB1S2();
   float catTempB2S2();
 
-  uint32_t supportedPIDs_41_60();
-
+  // 41 - 60
   uint32_t monitorDriveCycleStatus();
   float ctrlModVoltage();
   float absLoad();
@@ -276,45 +278,14 @@ class OBD2 {
   float fuelRate();
   uint8_t emissionRqmts();
 
-  uint32_t supportedPIDs_61_80();
-
+  // 61 - 80
   float demandedTorque();
   float torque();
   uint16_t referenceTorque();
   uint16_t auxSupported();
-  void printError();
 
  private:
-  IsoTp* iso_tp_;
-  char query[QUERY_LEN] = {'\0'};
-  bool longQuery        = false;
-  bool isMode0x22Query  = false;
-  uint32_t currentTime;
-  uint32_t previousTime;
-  double* calculator;
-  obd_cmd_states nb_query_state = SEND_COMMAND;  // Non-blocking query state
-
-  static double calculator_0C();
-  static double calculator_10();
-  static double calculator_14();
-  static double calculator_1F();
-  static double calculator_22();
-  static double calculator_23();
-  static double calculator_24();
-  static double calculator_32();
-  static double calculator_3C();
-  static double calculator_42();
-  static double calculator_43();
-  static double calculator_44();
-  static double calculator_4F();
-  static double calculator_50();
-  static double calculator_53();
-  static double calculator_54();
-  static double calculator_55();
-  static double calculator_59();
-  static double calculator_5D();
-  static double calculator_5E();
-  static double calculator_61();
+  void sendCommand(Message_t* cmd);
 
   void formatQueryArray(const uint8_t& service,
                         const uint16_t& pid,
@@ -324,5 +295,15 @@ class OBD2 {
   int8_t nextIndex(char const* str, char const* target, uint8_t numOccur = 1);
   void removeChar(char* from, const char* remove);
 
+  void printError();
   void log_print(const char* format, ...);
+
+  IsoTp* iso_tp_;
+  char query[QUERY_LEN] = {'\0'};
+  bool longQuery        = false;
+  bool isMode0x22Query  = false;
+  uint32_t currentTime;
+  uint32_t previousTime;
+  double* calculator;
+  obd_cmd_states nb_query_state = SEND_COMMAND;  // Non-blocking query state
 };

@@ -7,51 +7,12 @@
 #include "esp_log.h"
 #include "obd2.h"
 
-/*  Find catalyst temperature in C
-Return:
- -------
-  * float - Catalyst temperature in C
-*/
-float OBD2::catTempB2S1() {
-  return processPID(
-      SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, 1, 2, 1.0 / 10.0, -40.0);
-}
-
-/*  Find catalyst temperature in C
-Return:
- -------
-  * float - Catalyst temperature in C
-*/
-float OBD2::catTempB1S2() {
-  return processPID(
-      SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, 1, 2, 1.0 / 10.0, -40.0);
-}
-
-/*  Find catalyst temperature in C
-Return:
- -------
-  * float - Catalyst temperature in C
-*/
-float OBD2::catTempB2S2() {
-  return processPID(
-      SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, 1, 2, 1.0 / 10.0, -40.0);
-}
-
-/* Determine which of PIDs 0x41 through
-0x60 are supported (bit encoded) Return:
- -------
-  * uint32_t - Bit encoded booleans of supported PIDs 0x41-0x60
-*/
-uint32_t OBD2::supportedPIDs_41_60() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_41_60, 1, 4);
-}
-
 /*  Find status this drive cycle
  (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_41)
 Return:
  -------
   * uint32_t - Bit encoded status
- (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_41)*/
+*/
 uint32_t OBD2::monitorDriveCycleStatus() {
   return (uint32_t)processPID(
       SERVICE_01, MONITOR_STATUS_THIS_DRIVE_CYCLE, 1, 4);
@@ -169,6 +130,10 @@ uint16_t OBD2::timeSinceCodesCleared() {
   return (uint16_t)processPID(SERVICE_01, TIME_SINCE_CODES_CLEARED, 1, 2);
 }
 
+/*
+constexpr uint8_t MAX_VALUES_EQUIV_V_I_PRESSURE = 79;  // 0x4F - ratio V mA kPa
+*/
+
 /*  Find maximum value for air flow rate from mass air
 flow sensor in g/s Return:
  -------
@@ -212,6 +177,13 @@ Return:
 float OBD2::evapSysVapPressure2() {
   return processPID(SERVICE_01, EVAP_SYS_VAPOR_PRESSURE, 1, 2, 1, -32767);
 }
+
+/*
+constexpr uint8_t SHORT_TERM_SEC_OXY_SENS_TRIM_1_3 = 85;  // 0x55 - %
+constexpr uint8_t LONG_TERM_SEC_OXY_SENS_TRIM_1_3  = 86;  // 0x56 - %
+constexpr uint8_t SHORT_TERM_SEC_OXY_SENS_TRIM_2_4 = 87;  // 0x57 - %
+constexpr uint8_t LONG_TERM_SEC_OXY_SENS_TRIM_2_4  = 88;  // 0x58 - %
+*/
 
 /*  Find absolute fuel rail pressure in kPa
 Return:
@@ -274,175 +246,4 @@ designed Return:
   * uint8_t - Bit encoded (?)*/
 uint8_t OBD2::emissionRqmts() {
   return (uint8_t)processPID(SERVICE_01, EMISSION_REQUIREMENTS, 1, 1);
-}
-
-/* Determine which of PIDs 0x61 through
-0x80 are supported (bit encoded) Return:
- -------
-  * uint32_t - Bit encoded booleans of supported PIDs 0x61-0x80
-*/
-uint32_t OBD2::supportedPIDs_61_80() {
-  return (uint32_t)processPID(SERVICE_01, SUPPORTED_PIDS_61_80, 1, 4);
-}
-
-/*  Find driver's demanded engine torque in %
-Return:
- -------
-  * float - Driver's demanded engine torque in %*/
-float OBD2::demandedTorque() {
-  return processPID(
-      SERVICE_01, DEMANDED_ENGINE_PERCENT_TORQUE, 1, 1, 1, -125.0);
-}
-
-/*  Find actual engine torque in %
-Return:
- -------
-  * float - Actual engine torque in %*/
-float OBD2::torque() {
-  return processPID(SERVICE_01, ACTUAL_ENGINE_TORQUE, 1, 1, 1, -125.0);
-}
-
-/*  Find engine reference torque in Nm
-Return:
- -------
-  * uint16_t - Engine reference torque in Nm
-*/
-uint16_t OBD2::referenceTorque() {
-  return processPID(SERVICE_01, ENGINE_REFERENCE_TORQUE, 1, 2);
-}
-
-/*  Find auxiliary input/output supported
-Return:
- -------
-  * uint16_t - Bit encoded (?)*/
-uint16_t OBD2::auxSupported() {
-  return (uint16_t)processPID(SERVICE_01, AUX_INPUT_OUTPUT_SUPPORTED, 1, 2);
-}
-
-/* Checks if a particular PID is
-   supported by the connected ECU.
-
-    * This is a convenience method that selects the correct
-   supportedPIDS_xx_xx() query and parses the bit-encoded result, returning a
-   simple Boolean value indicating PID support from the ECU.
-
-   Inputs:
-   -------
-    * uint8_t pid - the PID to check for support.
-
-   Return:
-   -------
-    * bool - Whether or not the queried PID is supported by the ECU.*/
-bool OBD2::isPidSupported(uint8_t pid) {
-  uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
-
-  switch (pidInterval) {
-    case SUPPORTED_PIDS_1_20:
-      supportedPIDs_1_20();
-      break;
-
-    case SUPPORTED_PIDS_21_40:
-      supportedPIDs_21_40();
-      pid = (pid - SUPPORTED_PIDS_21_40);
-      break;
-
-    case SUPPORTED_PIDS_41_60:
-      supportedPIDs_41_60();
-      pid = (pid - SUPPORTED_PIDS_41_60);
-      break;
-
-    case SUPPORTED_PIDS_61_80:
-      supportedPIDs_61_80();
-      pid = (pid - SUPPORTED_PIDS_61_80);
-      break;
-
-    default:
-      break;
-  }
-
-  if (nb_rx_state == OBD_SUCCESS) {
-    return ((response >> (32 - pid)) & 0x1);
-  }
-  return false;
-}
-
-double OBD2::calculator_0C() {
-  return (double)((response_A << 8) | response_B) / 4;
-}
-
-double OBD2::calculator_10() {
-  return (double)((response_A << 8) | response_B) / 100;
-}
-
-double OBD2::calculator_14() {
-  return (double)(response_A / 200);
-}
-
-double OBD2::calculator_1F() {
-  return (double)((response_A << 8) | response_B);
-}
-
-double OBD2::calculator_22() {
-  return (double)((response_A << 8) | response_B) * 0.079;
-}
-
-double OBD2::calculator_23() {
-  return (double)((response_A << 8) | response_B) * 10;
-}
-
-double OBD2::calculator_32() {
-  return (double)((int16_t)((response_A << 8) | response_B)) / 4.0;
-}
-
-double OBD2::calculator_3C() {
-  return (double)(((response_A << 8) | response_B) / 10) - 40;
-}
-
-double OBD2::calculator_42() {
-  return (double)((response_A << 8) | response_B) / 1000;
-}
-
-double OBD2::calculator_43() {
-  return (double)((response_A << 8) | response_B) * (100.0 / 255.0);
-}
-
-double OBD2::calculator_44() {
-  return ((double)((response_A << 8) | response_B) * 2.0) / 65536.0;
-}
-
-double OBD2::calculator_4F() {
-  return (double)(response_A);
-}
-
-double OBD2::calculator_50() {
-  return (double)(response_A * 10.0);
-}
-
-double OBD2::calculator_53() {
-  return (double)((response_A << 8) | response_B) / 200;
-}
-
-double OBD2::calculator_54() {
-  return (double)((int16_t)((response_A << 8) | response_B));
-}
-
-double OBD2::calculator_55() {
-  return ((double)response_A * (100.0 / 128.0)) - 100.0;
-}
-
-// calc 23
-double OBD2::calculator_59() {
-  return (double)((response_A << 8) | response_B) * 10;
-}
-
-double OBD2::calculator_5D() {
-  return (double)(((response_A << 8) | response_B) / 128) - 210;
-}
-
-double OBD2::calculator_5E() {
-  return (double)((response_A << 8) | response_B) / 20;
-}
-
-double OBD2::calculator_61() {
-  return (double)response_A - 125;
 }
