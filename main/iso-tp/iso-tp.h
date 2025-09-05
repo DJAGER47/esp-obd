@@ -1,5 +1,4 @@
 #pragma once
-#include "twai_errors.h"
 #include "twai_interface.h"
 
 #define ISO_TP_DEBUG

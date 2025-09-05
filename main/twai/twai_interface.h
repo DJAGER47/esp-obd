@@ -1,10 +1,25 @@
 #pragma once
 
-#include "driver/twai.h"
-#include "twai_errors.h"
+#include <cstdint>
 
 class ITwaiInterface {
  public:
+  enum class TwaiError : uint32_t {
+    OK = 0,
+    GENERAL_FAILURE,
+    INVALID_STATE,
+    NOT_INITIALIZED,
+    ALREADY_INITIALIZED,
+    TRANSMIT_FAILED,
+    RECEIVE_FAILED,
+    DRIVER_INSTALL_FAILED,
+    DRIVER_START_FAILED,
+    DRIVER_STOP_FAILED,
+    DRIVER_UNINSTALL_FAILED,
+    INVALID_MESSAGE,
+    TIMEOUT
+  };
+
   /**
    * @brief Установка и запуск TWAI драйвера
    * @return TwaiError::OK при успешном выполнении
@@ -17,7 +32,7 @@ class ITwaiInterface {
    * @param ticks_to_wait Время ожидания в тиках FreeRTOS
    * @return TwaiError::OK при успешной передаче
    */
-  virtual TwaiError transmit(const twai_message_t* message,
+  virtual TwaiError transmit(?? message,
                              TickType_t ticks_to_wait) = 0;
 
   /**
@@ -26,7 +41,7 @@ class ITwaiInterface {
    * @param ticks_to_wait Время ожидания в тиках FreeRTOS
    * @return TwaiError::OK при успешном приеме
    */
-  virtual TwaiError receive(twai_message_t* message,
+  virtual TwaiError receive(?? message,
                             TickType_t ticks_to_wait) = 0;
 
  protected:
