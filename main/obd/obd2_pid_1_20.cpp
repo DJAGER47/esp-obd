@@ -1,5 +1,6 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -103,7 +104,8 @@ Return:
   * uint8_t - Intake manifold absolute pressure in kPa
 */
 uint8_t OBD2::manifoldPressure() {
-  return (uint8_t)processPID(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 1, 1));
 }
 
 /* Queries and parses received message for/returns vehicle RMP data
@@ -165,7 +167,8 @@ Return:
   * uint8_t - Bit encoded status
  (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_12)*/
 uint8_t OBD2::commandedSecAirStatus() {
-  return (uint8_t)processPID(SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 1, 1));
 }
 
 /*  Find which oxygen sensors are
@@ -174,7 +177,8 @@ present ([A0..A3] == Bank 1, Sensors 1-4. [A4..A7] == Bank 2...) Return:
   * uint8_t - Bit encoded
 */
 uint8_t OBD2::oxygenSensorsPresent_2banks() {
-  return (uint8_t)processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 1, 1));
 }
 
 /*
@@ -196,7 +200,7 @@ Return:
   * uint8_t - Bit encoded
  (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_1C)*/
 uint8_t OBD2::obdStandards() {
-  return (uint8_t)processPID(SERVICE_01, OBD_STANDARDS, 1, 1);
+  return static_cast<uint8_t>(processPID(SERVICE_01, OBD_STANDARDS, 1, 1));
 }
 
 /*  Find which oxygen sensors are
@@ -206,7 +210,8 @@ B3S2, B4S1, B4S2]) Return:
   * uint8_t - Bit encoded
 */
 uint8_t OBD2::oxygenSensorsPresent_4banks() {
-  return (uint8_t)processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_4_BANKS, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_4_BANKS, 1, 1));
 }
 
 /*  Find Power Take Off (PTO) status

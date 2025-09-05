@@ -1,5 +1,6 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -148,7 +149,7 @@ double OBD2::maxMafRate() {
   * uint8_t - Bit encoded
  (https://en.wikipedia.org/wiki/OBD-II_PIDs#Fuel_Type_Coding)*/
 uint8_t OBD2::fuelType() {
-  return (uint8_t)processPID(SERVICE_01, FUEL_TYPE, 1, 1);
+  return static_cast<uint8_t>(processPID(SERVICE_01, FUEL_TYPE, 1, 1));
 }
 
 /*  Find ethanol fuel in %
@@ -244,5 +245,6 @@ designed Return:
  -------
   * uint8_t - Bit encoded (?)*/
 uint8_t OBD2::emissionRqmts() {
-  return (uint8_t)processPID(SERVICE_01, EMISSION_REQUIREMENTS, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, EMISSION_REQUIREMENTS, 1, 1));
 }

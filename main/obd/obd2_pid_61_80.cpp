@@ -1,10 +1,12 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "obd2.h"
+
 
 /*  Find driver's demanded engine torque in %
 Return:

@@ -1,10 +1,12 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
-#include "esp_log.h"
+// #include "esp_log.h"
+#include "iso-tp.h"
 #include "obd2.h"
 
 static const char* TAG = "OBD2";
@@ -487,7 +489,7 @@ OBD_GETTING_MSG. Return:
  -------
   * int8_t - the OBD_XXX status of getting the OBD response
 */
-// int8_t OBD2::get_response(void) {
+// int8_t OBD2::get_response() {
 // // buffer the response of the OBD327 until either the
 // // end marker is read or a timeout has occurred
 // // last valid idx is PAYLOAD_LEN but want to keep one free for terminating

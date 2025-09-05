@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 #include "io.h"
 #include "iso-tp.h"
-#include "obd2.h"
+// #include "obd2.h"
 #include "twai_driver.h"
 
 // Глобальный экземпляр CAN драйвера
@@ -17,7 +17,7 @@ void iso_tp_task(void *pvParameters) {
   // Создаем экземпляр IsoTp, передавая ссылку на CAN драйвер
   ITwaiInterface &twai_interface = can_driver;
   IsoTp iso_tp(twai_interface);
-  OBD2 obd(&iso_tp);
+  // OBD2 obd(&iso_tp);
 
   // Здесь можно добавить логику работы с IsoTp
   // Например, отправка и прием сообщений
@@ -32,7 +32,7 @@ extern "C" void app_main() {
   ESP_LOGI("APP", "Starting application");
 
   // Инициализация CAN драйвера
-  TwaiError err = can_driver.install_and_start();
+  const TwaiError err = can_driver.install_and_start();
   if (err != TwaiError::OK) {
     ESP_LOGE(TAG,
              "Failed to install and start TWAI driver: %d",

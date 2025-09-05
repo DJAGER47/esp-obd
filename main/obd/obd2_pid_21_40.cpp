@@ -1,5 +1,6 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -85,7 +86,8 @@ cleared Return:
   * uint8_t - Num warm-ups since codes cleared
 */
 uint8_t OBD2::warmUpsSinceCodesCleared() {
-  return (uint8_t)processPID(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, 1, 1));
 }
 
 /*  Find distance traveled since codes
@@ -112,7 +114,8 @@ Return:
   * uint8_t - Absolute barometric pressure in kPa
 */
 uint8_t OBD2::absBaroPressure() {
-  return (uint8_t)processPID(SERVICE_01, ABS_BAROMETRIC_PRESSURE, 1, 1);
+  return static_cast<uint8_t>(
+      processPID(SERVICE_01, ABS_BAROMETRIC_PRESSURE, 1, 1));
 }
 
 /*

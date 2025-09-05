@@ -1,14 +1,11 @@
 #include "iso-tp.h"
 
-#include <inttypes.h>
-
+#include <cinttypes>
 #include <cstdint>
 
 #include "esp_log.h"
-#include "esp_system.h"
-#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "twai_driver.h"
+#include "twai_errors.h"
 
 uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
@@ -60,7 +57,7 @@ uint8_t IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   return (_bus.transmit(&message, 0) == TwaiError::OK) ? 0 : 1;
 }
 
-uint8_t IsoTp::can_receive(void) {
+uint8_t IsoTp::can_receive() {
   twai_message_t message;
   if (_bus.receive(&message, 0) == TwaiError::OK) {
     rxId  = message.identifier;

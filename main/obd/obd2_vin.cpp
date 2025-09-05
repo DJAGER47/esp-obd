@@ -1,11 +1,13 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "esp_log.h"
 #include "obd2.h"
+
 
 /* Read Vehicle Identification Number
    (VIN). This is a blocking function.

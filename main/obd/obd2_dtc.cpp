@@ -1,11 +1,13 @@
 #include <cctype>
 #include <cstdarg>
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
 
 #include "esp_log.h"
 #include "obd2.h"
+
 
 /* Resets the stored DTCs in the ECU. This is a blocking
  function. Note: The SAE spec requires that scan tools verify that a reset
