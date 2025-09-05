@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "freertos/FreeRTOS.h"
+
 class ITwaiInterface {
  public:
   enum class TwaiError : uint32_t {
@@ -20,6 +22,16 @@ class ITwaiInterface {
     TIMEOUT
   };
 
+  struct TwaiFrame {
+    uint32_t id;       // Идентификатор сообщения
+    bool is_extended;  // Флаг расширенного идентификатора (29 бит)
+    bool is_rtr;       // Флаг удаленного запроса (Remote Transmission Request)
+    bool is_fd;        // Флаг CAN FD
+    bool brs;          // Bit Rate Switch (для CAN FD)
+    uint8_t data[8];   // Данные (максимум 64 байта для CAN FD)
+    uint8_t data_length;  // Длина данных (DLC)
+  };
+
   /**
    * @brief Установка и запуск TWAI драйвера
    * @return TwaiError::OK при успешном выполнении
@@ -32,8 +44,7 @@ class ITwaiInterface {
    * @param ticks_to_wait Время ожидания в тиках FreeRTOS
    * @return TwaiError::OK при успешной передаче
    */
-  virtual TwaiError transmit(?? message,
-                             TickType_t ticks_to_wait) = 0;
+  virtual TwaiError transmit(const TwaiFrame& message, TickType_t ticks_to_wait) = 0;
 
   /**
    * @brief Прием CAN сообщения
@@ -41,8 +52,7 @@ class ITwaiInterface {
    * @param ticks_to_wait Время ожидания в тиках FreeRTOS
    * @return TwaiError::OK при успешном приеме
    */
-  virtual TwaiError receive(?? message,
-                            TickType_t ticks_to_wait) = 0;
+  virtual TwaiError receive(TwaiFrame& message, TickType_t ticks_to_wait) = 0;
 
  protected:
   ~ITwaiInterface() = default;
