@@ -34,8 +34,8 @@ class IsoTp {
   };
 
   IsoTp(ITwaiInterface &bus);
-  uint8_t send(Message *msg);
-  uint8_t receive(Message *msg);
+  bool send(Message &msg);
+  bool receive(Message &msg);
 
  private:
   struct Message_t {
@@ -75,17 +75,19 @@ class IsoTp {
   uint32_t wait_fc       = 0;
   uint32_t wait_cf       = 0;
   uint32_t wait_session  = 0;
-  uint8_t can_send(uint32_t id, uint8_t len, uint8_t *data);
-  uint8_t can_receive();
-  uint8_t send_fc(struct Message_t *msg);
-  uint8_t send_sf(struct Message_t *msg);
-  uint8_t send_ff(struct Message_t *msg);
-  uint8_t send_cf(struct Message_t *msg);
-  uint8_t rcv_sf(struct Message_t *msg);
-  uint8_t rcv_ff(struct Message_t *msg);
-  uint8_t rcv_cf(struct Message_t *msg);
-  uint8_t rcv_fc(struct Message_t *msg);
-  void fc_delay(uint8_t sep_time);
+  bool can_send(uint32_t id, uint8_t len, uint8_t *data);
+  bool can_receive();
+  bool send_fc(Message_t &msg);
+  bool send_sf(Message_t &msg);
+  bool send_ff(Message_t &msg);
+  bool send_cf(Message_t &msg);
+
+  void rcv_sf(Message_t &msg);
+  bool rcv_ff(Message_t &msg);
+  uint8_t rcv_cf(Message_t &msg);
+  bool rcv_fc(Message_t &msg);
+
+  static void fc_delay(uint8_t sep_time);
 
   void log_print(const char *format, ...);
   void log_print_buffer(uint32_t id, uint8_t *buffer, uint16_t len);

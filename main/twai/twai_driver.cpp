@@ -2,6 +2,7 @@
 
 #include "esp_log.h"
 #include "esp_twai_onchip.h"
+#include "portmacro.h"
 #include "string.h"
 
 static const char* TAG = "TwaiDriver";

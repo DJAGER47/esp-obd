@@ -19,7 +19,8 @@ Checks: >
   -readability-magic-numbers,
   -cppcoreguidelines-pro-type-vararg
 
-HeaderFilterRegex: '^(?!.*esp-idf/).*'
+HeaderFilterRegex: '^(?:(?!esp-idf).)*$'
+ExcludeHeaderFilterRegex: '^esp-idf$'
 
 CheckOptions:
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic

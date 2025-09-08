@@ -40,7 +40,7 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
 #endif
 }
 
-uint8_t IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
+bool IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print("Send CAN RAW Data:");
   log_print_buffer(id, data, len);
 
@@ -51,13 +51,13 @@ uint8_t IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   message.is_fd       = false;
   message.brs         = false;
   message.data_length = len;
-  if (len <= 64) {  // Проверка на максимальный размер данных
+  if (len <= 8) {  // Проверка на максимальный размер данных для классического CAN
     memcpy(message.data, data, len);
   }
-  return (_bus.transmit(message, 0) == ITwaiInterface::TwaiError::OK) ? 0 : 1;
+  return (_bus.transmit(message, 0) == ITwaiInterface::TwaiError::OK);
 }
 
-uint8_t IsoTp::can_receive() {
+bool IsoTp::can_receive() {
   if (_bus.receive(rxFrame, 0) == ITwaiInterface::TwaiError::OK) {
     log_print("Received CAN RAW Data:");
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
@@ -66,55 +66,55 @@ uint8_t IsoTp::can_receive() {
   return false;
 }
 
-uint8_t IsoTp::send_fc(struct Message_t* msg) {
+bool IsoTp::send_fc(Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // FC message high nibble = 0x3 , low nibble = FC Status
-  TxBuf[0] = (N_PCI_FC | msg->fc_status);
-  TxBuf[1] = msg->blocksize;
+  TxBuf[0] = (N_PCI_FC | msg.fc_status);
+  TxBuf[1] = msg.blocksize;
   /* fix wrong separation time values according spec */
-  if ((msg->min_sep_time > 0x7F) && ((msg->min_sep_time < 0xF1) || (msg->min_sep_time > 0xF9)))
-    msg->min_sep_time = 0x7F;
-  TxBuf[2] = msg->min_sep_time;
-  return can_send(msg->tx_id, 8, TxBuf);
+  if ((msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9)))
+    msg.min_sep_time = 0x7F;
+  TxBuf[2] = msg.min_sep_time;
+  return can_send(msg.tx_id, 8, TxBuf);
 }
 
-uint8_t IsoTp::send_sf(struct Message_t* msg)  // Send SF Message
+bool IsoTp::send_sf(Message_t& msg)  // Send SF Message
 {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // SF message high nibble = 0x0 , low nibble = Length
-  TxBuf[0] = (N_PCI_SF | msg->len);
-  memcpy(TxBuf + 1, msg->Buffer, msg->len);
-  //  return can_send(msg->tx_id,msg->len+1,TxBuf);// Add PCI length
-  return can_send(msg->tx_id, 8, TxBuf);  // Always send full frame
+  TxBuf[0] = (N_PCI_SF | msg.len);
+  memcpy(TxBuf + 1, msg.Buffer, msg.len);
+  //  return can_send(msg.tx_id,msg.len+1,TxBuf);// Add PCI length
+  return can_send(msg.tx_id, 8, TxBuf);  // Always send full frame
 }
 
-uint8_t IsoTp::send_ff(struct Message_t* msg)  // Send FF
+bool IsoTp::send_ff(Message_t& msg)  // Send FF
 {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  msg->seq_id      = 1;
+  msg.seq_id       = 1;
 
-  TxBuf[0] = (N_PCI_FF | ((msg->len & 0x0F00) >> 8));
-  TxBuf[1] = (msg->len & 0x00FF);
-  memcpy(TxBuf + 2, msg->Buffer, 6);      // Skip 2 Bytes PCI
-  return can_send(msg->tx_id, 8, TxBuf);  // First Frame has full length
+  TxBuf[0] = (N_PCI_FF | ((msg.len & 0x0F00) >> 8));
+  TxBuf[1] = (msg.len & 0x00FF);
+  memcpy(TxBuf + 2, msg.Buffer, 6);      // Skip 2 Bytes PCI
+  return can_send(msg.tx_id, 8, TxBuf);  // First Frame has full length
 }
 
-uint8_t IsoTp::send_cf(struct Message_t* msg)  // Send CF Message
+bool IsoTp::send_cf(Message_t& msg)  // Send CF Message
 {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   uint16_t len     = 7;
 
-  TxBuf[0] = (N_PCI_CF | (msg->seq_id & 0x0F));
-  if (msg->len > 7)
+  TxBuf[0] = (N_PCI_CF | (msg.seq_id & 0x0F));
+  if (msg.len > 7)
     len = 7;
   else
-    len = msg->len;
-  memcpy(TxBuf + 1, msg->Buffer, len);    // Skip 1 Byte PCI
-                                          // return can_send(msg->tx_id,len+1,TxBuf);
-                                          // // Last frame is probably shorter
-                                          // than 8 -> Signals last CF Frame
-  return can_send(msg->tx_id, 8, TxBuf);  // Last frame is probably shorter
-                                          // than 8, pad with 00
+    len = msg.len;
+  memcpy(TxBuf + 1, msg.Buffer, len);    // Skip 1 Byte PCI
+                                         // return can_send(msg.tx_id,len+1,TxBuf);
+                                         // // Last frame is probably shorter
+                                         // than 8 -> Signals last CF Frame
+  return can_send(msg.tx_id, 8, TxBuf);  // Last frame is probably shorter
+                                         // than 8, pad with 00
 }
 
 void IsoTp::fc_delay(uint8_t sep_time) {
@@ -133,113 +133,111 @@ void IsoTp::fc_delay(uint8_t sep_time) {
     vTaskDelay(pdMS_TO_TICKS(0x7F));
 }
 
-uint8_t IsoTp::rcv_sf(struct Message_t* msg) {
+void IsoTp::rcv_sf(Message_t& msg) {
   /* get the SF_DL from the N_PCI byte */
-  msg->len = rxFrame.data[0] & 0x0F;
+  msg.len = rxFrame.data[0] & 0x0F;
   /* copy the received data bytes */
-  memcpy(msg->Buffer, rxFrame.data + 1, msg->len);  // Skip PCI, SF uses len bytes
-  msg->tp_state = ISOTP_FINISHED;
-
-  return 0;
+  memcpy(msg.Buffer, rxFrame.data + 1, msg.len);  // Skip PCI, SF uses len bytes
+  msg.tp_state = ISOTP_FINISHED;
 }
 
-uint8_t IsoTp::rcv_ff(struct Message_t* msg) {
-  msg->seq_id = 1;
+bool IsoTp::rcv_ff(Message_t& msg) {
+  msg.seq_id = 1;
 
   /* get the FF_DL */
-  msg->len = (rxFrame.data[0] & 0x0F) << 8;
-  msg->len += rxFrame.data[1];
-  rest = msg->len;
+  msg.len = (rxFrame.data[0] & 0x0F) << 8;
+  msg.len += rxFrame.data[1];
+  rest = msg.len;
 
   /* copy the first received data bytes */
-  memcpy(msg->Buffer, rxFrame.data + 2, 6);  // Skip 2 bytes PCI, FF must have 6 bytes!
-  rest -= 6;                                 // Restlength
+  memcpy(msg.Buffer, rxFrame.data + 2, 6);  // Skip 2 bytes PCI, FF must have 6 bytes!
+  rest -= 6;                                // Restlength
 
-  msg->tp_state = ISOTP_WAIT_DATA;
+  msg.tp_state = ISOTP_WAIT_DATA;
 
   log_print("First frame received with message length: %d", rest);
   log_print("Send flow controll.");
-  log_print("ISO-TP state: %d", msg->tp_state);
+  log_print("ISO-TP state: %d", msg.tp_state);
 
   /* send our first FC frame with Target Address*/
-  struct Message_t fc;
-  fc.tx_id        = msg->tx_id;
+  Message_t fc;
+  fc.tx_id        = msg.tx_id;
   fc.fc_status    = ISOTP_FC_CTS;
   fc.blocksize    = 0;
   fc.min_sep_time = 0;
-  return send_fc(&fc);
+  return send_fc(fc);
 }
 
-uint8_t IsoTp::rcv_cf(struct Message_t* msg) {
+uint8_t IsoTp::rcv_cf(Message_t& msg) {
   // Handle Timeout
   // If no Frame within 250ms change State to ISOTP_IDLE
   uint32_t delta = millis() - wait_cf;
 
-  if ((delta >= TIMEOUT_FC) && msg->seq_id > 1) {
+  if ((delta >= TIMEOUT_FC) && msg.seq_id > 1) {
     log_print("CF frame timeout during receive wait_cf=%lu delta=%lu", wait_cf, delta);
 
-    msg->tp_state = ISOTP_IDLE;
+    msg.tp_state = ISOTP_IDLE;
     return 1;
   }
   wait_cf = millis();
 
-  log_print("ISO-TP state: %d", msg->tp_state);
+  log_print("ISO-TP state: %d", msg.tp_state);
   log_print("CF received with message rest length: %d", rest);
 
-  if (msg->tp_state != ISOTP_WAIT_DATA)
+  if (msg.tp_state != ISOTP_WAIT_DATA)
     return 0;
 
-  if ((rxFrame.data[0] & 0x0F) != (msg->seq_id & 0x0F)) {
-    log_print("Got sequence ID: %d Expected: %d", rxFrame.data[0] & 0x0F, msg->seq_id & 0x0F);
-    msg->tp_state = ISOTP_IDLE;
-    msg->seq_id   = 1;
+  if ((rxFrame.data[0] & 0x0F) != (msg.seq_id & 0x0F)) {
+    log_print("Got sequence ID: %d Expected: %d", rxFrame.data[0] & 0x0F, msg.seq_id & 0x0F);
+    msg.tp_state = ISOTP_IDLE;
+    msg.seq_id   = 1;
     return 1;
   }
 
   if (rest <= 7)  // Last Frame
   {
-    memcpy(msg->Buffer + 6 + 7 * (msg->seq_id - 1), rxFrame.data + 1,
-           rest);                    // 6 Bytes in FF +7
-    msg->tp_state = ISOTP_FINISHED;  // per CF skip PCI
-    log_print("Last CF received with seq. ID: %d", msg->seq_id);
+    memcpy(msg.Buffer + 6 + 7 * (msg.seq_id - 1), rxFrame.data + 1,
+           rest);                   // 6 Bytes in FF +7
+    msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
+    log_print("Last CF received with seq. ID: %d", msg.seq_id);
   } else {
-    log_print("CF received with seq. ID: %d", msg->seq_id);
-    memcpy(msg->Buffer + 6 + 7 * (msg->seq_id - 1),
+    log_print("CF received with seq. ID: %d", msg.seq_id);
+    memcpy(msg.Buffer + 6 + 7 * (msg.seq_id - 1),
            rxFrame.data + 1,
            7);  // 6 Bytes in FF +7
                 // per CF
     rest -= 7;  // Got another 7 Bytes of Data;
   }
 
-  msg->seq_id++;
+  msg.seq_id++;
 
   return 0;
 }
 
-uint8_t IsoTp::rcv_fc(struct Message_t* msg) {
-  uint8_t retval = 0;
+bool IsoTp::rcv_fc(Message_t& msg) {
+  bool retval = false;
 
-  if (msg->tp_state != ISOTP_WAIT_FC && msg->tp_state != ISOTP_WAIT_FIRST_FC)
-    return 0;
+  if (msg.tp_state != ISOTP_WAIT_FC && msg.tp_state != ISOTP_WAIT_FIRST_FC)
+    return retval;
 
   /* get communication parameters only from the first FC frame */
-  if (msg->tp_state == ISOTP_WAIT_FIRST_FC) {
-    msg->blocksize    = rxFrame.data[1];
-    msg->min_sep_time = rxFrame.data[2];
+  if (msg.tp_state == ISOTP_WAIT_FIRST_FC) {
+    msg.blocksize    = rxFrame.data[1];
+    msg.min_sep_time = rxFrame.data[2];
 
     /* fix wrong separation time values according spec */
-    if ((msg->min_sep_time > 0x7F) && ((msg->min_sep_time < 0xF1) || (msg->min_sep_time > 0xF9)))
-      msg->min_sep_time = 0x7F;
+    if ((msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9)))
+      msg.min_sep_time = 0x7F;
   }
 
   log_print("FC frame: FS %d, Blocksize %d, Min. separation Time %d",
             rxFrame.data[0] & 0x0F,
-            msg->blocksize,
-            msg->min_sep_time);
+            msg.blocksize,
+            msg.min_sep_time);
 
   switch (rxFrame.data[0] & 0x0F) {
     case ISOTP_FC_CTS:
-      msg->tp_state = ISOTP_SEND_CF;
+      msg.tp_state = ISOTP_SEND_CF;
       break;
 
     case ISOTP_FC_WT:
@@ -247,8 +245,8 @@ uint8_t IsoTp::rcv_fc(struct Message_t* msg) {
       if (fc_wait_frames >= MAX_FCWAIT_FRAME) {
         log_print("FC wait frames exceeded.");
         fc_wait_frames = 0;
-        msg->tp_state  = ISOTP_IDLE;
-        retval         = 1;
+        msg.tp_state   = ISOTP_IDLE;
+        retval         = true;
       }
       log_print("Start waiting for next FC");
       break;
@@ -257,19 +255,19 @@ uint8_t IsoTp::rcv_fc(struct Message_t* msg) {
       log_print("Overflow in receiver side");
       // fall through
     default:
-      msg->tp_state = ISOTP_IDLE;
-      retval        = 1;
+      msg.tp_state = ISOTP_IDLE;
+      retval       = true;
   }
   return retval;
 }
 
-uint8_t IsoTp::send(Message* msg) {
+bool IsoTp::send(Message& msg) {
   // Create internal Message_t structure
   Message_t internalMsg;
-  internalMsg.tx_id  = msg->tx_id;
-  internalMsg.rx_id  = msg->rx_id;
-  internalMsg.len    = msg->len;
-  internalMsg.Buffer = msg->data;
+  internalMsg.tx_id  = msg.tx_id;
+  internalMsg.rx_id  = msg.rx_id;
+  internalMsg.len    = msg.len;
+  internalMsg.Buffer = msg.data;
   // Initialize other fields with default values
   internalMsg.tp_state     = ISOTP_IDLE;
   internalMsg.fc_status    = ISOTP_FC_CTS;
@@ -277,12 +275,9 @@ uint8_t IsoTp::send(Message* msg) {
   internalMsg.blocksize    = 0;
   internalMsg.min_sep_time = 0;
 
-  uint8_t* origBuffer = internalMsg.Buffer;
-  uint16_t origLen    = internalMsg.len;
-
-  uint8_t bs     = false;
+  bool bs        = false;
   uint32_t delta = 0;
-  uint8_t retval = 0;
+  bool retval    = false;
 
   internalMsg.tp_state = ISOTP_SEND;
 
@@ -298,11 +293,11 @@ uint8_t IsoTp::send(Message* msg) {
       case ISOTP_SEND:
         if (internalMsg.len <= 7) {
           log_print("Send SF");
-          retval               = send_sf(&internalMsg);
+          retval               = send_sf(internalMsg);
           internalMsg.tp_state = ISOTP_IDLE;
         } else {
           log_print("Send FF");
-          if (!(retval = send_ff(&internalMsg)))  // FF complete
+          if (!(retval = send_ff(internalMsg)))  // FF complete
           {
             internalMsg.Buffer += 6;
             internalMsg.len -= 6;
@@ -319,7 +314,7 @@ uint8_t IsoTp::send(Message* msg) {
         if (delta >= TIMEOUT_FC) {
           log_print("FC timeout during receive wait_fc=%lu delta=%lu", wait_fc, delta);
           internalMsg.tp_state = ISOTP_IDLE;
-          retval               = 1;
+          retval               = true;
         }
         break;
 
@@ -331,7 +326,7 @@ uint8_t IsoTp::send(Message* msg) {
         log_print("Send CF");
         while (internalMsg.len > 7 && !bs) {
           fc_delay(internalMsg.min_sep_time);
-          if (!(retval = send_cf(&internalMsg))) {
+          if (!(retval = send_cf(internalMsg))) {
             log_print("Send Seq %d", internalMsg.seq_id);
             if (internalMsg.blocksize > 0) {
               log_print("Blocksize trigger %d", internalMsg.seq_id % internalMsg.blocksize);
@@ -356,7 +351,7 @@ uint8_t IsoTp::send(Message* msg) {
         if (!bs) {
           fc_delay(internalMsg.min_sep_time);
           log_print("Send last Seq %d", internalMsg.seq_id);
-          retval               = send_cf(&internalMsg);
+          retval               = send_cf(internalMsg);
           internalMsg.tp_state = ISOTP_IDLE;
         }
         break;
@@ -369,7 +364,7 @@ uint8_t IsoTp::send(Message* msg) {
       if (can_receive()) {
         log_print("Send branch:");
         if (rxFrame.id == internalMsg.rx_id) {
-          retval = rcv_fc(&internalMsg);
+          retval = rcv_fc(internalMsg);
           memset(rxFrame.data, 0, sizeof(rxFrame.data));
           log_print("rxId OK!");
         }
@@ -381,13 +376,13 @@ uint8_t IsoTp::send(Message* msg) {
   return retval;
 }
 
-uint8_t IsoTp::receive(Message* msg) {
+bool IsoTp::receive(Message& msg) {
   // Create internal Message_t structure
   Message_t internalMsg;
-  internalMsg.tx_id  = msg->tx_id;
-  internalMsg.rx_id  = msg->rx_id;
+  internalMsg.tx_id  = msg.tx_id;
+  internalMsg.rx_id  = msg.rx_id;
   internalMsg.len    = 0;  // Will be set during reception
-  internalMsg.Buffer = msg->data;
+  internalMsg.Buffer = msg.data;
   // Initialize other fields with default values
   internalMsg.tp_state     = ISOTP_IDLE;
   internalMsg.fc_status    = ISOTP_FC_CTS;
@@ -417,22 +412,22 @@ uint8_t IsoTp::receive(Message* msg) {
         switch (n_pci_type) {
           case N_PCI_FC:
             log_print("FC");  // flow control frame
-            rcv_fc(&internalMsg);
+            rcv_fc(internalMsg);
             break;
 
           case N_PCI_SF:
-            log_print("SF");       // single frame
-            rcv_sf(&internalMsg);  // internalMsg.tp_state=ISOTP_FINISHED;
+            log_print("SF");      // single frame
+            rcv_sf(internalMsg);  // internalMsg.tp_state=ISOTP_FINISHED;
             break;
 
           case N_PCI_FF:
-            log_print("FF");       // first frame
-            rcv_ff(&internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
+            log_print("FF");      // first frame
+            rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
             break;
 
           case N_PCI_CF:
             log_print("CF");  // consecutive frame
-            rcv_cf(&internalMsg);
+            rcv_cf(internalMsg);
             break;
         }
         memset(rxFrame.data, 0, sizeof(rxFrame.data));
@@ -441,10 +436,10 @@ uint8_t IsoTp::receive(Message* msg) {
   }
 
   // Copy received data back to the external message structure
-  msg->tx_id = internalMsg.tx_id;
-  msg->rx_id = internalMsg.rx_id;
-  msg->len   = internalMsg.len;
-  // Note: msg->data points to the same buffer as internalMsg.Buffer, so data is already there
+  msg.tx_id = internalMsg.tx_id;
+  msg.rx_id = internalMsg.rx_id;
+  msg.len   = internalMsg.len;
+  // Note: msg.data points to the same buffer as internalMsg.Buffer, so data is already there
 
   log_print("ISO-TP message received:");
   log_print_buffer(internalMsg.rx_id, internalMsg.Buffer, internalMsg.len);
