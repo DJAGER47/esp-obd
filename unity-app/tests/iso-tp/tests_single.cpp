@@ -249,7 +249,7 @@ void test_iso_tp_pci_bytes_validation(void) {
 }
 
 // Функция запуска всех тестов
-extern "C" void run_tests() {
+extern "C" void run_iso_tp_tests() {
   // Основные тесты отправки
   RUN_TEST(test_iso_tp_send_single_frame);
   RUN_TEST(test_iso_tp_send_single_frame_max_size);

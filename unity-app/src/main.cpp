@@ -3,8 +3,8 @@
 // Подключение заголовочных файлов Unity
 #include "unity.h"
 
-// Объявление функции для запуска тестов iso-tp
-extern "C" void run_tests();
+extern "C" void run_iso_tp_tests();
+extern "C" void run_iso_tp_extended_tests();
 
 // Функции, необходимые для работы Unity
 extern "C" void setUp(void) {
@@ -23,8 +23,8 @@ int main() {
   // Инициализация Unity
   UNITY_BEGIN();
 
-  // Запуск тестов
-  run_tests();
+  run_iso_tp_tests();
+  run_iso_tp_extended_tests();
 
   // Завершение Unity и получение результата
   int failures = UNITY_END();
