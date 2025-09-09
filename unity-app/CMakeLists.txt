@@ -1,26 +1,14 @@
 cmake_minimum_required(VERSION 3.22)
 project(unity_app)
 
-##################################################################
-# Объединенный CMakeLists.txt для unity-app
-# Содержит все настройки компонентов и тестов в одном файле
-# Все объединено в один исполняемый файл
-##################################################################
-
-# Создание исполняемого файла, включающего все исходные файлы
 add_executable(unity_app
-    # Основной файл
     src/main.cpp
-    
-    # Файлы Unity
-    Unity-2.6.1/src/unity.c
-    
-    # Файлы компонента iso-tp
-    ../components/iso-tp/iso-tp.cpp
-    
-    # Тестовые файлы
     tests/iso-tp/tests_single.cpp
     tests/iso-tp/tests_long_send.cpp
+    
+    ../components/iso-tp/iso-tp.cpp
+
+    Unity-2.6.1/src/unity.c
 )
 
 # Установка флагов компиляции в зависимости от типа сборки
@@ -39,24 +27,16 @@ set_target_properties(unity_app PROPERTIES
 
 # Добавление директорий заголовочных файлов
 target_include_directories(unity_app PRIVATE
-    # Для основного приложения
     ${CMAKE_CURRENT_SOURCE_DIR}/src
-    
-    # Для Unity
-    ${CMAKE_CURRENT_SOURCE_DIR}/Unity-2.6.1/src
-    
-    # Для компонента iso-tp
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/iso-tp
+
     ${CMAKE_CURRENT_SOURCE_DIR}/../components/iso-tp
-    
-    # Для twai_interface (используется в iso-tp)
     ${CMAKE_CURRENT_SOURCE_DIR}/../components/twai_interface
     
-    # Для моков
+    
+    ${CMAKE_CURRENT_SOURCE_DIR}/Unity-2.6.1/src
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks
     ${CMAKE_CURRENT_SOURCE_DIR}/mocks/freertos
-    
-    # Для тестов
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/iso-tp
 )
 
 # Определение макросов препроцессора
@@ -79,3 +59,48 @@ message(STATUS "C++ стандарт: ${CMAKE_CXX_STANDARD}")
 message(STATUS "C стандарт: ${CMAKE_C_STANDARD}")
 message(STATUS "Компилятор: ${CMAKE_CXX_COMPILER_ID}")
 message(STATUS "=============================================================")
+
+##################################################################
+# Clang-tidy
+##################################################################
+option(ENABLE_CLANG_TIDY "Включить проверку clang-tidy" ON)
+
+
+if(ENABLE_CLANG_TIDY)
+    find_program(CLANG_TIDY_EXE NAMES "clang-tidy")
+
+    if(CLANG_TIDY_EXE)
+        message(STATUS "Clang-Tidy включен для проверки кода")
+        message(STATUS "CLANG_TIDY_EXE = ${CLANG_TIDY_EXE}")
+        message(STATUS "CLANG_TIDY_CONFIG_FILE = ${CMAKE_SOURCE_DIR}/../.clang-tidy")
+        
+        # Настройка параметров clang-tidy
+        set(CMAKE_CXX_CLANG_TIDY
+            ${CLANG_TIDY_EXE}
+            -config-file=${CMAKE_SOURCE_DIR}/../.clang-tidy
+            -format-style='file'
+            -header-filter=.*
+            --use-color
+            -extra-arg=-std=c++17
+            -extra-arg=-Wno-unknown-warning-option
+        )
+        
+        # Применяем clang-tidy к целевому исполняемому файлу
+        set_target_properties(unity_app PROPERTIES CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY}")
+        
+        # Для C файлов (Unity)
+        set(CMAKE_C_CLANG_TIDY
+            ${CLANG_TIDY_EXE}
+            -config-file=${CMAKE_SOURCE_DIR}/../.clang-tidy
+            -format-style='file'
+            -header-filter=.*
+            --use-color
+            -extra-arg=-std=c99
+            -extra-arg=-Wno-unknown-warning-option
+        )
+        
+        set_target_properties(unity_app PROPERTIES C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY}")
+    else()
+        message(WARNING "clang-tidy не найден. Проверка будет пропущена.")
+    endif()
+endif()
