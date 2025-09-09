@@ -1,5 +1,5 @@
 # Создание библиотеки для тестов iso-tp
-add_library(iso-tp-tests tests.cpp)
+add_library(iso-tp-tests tests_single.cpp)
 
 # Установка свойств компиляции
 set_target_properties(iso-tp-tests PROPERTIES
