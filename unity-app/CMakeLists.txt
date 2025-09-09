@@ -16,7 +16,17 @@ target_include_directories(unity PUBLIC
 )
 
 # Добавление компонентов
-add_subdirectory(components)
+# Добавляем поддиректории компонентов
+add_subdirectory(components/iso-tp iso-tp)
+add_subdirectory(components/twai_interface twai_interface)
+
+# Создаем интерфейсные библиотеки для моков ESP-IDF
+add_library(esp_mocks INTERFACE)
+
+# Добавляем директории заголовочных файлов для моков
+target_include_directories(esp_mocks INTERFACE
+    ${CMAKE_CURRENT_SOURCE_DIR}/mocks
+)
 
 # Добавление тестов
 add_subdirectory(tests)
@@ -26,7 +36,7 @@ add_executable(unity_app src/main.cpp)
 
 # Установка свойств компиляции для исполняемого файла
 set_target_properties(unity_app PROPERTIES
-    CXX_STANDARD 11
+    CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
 
