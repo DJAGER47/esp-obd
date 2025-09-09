@@ -2,6 +2,58 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Unity App",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/unity-app/build/unity_app",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/unity-app/build",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build unity app",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "logging": {
+        "trace": false,
+        "traceResponse": false,
+        "engineLogging": false
+      }
+    },
+    {
+      "name": "Debug Unity App (Debug Build)",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/unity-app/build/unity_app",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/unity-app/build",
+      "environment": [],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build unity app debug",
+      "miDebuggerPath": "/usr/bin/gdb",
+      "logging": {
+        "trace": false,
+        "traceResponse": false,
+        "engineLogging": false
+      }
+    },
+    {
       "type": "gdbtarget",
       "request": "attach",
       "name": "Eclipse CDT GDB Adapter"

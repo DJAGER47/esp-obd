@@ -5,4 +5,4 @@ add_subdirectory(iso-tp)
 add_library(tests INTERFACE)
 
 # Линковка с библиотеками тестов компонентов
-target_link_libraries(tests INTERFACE iso-tp-tests)
+target_link_libraries(tests INTERFACE iso-tp-tests iso-tp-tests-extended)

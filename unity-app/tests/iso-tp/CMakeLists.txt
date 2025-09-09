@@ -4,10 +4,22 @@ add_library(iso-tp-tests tests_single.cpp)
 # Создание библиотеки для расширенных тестов iso-tp
 add_library(iso-tp-tests-extended tests_long_send.cpp)
 
+# Установка флагов компиляции для базовых тестов в зависимости от типа сборки
+target_compile_options(iso-tp-tests PRIVATE
+    $<$<CONFIG:Debug>:-g -O0 -DDEBUG>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG>
+)
+
 # Установка свойств компиляции для базовых тестов
 set_target_properties(iso-tp-tests PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
+)
+
+# Установка флагов компиляции для расширенных тестов в зависимости от типа сборки
+target_compile_options(iso-tp-tests-extended PRIVATE
+    $<$<CONFIG:Debug>:-g -O0 -DDEBUG>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG>
 )
 
 # Установка свойств компиляции для расширенных тестов

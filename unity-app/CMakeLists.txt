@@ -4,6 +4,12 @@ project(unity_app)
 # Создание библиотеки для Unity
 add_library(unity Unity-2.6.1/src/unity.c)
 
+# Установка флагов компиляции для библиотеки Unity в зависимости от типа сборки
+target_compile_options(unity PRIVATE
+    $<$<CONFIG:Debug>:-g -O0 -DDEBUG>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG>
+)
+
 # Установка свойств компиляции
 set_target_properties(unity PROPERTIES
     C_STANDARD 99
@@ -33,6 +39,12 @@ add_subdirectory(tests)
 
 # Создание исполняемого файла
 add_executable(unity_app src/main.cpp)
+
+# Установка флагов компиляции в зависимости от типа сборки
+target_compile_options(unity_app PRIVATE
+    $<$<CONFIG:Debug>:-g -O0 -DDEBUG>
+    $<$<CONFIG:Release>:-O3 -DNDEBUG>
+)
 
 # Установка свойств компиляции для исполняемого файла
 set_target_properties(unity_app PROPERTIES
