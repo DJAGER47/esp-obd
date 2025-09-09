@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#include "freertos/FreeRTOS.h"
-
 class ITwaiInterface {
  public:
   enum class TwaiError : uint32_t {
@@ -41,18 +39,18 @@ class ITwaiInterface {
   /**
    * @brief Передача CAN сообщения
    * @param message Указатель на сообщение для передачи
-   * @param ticks_to_wait Время ожидания в тиках FreeRTOS
+   * @param ticks_to_wait Время ожидания в тиках
    * @return TwaiError::OK при успешной передаче
    */
-  virtual TwaiError transmit(const TwaiFrame& message, TickType_t ticks_to_wait) = 0;
+  virtual TwaiError transmit(const TwaiFrame& message, uint32_t ticks_to_wait) = 0;
 
   /**
    * @brief Прием CAN сообщения
    * @param message Указатель на структуру для сохранения принятого сообщения
-   * @param ticks_to_wait Время ожидания в тиках FreeRTOS
+   * @param ticks_to_wait Время ожидания в тиках
    * @return TwaiError::OK при успешном приеме
    */
-  virtual TwaiError receive(TwaiFrame& message, TickType_t ticks_to_wait) = 0;
+  virtual TwaiError receive(TwaiFrame& message, uint32_t ticks_to_wait) = 0;
 
  protected:
   ~ITwaiInterface() = default;
