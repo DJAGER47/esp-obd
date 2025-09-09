@@ -25,7 +25,7 @@
  */
 
 // Тест 1: Отправка стандартного одиночного кадра
-void test_iso_tp_send_single_frame(void) {
+void test_iso_tp_send_single_frame() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -52,7 +52,7 @@ void test_iso_tp_send_single_frame(void) {
 }
 
 // Тест 2: Отправка максимального одиночного кадра (7 байт)
-void test_iso_tp_send_single_frame_max_size(void) {
+void test_iso_tp_send_single_frame_max_size() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -74,7 +74,7 @@ void test_iso_tp_send_single_frame_max_size(void) {
 }
 
 // Тест 3: Отправка пустого кадра
-void test_iso_tp_send_empty_frame(void) {
+void test_iso_tp_send_empty_frame() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -93,7 +93,7 @@ void test_iso_tp_send_empty_frame(void) {
 }
 
 // Тест 4: Обработка ошибки передачи
-void test_iso_tp_send_transmit_error(void) {
+void test_iso_tp_send_transmit_error() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   mock_can.transmit_result = ITwaiInterface::TwaiError::TRANSMIT_FAILED;
@@ -112,7 +112,7 @@ void test_iso_tp_send_transmit_error(void) {
 }
 
 // Тест 5: Отправка с различными CAN ID
-void test_iso_tp_send_different_ids(void) {
+void test_iso_tp_send_different_ids() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -132,7 +132,7 @@ void test_iso_tp_send_different_ids(void) {
 }
 
 // Тест 6: Отправка одного байта данных
-void test_iso_tp_send_single_byte(void) {
+void test_iso_tp_send_single_byte() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -153,7 +153,7 @@ void test_iso_tp_send_single_byte(void) {
 }
 
 // Тест 7: Приём одиночного кадра
-void test_iso_tp_receive_single_frame(void) {
+void test_iso_tp_receive_single_frame() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -177,7 +177,7 @@ void test_iso_tp_receive_single_frame(void) {
 }
 
 // Тест 8: Приём максимального одиночного кадра
-void test_iso_tp_receive_single_frame_max(void) {
+void test_iso_tp_receive_single_frame_max() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -201,7 +201,7 @@ void test_iso_tp_receive_single_frame_max(void) {
 }
 
 // Тест 9: Приём пустого кадра
-void test_iso_tp_receive_empty_frame(void) {
+void test_iso_tp_receive_empty_frame() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -223,7 +223,7 @@ void test_iso_tp_receive_empty_frame(void) {
 }
 
 // Тест 10: Проверка корректности PCI байтов при различных размерах
-void test_iso_tp_pci_bytes_validation(void) {
+void test_iso_tp_pci_bytes_validation() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);

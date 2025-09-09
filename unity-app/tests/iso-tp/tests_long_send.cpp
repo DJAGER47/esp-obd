@@ -30,7 +30,7 @@
  */
 
 // Тест 1: Отправка многокадрового сообщения (8 байт - минимум для FF+CF)
-void test_iso_tp_send_multi_frame_8_bytes(void) {
+void test_iso_tp_send_multi_frame_8_bytes() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -67,7 +67,7 @@ void test_iso_tp_send_multi_frame_8_bytes(void) {
 }
 
 // Тест 2: Отправка длинного многокадрового сообщения (15 байт)
-void test_iso_tp_send_multi_frame_15_bytes(void) {
+void test_iso_tp_send_multi_frame_15_bytes() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -107,7 +107,7 @@ void test_iso_tp_send_multi_frame_15_bytes(void) {
 }
 
 // Тест 3: Flow Control WAIT - получатель просит подождать
-void test_iso_tp_send_flow_control_wait(void) {
+void test_iso_tp_send_flow_control_wait() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -132,7 +132,7 @@ void test_iso_tp_send_flow_control_wait(void) {
 }
 
 // Тест 4: Flow Control OVERFLOW - получатель сообщает о переполнении
-void test_iso_tp_send_flow_control_overflow(void) {
+void test_iso_tp_send_flow_control_overflow() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -155,7 +155,7 @@ void test_iso_tp_send_flow_control_overflow(void) {
 }
 
 // Тест 5: Блочная передача с размером блока 2
-void test_iso_tp_send_block_size_2(void) {
+void test_iso_tp_send_block_size_2() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -185,7 +185,7 @@ void test_iso_tp_send_block_size_2(void) {
 }
 
 // Тест 6: Приём многокадрового сообщения
-void test_iso_tp_receive_multi_frame(void) {
+void test_iso_tp_receive_multi_frame() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -226,7 +226,7 @@ void test_iso_tp_receive_multi_frame(void) {
 }
 
 // Тест 7: Обработка неправильной последовательности кадров
-void test_iso_tp_receive_wrong_sequence(void) {
+void test_iso_tp_receive_wrong_sequence() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -258,7 +258,7 @@ void test_iso_tp_receive_wrong_sequence(void) {
 }
 
 // Тест 8: Максимальная длина сообщения (4095 байт)
-void test_iso_tp_send_max_length(void) {
+void test_iso_tp_send_max_length() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -294,7 +294,7 @@ void test_iso_tp_send_max_length(void) {
 }
 
 // Тест 9: Separation Time в Flow Control
-void test_iso_tp_send_with_separation_time(void) {
+void test_iso_tp_send_with_separation_time() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);
@@ -321,7 +321,7 @@ void test_iso_tp_send_with_separation_time(void) {
 }
 
 // Тест 10: Проверка корректности PCI для многокадровых сообщений
-void test_iso_tp_multi_frame_pci_validation(void) {
+void test_iso_tp_multi_frame_pci_validation() {
   MockTwaiInterface mock_can;
   mock_can.reset();
   IsoTp iso_tp(mock_can);

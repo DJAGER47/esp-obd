@@ -11,13 +11,16 @@ Checks: >
   performance-*,
   portability-*,
   readability-*,
-  -cppcoreguidelines-pro-bounds-constant-array-index,
   -misc-use-anonymous-namespace,
   -modernize-use-trailing-return-type,
   -readability-identifier-length,
-  -cppcoreguidelines-avoid-magic-numbers,
   -readability-magic-numbers,
+  -cppcoreguidelines-pro-bounds-constant-array-index,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-avoid-c-arrays,
   -cppcoreguidelines-pro-type-vararg
+
+HeaderFilterRegex: '^(?!.*Unity-2\.6\.1).*'
 
 CheckOptions:
   - key: misc-non-private-member-variables-in-classes.IgnoreClassesWithAllMemberVariablesBeingPublic

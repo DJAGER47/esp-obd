@@ -7,12 +7,12 @@ extern "C" void run_iso_tp_tests();
 extern "C" void run_iso_tp_extended_tests();
 
 // Функции, необходимые для работы Unity
-extern "C" void setUp(void) {
+extern "C" void setUp() {
   // Эта функция вызывается перед каждым тестом
   // Здесь можно разместить код инициализации, общий для всех тестов
 }
 
-extern "C" void tearDown(void) {
+extern "C" void tearDown() {
   // Эта функция вызывается после каждого теста
   // Здесь можно разместить код очистки, общий для всех тестов
 }

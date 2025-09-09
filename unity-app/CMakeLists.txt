@@ -72,12 +72,12 @@ if(ENABLE_CLANG_TIDY)
     if(CLANG_TIDY_EXE)
         message(STATUS "Clang-Tidy включен для проверки кода")
         message(STATUS "CLANG_TIDY_EXE = ${CLANG_TIDY_EXE}")
-        message(STATUS "CLANG_TIDY_CONFIG_FILE = ${CMAKE_SOURCE_DIR}/../.clang-tidy")
+        message(STATUS "CLANG_TIDY_CONFIG_FILE = ${CMAKE_SOURCE_DIR}/.clang-tidy")
         
         # Настройка параметров clang-tidy
         set(CMAKE_CXX_CLANG_TIDY
             ${CLANG_TIDY_EXE}
-            -config-file=${CMAKE_SOURCE_DIR}/../.clang-tidy
+            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
             -format-style='file'
             -header-filter=.*
             --use-color
@@ -91,7 +91,7 @@ if(ENABLE_CLANG_TIDY)
         # Для C файлов (Unity)
         set(CMAKE_C_CLANG_TIDY
             ${CLANG_TIDY_EXE}
-            -config-file=${CMAKE_SOURCE_DIR}/../.clang-tidy
+            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
             -format-style='file'
             -header-filter=.*
             --use-color
