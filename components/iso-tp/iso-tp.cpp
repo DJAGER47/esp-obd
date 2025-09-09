@@ -16,28 +16,28 @@ IsoTp::IsoTp(ITwaiInterface& bus) :
     _bus(bus) {}
 
 void IsoTp::log_print(const char* format, ...) {
-#ifdef ISO_TP_DEBUG
-  va_list args;
-  va_start(args, format);
-  esp_log_writev(ESP_LOG_INFO, TAG, format, args);
-  va_end(args);
-#endif
+  if (ISO_TP_DEBUG) {
+    va_list args;
+    va_start(args, format);
+    esp_log_writev(ESP_LOG_INFO, TAG, format, args);
+    va_end(args);
+  }
 }
 
 void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
-#ifdef ISO_TP_DEBUG
-  char log_buffer[128];
-  int offset = 0;
+  if (ISO_TP_DEBUG) {
+    char log_buffer[128];
+    int offset = 0;
 
-  offset += snprintf(
-      log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
+    offset += snprintf(
+        log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
 
-  for (uint16_t i = 0; i < len && offset < sizeof(log_buffer) - 4; i++) {
-    offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "%02X ", buffer[i]);
+    for (uint16_t i = 0; i < len && offset < sizeof(log_buffer) - 4; i++) {
+      offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "%02X ", buffer[i]);
+    }
+
+    ESP_LOGI(TAG, "%s", log_buffer);
   }
-
-  ESP_LOGI(TAG, "%s", log_buffer);
-#endif
 }
 
 bool IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
@@ -297,8 +297,8 @@ bool IsoTp::send(Message& msg) {
           internalMsg.tp_state = ISOTP_IDLE;
         } else {
           log_print("Send FF");
-          if (!(retval = send_ff(internalMsg)))  // FF complete
-          {
+          retval = send_ff(internalMsg);
+          if (retval) {  // FF complete
             internalMsg.Buffer += 6;
             internalMsg.len -= 6;
             internalMsg.tp_state = ISOTP_WAIT_FIRST_FC;
@@ -326,7 +326,8 @@ bool IsoTp::send(Message& msg) {
         log_print("Send CF");
         while (internalMsg.len > 7 && !bs) {
           fc_delay(internalMsg.min_sep_time);
-          if (!(retval = send_cf(internalMsg))) {
+          retval = send_cf(internalMsg);
+          if (retval) {
             log_print("Send Seq %d", internalMsg.seq_id);
             if (internalMsg.blocksize > 0) {
               log_print("Blocksize trigger %d", internalMsg.seq_id % internalMsg.blocksize);
