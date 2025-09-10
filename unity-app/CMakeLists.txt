@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
+
 project(unity_app)
 
 add_executable(unity_app
@@ -79,7 +80,6 @@ if(ENABLE_CLANG_TIDY)
             ${CLANG_TIDY_EXE}
             -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
             -format-style='file'
-            -header-filter=.*
             --use-color
             -extra-arg=-std=c++17
             -extra-arg=-Wno-unknown-warning-option
@@ -93,7 +93,6 @@ if(ENABLE_CLANG_TIDY)
             ${CLANG_TIDY_EXE}
             -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
             -format-style='file'
-            -header-filter=.*
             --use-color
             -extra-arg=-std=c99
             -extra-arg=-Wno-unknown-warning-option
