@@ -5,19 +5,19 @@
 #include <cstdlib>
 #include <cstring>
 
-// #include "esp_log.h"
+#include "esp_log.h"
 #include "iso-tp.h"
 #include "obd2.h"
 
 static const char* TAG = "OBD2";
 
 void OBD2::log_print(const char* format, ...) {
-#ifdef OBD_DEBUG
-  va_list args;
-  va_start(args, format);
-  esp_log_writev(ESP_LOG_INFO, TAG, format, args);
-  va_end(args);
-#endif
+  if (OBD_DEBUG) {
+    va_list args;
+    va_start(args, format);
+    esp_log_writev(ESP_LOG_INFO, TAG, format, args);
+    va_end(args);
+  }
 }
 
 // Prints appropriate error description if an error has occurred
@@ -49,7 +49,7 @@ void OBD2::printError() {
   // delay(100);
 }
 
-OBD2::OBD2(IsoTp* driver, uint16_t timeout) :
+OBD2::OBD2(IsoTp& driver, uint16_t timeout) :
     iso_tp_(driver),
     timeout_ms(timeout) {}
 
@@ -235,9 +235,7 @@ void OBD2::removeChar(char* from, const char* remove) {
  -------
   * double - Converted numerical value
 */
-double OBD2::conditionResponse(const uint8_t& numExpectedBytes,
-                               const double& scaleFactor,
-                               const double& bias) {
+double OBD2::conditionResponse(uint8_t numExpectedBytes, double scaleFactor, double bias) {
   uint8_t numExpectedPayChars = numExpectedBytes * 2;
   uint8_t payCharDiff         = numPayChars - numExpectedPayChars;
 
@@ -434,7 +432,7 @@ double OBD2::processPID(const uint8_t service,
  -------
   * const char *cmd - Command/query to send to OBD2
 */
-void OBD2::sendCommand(Message* cmd) {
+void OBD2::sendCommand(IsoTp::Message* cmd) {
   // clear payload buffer
   // memset(payload, 0, sizeof(payload));
 
