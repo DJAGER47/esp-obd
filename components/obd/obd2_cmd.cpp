@@ -434,7 +434,7 @@ double OBD2::processPID(const uint8_t service,
  -------
   * const char *cmd - Command/query to send to OBD2
 */
-void OBD2::sendCommand(Message_t* cmd) {
+void OBD2::sendCommand(Message* cmd) {
   // clear payload buffer
   // memset(payload, 0, sizeof(payload));
 

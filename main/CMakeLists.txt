@@ -6,18 +6,11 @@ idf_component_register(SRCS "main.cpp"
                        REQUIRES driver
                                 twai_interface
                                 iso-tp
+                                obd
 
                        INCLUDE_DIRS "."
                                     "twai/"
                                     )
-
-#                             "obd/obd2_cmd.cpp"
-#                             "obd/obd2_pid.cpp"
-#                             "obd/obd2_pid_1_20.cpp"
-#                             "obd/obd2_pid_21_40.cpp"
-#                             "obd/obd2_pid_41_60.cpp"
-#                             "obd/obd2_pid_61_80.cpp"
-# "obd/"
 
 ##################################################################
 # Clang-tidy
