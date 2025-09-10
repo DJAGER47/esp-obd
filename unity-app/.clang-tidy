@@ -18,7 +18,8 @@ Checks: >
   -cppcoreguidelines-pro-bounds-constant-array-index,
   -cppcoreguidelines-avoid-magic-numbers,
   -cppcoreguidelines-avoid-c-arrays,
-  -cppcoreguidelines-pro-type-vararg
+  -cppcoreguidelines-pro-type-vararg,
+  -modernize-avoid-c-arrays
 
 HeaderFilterRegex: '^(?!.*Unity-2\.6\.1).*'
 

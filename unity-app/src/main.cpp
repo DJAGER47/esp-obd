@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 
 // Подключение заголовочных файлов Unity
 #include "unity.h"

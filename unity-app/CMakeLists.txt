@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.22)
 
-project(unity_app)
+project(unity_app LANGUAGES C CXX)
 
 add_executable(unity_app
     src/main.cpp
@@ -18,13 +18,10 @@ target_compile_options(unity_app PRIVATE
     $<$<CONFIG:Release>:-O3 -DNDEBUG>
 )
 
-# Установка свойств компиляции для исполняемого файла
-set_target_properties(unity_app PROPERTIES
-    CXX_STANDARD 17
-    C_STANDARD 99
-    CXX_STANDARD_REQUIRED ON
-    C_STANDARD_REQUIRED ON
-)
+set_property(TARGET unity_app PROPERTY CXX_STANDARD 17)
+set_property(TARGET unity_app PROPERTY CXX_STANDARD_REQUIRED ON)
+set_property(TARGET unity_app PROPERTY CXX_EXTENSIONS OFF)
+set_property(TARGET unity_app PROPERTY LINKER_LANGUAGE CXX)
 
 # Добавление директорий заголовочных файлов
 target_include_directories(unity_app PRIVATE
@@ -53,7 +50,7 @@ target_compile_definitions(unity_app PRIVATE
 ##################################################################
 # Информационные сообщения
 ##################################################################
-message(STATUS "=== Конфигурация Unity App (объединенный исполняемый файл) ===")
+message(STATUS "=== Конфигурация Unity ======================================")
 message(STATUS "Проект: ${PROJECT_NAME}")
 message(STATUS "Тип сборки: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ стандарт: ${CMAKE_CXX_STANDARD}")
@@ -79,26 +76,32 @@ if(ENABLE_CLANG_TIDY)
         set(CMAKE_CXX_CLANG_TIDY
             ${CLANG_TIDY_EXE}
             -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
-            -format-style='file'
             --use-color
+            -extra-arg=-Wno-unknown-warning-option
             -extra-arg=-std=c++17
-            -extra-arg=-Wno-unknown-warning-option
+            # Системные пути для C++
+            -extra-arg=-I/usr/include/c++/11
+            -extra-arg=-I/usr/include/x86_64-linux-gnu/c++/11
+            -extra-arg=-I/usr/include/c++/11/backward
+            -extra-arg=-I/usr/lib/gcc/x86_64-linux-gnu/11/include
+            -extra-arg=-I/usr/local/include
+            -extra-arg=-I/usr/include/x86_64-linux-gnu
+            -extra-arg=-I/usr/include
+            # Пути проекта
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/src
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/tests/iso-tp
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/iso-tp
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/twai_interface
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/Unity-2.6.1/src
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/mocks
+            -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/mocks/freertos
+            # Макросы
+            -extra-arg=-DESP_LOG_H_
+            -extra-arg=-DFREERTOS_H
+            -extra-arg=-DTASK_H
         )
         
-        # Применяем clang-tidy к целевому исполняемому файлу
         set_target_properties(unity_app PROPERTIES CXX_CLANG_TIDY "${CMAKE_CXX_CLANG_TIDY}")
-        
-        # Для C файлов (Unity)
-        set(CMAKE_C_CLANG_TIDY
-            ${CLANG_TIDY_EXE}
-            -config-file=${CMAKE_SOURCE_DIR}/.clang-tidy
-            -format-style='file'
-            --use-color
-            -extra-arg=-std=c99
-            -extra-arg=-Wno-unknown-warning-option
-        )
-        
-        set_target_properties(unity_app PROPERTIES C_CLANG_TIDY "${CMAKE_C_CLANG_TIDY}")
     else()
         message(WARNING "clang-tidy не найден. Проверка будет пропущена.")
     endif()
