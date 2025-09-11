@@ -4,9 +4,10 @@
 #include <cstdint>
 
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-uint32_t millis() {
+static uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 

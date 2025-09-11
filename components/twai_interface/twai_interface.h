@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "freertos/FreeRTOS.h"
+
 class ITwaiInterface {
  public:
   enum class TwaiError : uint32_t {

@@ -175,7 +175,6 @@ class OBD2 {
                     double scaleFactor = 1,
                     double bias        = 0);
   double conditionResponse(uint8_t numExpecteduint8_ts, double scaleFactor = 1, double bias = 0);
-  double conditionResponse(double (*func)());
   int8_t get_response();
 
   // pid

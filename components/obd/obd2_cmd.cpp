@@ -7,10 +7,16 @@
 #include <cstring>
 
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "iso-tp.h"
 #include "obd2.h"
 
 static const char* TAG = "OBD2";
+
+static uint32_t millis() {
+  return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
+}
 
 void OBD2::log_print(const char* format, ...) {
   if (OBD_DEBUG) {
@@ -335,24 +341,6 @@ double OBD2::conditionResponse(uint8_t numExpectedBytes, double scaleFactor, dou
   }
 }
 
-/* Provides a means to pass in a user-defined function to process the response.
- Used for PIDs that don't use the common scaleFactor + Bias formula to calculate
- the value from the response data. Also useful for processing OEM custom PIDs
- which are too numerous and varied to encode in the lib.
-
- Inputs:
- -------
-  * (*func)() - pointer to function to do calculate response value
-
- Return:
- -------
-  * double - Converted numerical value
-*/
-
-double OBD2::conditionResponse(double (*func)()) {
-  return func();
-}
-
 /* Create a PID query command string and send the command
 
   Inputs:
@@ -405,7 +393,7 @@ void OBD2::queryPID(uint8_t service, uint16_t pid, uint8_t num_responses) {
   msg.data  = data;
 
   // Send command via ISO-TP
-  sendCommand(&msg);
+  sendCommand(msg);
 }
 
 /* Queries OBD2 for a specific type of vehicle telemetry data
@@ -476,12 +464,12 @@ double OBD2::processPID(const uint8_t service,
       response_G = extractedBytes[6];
       response_H = extractedBytes[7];
 
-      double (*calculator)() = selectCalculator(pid);
+      std::function<double(void)> calculator = selectCalculator(pid);
       if (nullptr == calculator) {
         // Use the default scaleFactor + Bias calculation
         return conditionResponse(numExpectedBytes, scaleFactor, bias);
       } else {
-        return conditionResponse(calculator);
+        return calculator();
       }
     } else if (nb_rx_state != OBD_GETTING_MSG) {
       nb_query_state = SEND_COMMAND;  // Error or timeout, so reset the query
@@ -503,8 +491,8 @@ void OBD2::sendCommand(IsoTp::Message& cmd) {
   memset(payload, 0, sizeof(payload));
 
   // Reset input buffer and number of received bytes
-  recBytes  = 0;
-  connected = false;
+  // recBytes  = 0;
+  // connected = false;
 
   // Reset the receive state ready to start receiving a response message
   nb_rx_state = OBD_GETTING_MSG;
@@ -851,14 +839,14 @@ uint64_t OBD2::findResponse() {
     // and custom) require special operations for each
     // uint8_t returned
 
-    responseByte_0 = response & 0xFF;
-    responseByte_1 = (response >> 8) & 0xFF;
-    responseByte_2 = (response >> 16) & 0xFF;
-    responseByte_3 = (response >> 24) & 0xFF;
-    responseByte_4 = (response >> 32) & 0xFF;
-    responseByte_5 = (response >> 40) & 0xFF;
-    responseByte_6 = (response >> 48) & 0xFF;
-    responseByte_7 = (response >> 56) & 0xFF;
+    uint8_t responseByte_0 = response & 0xFF;
+    uint8_t responseByte_1 = (response >> 8) & 0xFF;
+    uint8_t responseByte_2 = (response >> 16) & 0xFF;
+    uint8_t responseByte_3 = (response >> 24) & 0xFF;
+    uint8_t responseByte_4 = (response >> 32) & 0xFF;
+    uint8_t responseByte_5 = (response >> 40) & 0xFF;
+    uint8_t responseByte_6 = (response >> 48) & 0xFF;
+    uint8_t responseByte_7 = (response >> 56) & 0xFF;
 
     log_print("64-bit response: %llX", response);
 
