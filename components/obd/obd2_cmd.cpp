@@ -1,4 +1,5 @@
 #include <cctype>
+#include <cinttypes>
 #include <cstdarg>
 #include <cstdint>
 #include <cstdio>
@@ -17,6 +18,22 @@ void OBD2::log_print(const char* format, ...) {
     va_start(args, format);
     esp_log_writev(ESP_LOG_INFO, TAG, format, args);
     va_end(args);
+  }
+}
+
+void OBD2::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
+  if (OBD_DEBUG) {
+    char log_buffer[256];
+    int offset = 0;
+
+    offset += snprintf(
+        log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
+
+    for (uint16_t i = 0; i < len && offset < sizeof(log_buffer) - 4; i++) {
+      offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "%02X ", buffer[i]);
+    }
+
+    log_print("%s", log_buffer);
   }
 }
 
@@ -51,7 +68,26 @@ void OBD2::printError() {
 
 OBD2::OBD2(IsoTp& driver, uint16_t timeout) :
     iso_tp_(driver),
-    timeout_ms(timeout) {}
+    // char payload[128];  // Буфер для приема данных
+    nb_rx_state(OBD_GETTING_MSG),
+    response(0),
+    recuint8_ts(0),
+    numPayChars(0),
+    timeout_ms(timeout),
+    response_A(0),
+    response_B(0),
+    response_C(0),
+    response_D(0),
+    response_E(0),
+    response_F(0),
+    response_G(0),
+    response_H(0),
+    // char query[QUERY_LEN] = {'\0'};
+    longQuery(false),
+    isMode0x22Query(false),
+    currentTime(0),
+    previousTime(0),
+    nb_query_state(SEND_COMMAND) {}
 
 /* Creates a query stack to be sent to OBD2
 
@@ -60,76 +96,76 @@ OBD2::OBD2(IsoTp& driver, uint16_t timeout) :
   * uint16_t service - Service number of the queried PID
   * uint32_t pid     - PID number of the queried PID
   * uint8_t num_responses - see function header for "queryPID()"*/
-void OBD2::formatQueryArray(const uint8_t& service,
-                            const uint16_t& pid,
-                            const uint8_t& num_responses) {
+void OBD2::formatQueryArray(uint8_t service, uint16_t pid, uint8_t num_responses) {
   log_print("Service: %d PID: %d", service, pid);
 
-  // isMode0x22Query = (service == 0x22 &&
-  //                    pid <= 0xFF);  // mode 0x22 responses always zero-pad
-  //                    the
-  //                                   // pid to 4 chars, even for a 2-char pid
+  // Reset query array
+  memset(query, 0, sizeof(query));
 
-  // query[0] = ((service >> 4) & 0xF) + '0';
-  // query[1] = (service & 0xF) + '0';
+  // Determine if this is a mode 0x22 query (which always zero-pads the PID to 4 chars)
+  isMode0x22Query = (service == 0x22 && pid <= 0xFF);
 
-  // // determine PID length (standard queries have 16-bit PIDs,
-  // // but some custom queries have PIDs with 32-bit values)
-  // if (pid & 0xFF00) {
-  //   log_print("Long query detected");
+  // Format service bytes
+  query[0] = ((service >> 4) & 0xF) + '0';
+  query[1] = (service & 0xF) + '0';
 
-  //   longQuery = true;
+  // Determine PID length (standard queries have 16-bit PIDs,
+  // but some custom queries have PIDs with 32-bit values)
+  if (pid & 0xFF00) {
+    log_print("Long query detected");
 
-  //   query[2] = ((pid >> 12) & 0xF) + '0';
-  //   query[3] = ((pid >> 8) & 0xF) + '0';
-  //   query[4] = ((pid >> 4) & 0xF) + '0';
-  //   query[5] = (pid & 0xF) + '0';
+    longQuery = true;
 
-  //   if (specifyNumResponses) {
-  //     if (num_responses > 0xF) {
-  //       query[6] = ((num_responses >> 4) & 0xF) + '0';
-  //       query[7] = (num_responses & 0xF) + '0';
-  //       query[8] = '\0';
-  //     } else {
-  //       query[6] = (num_responses & 0xF) + '0';
-  //       query[7] = '\0';
-  //       query[8] = '\0';
-  //     }
-  //   } else {
-  //     query[6] = '\0';
-  //     query[7] = '\0';
-  //     query[8] = '\0';
-  //   }
-  // } else {
-  //   log_print("Normal length query detected");
+    query[2] = ((pid >> 12) & 0xF) + '0';
+    query[3] = ((pid >> 8) & 0xF) + '0';
+    query[4] = ((pid >> 4) & 0xF) + '0';
+    query[5] = (pid & 0xF) + '0';
 
-  //   longQuery = false;
+    if (num_responses > 0) {
+      if (num_responses > 0xF) {
+        query[6] = ((num_responses >> 4) & 0xF) + '0';
+        query[7] = (num_responses & 0xF) + '0';
+        query[8] = '\0';
+      } else {
+        query[6] = (num_responses & 0xF) + '0';
+        query[7] = '\0';
+        query[8] = '\0';
+      }
+    } else {
+      query[6] = '\0';
+      query[7] = '\0';
+      query[8] = '\0';
+    }
+  } else {
+    log_print("Normal length query detected");
 
-  //   query[2] = ((pid >> 4) & 0xF) + '0';
-  //   query[3] = (pid & 0xF) + '0';
+    longQuery = false;
 
-  //   if (specifyNumResponses) {
-  //     if (num_responses > 0xF) {
-  //       query[4] = ((num_responses >> 4) & 0xF) + '0';
-  //       query[5] = (num_responses & 0xF) + '0';
-  //       query[6] = '\0';
-  //       query[7] = '\0';
-  //       query[8] = '\0';
-  //     } else {
-  //       query[4] = (num_responses & 0xF) + '0';
-  //       query[5] = '\0';
-  //       query[6] = '\0';
-  //       query[7] = '\0';
-  //       query[8] = '\0';
-  //     }
-  //   } else {
-  //     query[4] = '\0';
-  //     query[5] = '\0';
-  //     query[6] = '\0';
-  //     query[7] = '\0';
-  //     query[8] = '\0';
-  //   }
-  // }
+    query[2] = ((pid >> 4) & 0xF) + '0';
+    query[3] = (pid & 0xF) + '0';
+
+    if (num_responses > 0) {
+      if (num_responses > 0xF) {
+        query[4] = ((num_responses >> 4) & 0xF) + '0';
+        query[5] = (num_responses & 0xF) + '0';
+        query[6] = '\0';
+        query[7] = '\0';
+        query[8] = '\0';
+      } else {
+        query[4] = (num_responses & 0xF) + '0';
+        query[5] = '\0';
+        query[6] = '\0';
+        query[7] = '\0';
+        query[8] = '\0';
+      }
+    } else {
+      query[4] = '\0';
+      query[5] = '\0';
+      query[6] = '\0';
+      query[7] = '\0';
+      query[8] = '\0';
+    }
+  }
 
   log_print("Query string: %s", query);
 }
@@ -144,12 +180,12 @@ void OBD2::formatQueryArray(const uint8_t& service,
  -------
   * bool - whether or not a time-out has occurred
 */
-// bool OBD2::timeout() {
-//   currentTime = millis();
-//   if ((currentTime - previousTime) >= timeout_ms)
-//     return true;
-//   return false;
-// }
+bool OBD2::timeout() {
+  currentTime = millis();
+  if ((currentTime - previousTime) >= timeout_ms)
+    return true;
+  return false;
+}
 /* converts a decimal or hex char to an int
 
  Inputs:
@@ -335,7 +371,41 @@ double OBD2::conditionResponse(double (*func)()) {
 */
 void OBD2::queryPID(uint8_t service, uint16_t pid, uint8_t num_responses) {
   formatQueryArray(service, pid, num_responses);
-  // sendCommand(query);
+
+  // Convert query string to hex bytes for ISO-TP
+  uint8_t data[8] = {0};
+  uint8_t len     = 0;
+
+  // Parse the query string and convert to bytes
+  if (longQuery) {
+    // For long queries, we have 6 hex characters for PID
+    for (int i = 0; i < 6 && query[i] != '\0'; i += 2) {
+      if (query[i + 1] != '\0') {
+        data[len++] = (ctoi(query[i]) << 4) | ctoi(query[i + 1]);
+      } else {
+        data[len++] = ctoi(query[i]) << 4;
+      }
+    }
+  } else {
+    // For normal queries, we have 4 hex characters (2 bytes)
+    for (int i = 0; i < 4 && query[i] != '\0'; i += 2) {
+      if (query[i + 1] != '\0') {
+        data[len++] = (ctoi(query[i]) << 4) | ctoi(query[i + 1]);
+      } else {
+        data[len++] = ctoi(query[i]) << 4;
+      }
+    }
+  }
+
+  // Create ISO-TP message
+  IsoTp::Message msg;
+  msg.tx_id = 0x7DF;  // Default OBD2 request ID
+  msg.rx_id = 0x7E8;  // Default OBD2 response ID
+  msg.len   = len;
+  msg.data  = data;
+
+  // Send command via ISO-TP
+  sendCommand(&msg);
 }
 
 /* Queries OBD2 for a specific type of vehicle telemetry data
@@ -365,63 +435,59 @@ double OBD2::processPID(const uint8_t service,
                         const uint8_t numExpectedBytes,
                         const double scaleFactor,
                         const double bias) {
-  // if (nb_query_state == SEND_COMMAND) {
-  //   queryPID(service, pid, num_responses);
-  //   nb_query_state = WAITING_RESP;
-  // } else if (nb_query_state == WAITING_RESP) {
-  //   get_response();
-  //   if (nb_rx_state == OBD_SUCCESS) {
-  //     nb_query_state =
-  //         SEND_COMMAND;  // Reset the query state machine for next command
-  //     findResponse();
+  if (nb_query_state == SEND_COMMAND) {
+    queryPID(service, pid, num_responses);
+    nb_query_state = WAITING_RESP;
+  } else if (nb_query_state == WAITING_RESP) {
+    get_response();
+    if (nb_rx_state == OBD_SUCCESS) {
+      nb_query_state = SEND_COMMAND;  // Reset the query state machine for next command
+      findResponse();
 
-  //     /* This data manipulation seems duplicative of the responseByte_0,
-  //        responseByte_1, etc vars and it is. The duplcation is deliberate to
-  //        provide a clear way for the calculator functions to access the
-  //        relevant data bytes from the response in the format they are
-  //        commonly expressed in and without breaking backward compatability
-  //        with existing code that may be using the responseByte_n vars.
+      /* This data manipulation seems duplicative of the responseByte_0,
+         responseByte_1, etc vars and it is. The duplcation is deliberate to
+         provide a clear way for the calculator functions to access the
+         relevant data bytes from the response in the format they are
+         commonly expressed in and without breaking backward compatability
+         with existing code that may be using the responseByte_n vars.
 
-  //        In addition, we need to place the response values into static vars
-  //        that can be accessed by the (static) calculator functions. A future
-  //        (breaking!) change could be made to eliminate this duplication.
-  //     */
-  //     uint8_t responseBits      = numExpectedBytes * 8;
-  //     uint8_t extractedBytes[8] = {0};  // Store extracted bytes
+         In addition, we need to place the response values into static vars
+         that can be accessed by the (static) calculator functions. A future
+         (breaking!) change could be made to eliminate this duplication.
+      */
+      uint8_t responseBits      = numExpectedBytes * 8;
+      uint8_t extractedBytes[8] = {0};  // Store extracted bytes
 
-  //     // Extract bytes only if shift is non-negative
-  //     for (int i = 0; i < numExpectedBytes; i++) {
-  //       int shiftAmount = responseBits - (8 * (i + 1));  // Compute shift
-  //       amount if (shiftAmount >= 0) {                          //  Ensure
-  //       valid shift
-  //         extractedBytes[i] =
-  //             (response >> shiftAmount) & 0xFF;  // Extract uint8_t
-  //       }
-  //     }
+      // Extract bytes only if shift is non-negative
+      for (int i = 0; i < numExpectedBytes; i++) {
+        int shiftAmount = responseBits - (8 * (i + 1));          // Compute shift amount
+        if (shiftAmount >= 0) {                                  // Ensure valid shift
+          extractedBytes[i] = (response >> shiftAmount) & 0xFF;  // Extract uint8_t
+        }
+      }
 
-  //     // Assign extracted values to response_A, response_B, ..., response_H
-  //     // safely
-  //     response_A = extractedBytes[0];
-  //     response_B = extractedBytes[1];
-  //     response_C = extractedBytes[2];
-  //     response_D = extractedBytes[3];
-  //     response_E = extractedBytes[4];
-  //     response_F = extractedBytes[5];
-  //     response_G = extractedBytes[6];
-  //     response_H = extractedBytes[7];
+      // Assign extracted values to response_A, response_B, ..., response_H safely
+      response_A = extractedBytes[0];
+      response_B = extractedBytes[1];
+      response_C = extractedBytes[2];
+      response_D = extractedBytes[3];
+      response_E = extractedBytes[4];
+      response_F = extractedBytes[5];
+      response_G = extractedBytes[6];
+      response_H = extractedBytes[7];
 
-  //     double (*calculator)() = selectCalculator(pid);
-
-  //     if (nullptr == calculator) {
-  //       // Use the default scaleFactor + Bias calculation
-  //       return conditionResponse(numExpectedBytes, scaleFactor, bias);
-  //     } else {
-  //       return conditionResponse(calculator);
-  //     }
-  //   } else if (nb_rx_state != OBD_GETTING_MSG)
-  //     nb_query_state = SEND_COMMAND;  // Error or timeout, so reset the query
-  //                                     // state machine for next command
-  // }
+      double (*calculator)() = selectCalculator(pid);
+      if (nullptr == calculator) {
+        // Use the default scaleFactor + Bias calculation
+        return conditionResponse(numExpectedBytes, scaleFactor, bias);
+      } else {
+        return conditionResponse(calculator);
+      }
+    } else if (nb_rx_state != OBD_GETTING_MSG) {
+      nb_query_state = SEND_COMMAND;  // Error or timeout, so reset the query
+                                      // state machine for next command
+    }
+  }
   return 0.0;
 }
 
@@ -432,27 +498,26 @@ double OBD2::processPID(const uint8_t service,
  -------
   * const char *cmd - Command/query to send to OBD2
 */
-void OBD2::sendCommand(IsoTp::Message* cmd) {
-  // clear payload buffer
-  // memset(payload, 0, sizeof(payload));
+void OBD2::sendCommand(IsoTp::Message& cmd) {
+  // Clear payload buffer
+  memset(payload, 0, sizeof(payload));
 
-  // // reset input serial buffer and number of received bytes
-  // recBytes  = 0;
-  // connected = false;
+  // Reset input buffer and number of received bytes
+  recBytes  = 0;
+  connected = false;
 
-  // // Reset the receive state ready to start receiving a response message
-  // nb_rx_state = OBD_GETTING_MSG;
+  // Reset the receive state ready to start receiving a response message
+  nb_rx_state = OBD_GETTING_MSG;
 
-  // log_print("Sending the following command/query: %s", cmd);
+  log_print("Sending the following command/query");
+  log_print_buffer(cmd.tx_id, cmd.data, cmd.len);
 
-  // elm_port->print(cmd);
-  // elm_port->print('\r');
+  // Send command via IsoTp
+  iso_tp_.send(cmd);
 
-  // iso_tp_->send()
-
-  //     // prime the timeout timer
-  //     previousTime = millis();
-  // currentTime      = previousTime;
+  // Prime the timeout timer
+  previousTime = millis();
+  currentTime  = previousTime;
 }
 
 /* Sends a
@@ -487,17 +552,39 @@ OBD_GETTING_MSG. Return:
  -------
   * int8_t - the OBD_XXX status of getting the OBD response
 */
-// int8_t OBD2::get_response() {
-// // buffer the response of the OBD327 until either the
-// // end marker is read or a timeout has occurred
-// // last valid idx is PAYLOAD_LEN but want to keep one free for terminating
-// // '\0' so limit counter to < PAYLOAD_LEN
-// if (!elm_port->available()) {
-//   nb_rx_state = OBD_GETTING_MSG;
-//   if (timeout())
-//     nb_rx_state = OBD_TIMEOUT;
-// } else {
-//   char recChar = elm_port->read();
+int8_t OBD2::get_response() {
+  // Create ISO-TP message for receiving response
+  IsoTp::Message msg;
+  msg.tx_id = 0x7DF;  // Request ID
+  msg.rx_id = 0x7E8;  // Response ID
+  msg.len   = 0;
+  uint8_t buffer[128];  // Temporary buffer for receiving data
+  msg.data = buffer;
+
+  // Try to receive message via ISO-TP
+  if (iso_tp_.receive(msg) == 0) {  // ISO-TP receive returns 0 on success
+    // Successfully received message
+    nb_rx_state = OBD_SUCCESS;
+
+    // Convert received bytes back to hex string for compatibility with existing code
+    memset(payload, 0, sizeof(payload));
+    for (uint16_t i = 0; i < msg.len && i < sizeof(payload) / 2; i++) {
+      sprintf(payload + (i * 2), "%02X", msg.data[i]);
+    }
+
+    log_print("Received payload: %s", payload);
+  } else {
+    // Check for timeout
+    currentTime = millis();
+    if ((currentTime - previousTime) >= timeout_ms) {
+      nb_rx_state = OBD_TIMEOUT;
+    } else {
+      nb_rx_state = OBD_GETTING_MSG;
+    }
+  }
+
+  return nb_rx_state;
+}
 
 //   // display each received character, make non-printables printable
 //   if (recChar == '\f')
@@ -698,88 +785,87 @@ OBD_GETTING_MSG. Return:
   * const uint8_t& pid     - The Parameter ID (PID) from the service
 */
 uint64_t OBD2::findResponse() {
-  // uint8_t firstDatum = 0;
-  // char header[7]     = {'\0'};
+  uint8_t firstDatum = 0;
+  char header[7]     = {'\0'};
 
-  // if (longQuery) {
-  //   header[0] = query[0] + 4;
-  //   header[1] = query[1];
-  //   header[2] = query[2];
-  //   header[3] = query[3];
-  //   header[4] = query[4];
-  //   header[5] = query[5];
-  // } else {
-  //   header[0] = query[0] + 4;
-  //   header[1] = query[1];
+  if (longQuery) {
+    header[0] = query[0] + 4;
+    header[1] = query[1];
+    header[2] = query[2];
+    header[3] = query[3];
+    header[4] = query[4];
+    header[5] = query[5];
+  } else {
+    header[0] = query[0] + 4;
+    header[1] = query[1];
 
-  //   if (isMode0x22Query)  // mode 0x22 responses always zero-pad the pid to
-  //                         // 4 chars, even for a 2-char pid
-  //   {
-  //     header[2] = '0';
-  //     header[3] = '0';
-  //     header[4] = query[2];
-  //     header[5] = query[3];
-  //   } else {
-  //     header[2] = query[2];
-  //     header[3] = query[3];
-  //   }
-  // }
+    if (isMode0x22Query)  // mode 0x22 responses always zero-pad the pid to
+                          // 4 chars, even for a 2-char pid
+    {
+      header[2] = '0';
+      header[3] = '0';
+      header[4] = query[2];
+      header[5] = query[3];
+    } else {
+      header[2] = query[2];
+      header[3] = query[3];
+    }
+  }
 
-  // log_print("Expected response header: %s", header);
+  log_print("Expected response header: %s", header);
 
-  // int8_t firstHeadIndex  = nextIndex(payload, header, 1);
-  // int8_t secondHeadIndex = nextIndex(payload, header, 2);
+  int8_t firstHeadIndex  = nextIndex(payload, header, 1);
+  int8_t secondHeadIndex = nextIndex(payload, header, 2);
 
-  // if (firstHeadIndex >= 0) {
-  //   if (longQuery | isMode0x22Query)
-  //     firstDatum = firstHeadIndex + 6;
-  //   else
-  //     firstDatum = firstHeadIndex + 4;
+  if (firstHeadIndex >= 0) {
+    if (longQuery || isMode0x22Query)
+      firstDatum = firstHeadIndex + 6;
+    else
+      firstDatum = firstHeadIndex + 4;
 
-  //   // Some OBD327s (such as my own) respond with two
-  //   // "responses" per query. "numPayChars" represents the
-  //   // correct number of bytes returned by the OBD2
-  //   // regardless of how many "responses" were returned
-  //   if (secondHeadIndex >= 0) {
-  //     log_print("Double response detected");
+    // Some OBD327s (such as my own) respond with two
+    // "responses" per query. "numPayChars" represents the
+    // correct number of bytes returned by the OBD2
+    // regardless of how many "responses" were returned
+    if (secondHeadIndex >= 0) {
+      log_print("Double response detected");
 
-  //     numPayChars = secondHeadIndex - firstDatum;
-  //   } else {
-  //     log_print("Single response detected");
+      numPayChars = secondHeadIndex - firstDatum;
+    } else {
+      log_print("Single response detected");
 
-  //     numPayChars = strlen(payload) - firstDatum;
-  //   }
+      numPayChars = strlen(payload) - firstDatum;
+    }
 
-  //   response = 0;
-  //   for (uint8_t i = 0; i < numPayChars; i++) {
-  //     uint8_t payloadIndex = firstDatum + i;
-  //     uint8_t bitsOffset   = 4 * (numPayChars - i - 1);
+    response = 0;
+    for (uint8_t i = 0; i < numPayChars; i++) {
+      uint8_t payloadIndex = firstDatum + i;
+      uint8_t bitsOffset   = 4 * (numPayChars - i - 1);
 
-  //     log_print("\tProcessing hex nibble: %c", payload[payloadIndex]);
-  //     response =
-  //         response | ((uint64_t)ctoi(payload[payloadIndex]) << bitsOffset);
-  //   }
+      log_print("\tProcessing hex nibble: %c", payload[payloadIndex]);
+      response = response | ((uint64_t)ctoi(payload[payloadIndex]) << bitsOffset);
+    }
 
-  //   // It is useful to have the response bytes
-  //   // broken-out because some PID algorithms (standard
-  //   // and custom) require special operations for each
-  //   // uint8_t returned
+    // It is useful to have the response bytes
+    // broken-out because some PID algorithms (standard
+    // and custom) require special operations for each
+    // uint8_t returned
 
-  //   responseByte_0 = response & 0xFF;
-  //   responseByte_1 = (response >> 8) & 0xFF;
-  //   responseByte_2 = (response >> 16) & 0xFF;
-  //   responseByte_3 = (response >> 24) & 0xFF;
-  //   responseByte_4 = (response >> 32) & 0xFF;
-  //   responseByte_5 = (response >> 40) & 0xFF;
-  //   responseByte_6 = (response >> 48) & 0xFF;
-  //   responseByte_7 = (response >> 56) & 0xFF;
+    responseByte_0 = response & 0xFF;
+    responseByte_1 = (response >> 8) & 0xFF;
+    responseByte_2 = (response >> 16) & 0xFF;
+    responseByte_3 = (response >> 24) & 0xFF;
+    responseByte_4 = (response >> 32) & 0xFF;
+    responseByte_5 = (response >> 40) & 0xFF;
+    responseByte_6 = (response >> 48) & 0xFF;
+    responseByte_7 = (response >> 56) & 0xFF;
 
-  //   log_print("64-bit response: %llX", response);
+    log_print("64-bit response: %llX", response);
 
-  //   return response;
-  // }
+    return response;
+  }
 
-  // log_print("Response not detected");
+  log_print("Response not detected");
 
   return 0;
 }

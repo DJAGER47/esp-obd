@@ -176,6 +176,7 @@ class OBD2 {
                     double bias        = 0);
   double conditionResponse(uint8_t numExpecteduint8_ts, double scaleFactor = 1, double bias = 0);
   double conditionResponse(double (*func)());
+  int8_t get_response();
 
   // pid
   uint32_t supportedPIDs_1_20();
@@ -263,9 +264,13 @@ class OBD2 {
   uint16_t auxSupported();
 
  private:
-  void sendCommand(IsoTp::Message* cmd);
+  struct dtcResponse {
+    uint8_t codesFound = 0;
+    char codes[DTC_MAX_CODES][DTC_CODE_LEN];
+  } DTC_Response;
 
-  void formatQueryArray(const uint8_t& service, const uint16_t& pid, const uint8_t& num_responses);
+  void sendCommand(IsoTp::Message& cmd);
+  void formatQueryArray(uint8_t service, uint16_t pid, uint8_t num_responses);
 
   uint8_t ctoi(uint8_t value);
   int8_t nextIndex(char const* str, char const* target, uint8_t numOccur = 1);
@@ -273,6 +278,8 @@ class OBD2 {
 
   void printError();
   void log_print(const char* format, ...);
+  void log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len);
+  bool timeout();
 
   IsoTp& iso_tp_;
 
@@ -292,16 +299,10 @@ class OBD2 {
   uint8_t response_G;
   uint8_t response_H;
 
-  struct dtcResponse {
-    uint8_t codesFound = 0;
-    char codes[DTC_MAX_CODES][DTC_CODE_LEN];
-  } DTC_Response;
-
   char query[QUERY_LEN] = {'\0'};
   bool longQuery        = false;
   bool isMode0x22Query  = false;
   uint32_t currentTime;
   uint32_t previousTime;
-  double* calculator;
   obd_cmd_states nb_query_state = SEND_COMMAND;  // Non-blocking query state
 };
