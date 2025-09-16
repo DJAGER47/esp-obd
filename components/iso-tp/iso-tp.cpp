@@ -257,7 +257,7 @@ bool IsoTp::rcv_fc(Message_t& msg) {
       // fall through
     default:
       msg.tp_state = ISOTP_IDLE;
-      retval       = true;
+      retval       = false;
   }
   return retval;
 }

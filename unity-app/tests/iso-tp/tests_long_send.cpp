@@ -171,17 +171,15 @@ void test_iso_tp_send_block_size_2() {
   msg.len   = sizeof(test_data);
   msg.data  = test_data;
 
-  // Первый FC с блочным размером 2, затем продолжение
+  // FC с блочным размером 2 (второй FC не нужен, так как все данные передаются в первом блоке)
   ITwaiInterface::TwaiFrame fc1 = create_flow_control_frame(0x200, 0, 2, 0);  // Block size = 2
-  ITwaiInterface::TwaiFrame fc2 = create_flow_control_frame(0x200, 0, 0, 0);  // Continue
   mock_can.add_receive_frame(fc1);
-  mock_can.add_receive_frame(fc2);
 
   bool result = iso_tp.send(msg);
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Send should succeed with block size");
-  // FF + 2 CF (блок) + ожидание FC + 1 CF = 4 кадра
-  TEST_ASSERT_EQUAL_INT_MESSAGE(4, mock_can.transmitted_frames.size(), "Should transmit FF + 3 CF");
+  // FF + 2 CF (блок) = 3 кадра (все данные переданы)
+  TEST_ASSERT_EQUAL_INT_MESSAGE(3, mock_can.transmitted_frames.size(), "Should transmit FF + 2 CF");
 }
 
 // Тест 6: Приём многокадрового сообщения

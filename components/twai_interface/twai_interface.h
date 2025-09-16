@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 class ITwaiInterface {
  public:

@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <functional>
 
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"

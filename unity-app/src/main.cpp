@@ -5,6 +5,8 @@
 
 extern "C" void run_iso_tp_tests();
 extern "C" void run_iso_tp_extended_tests();
+extern "C" void run_obd_basic_tests();
+extern "C" void run_obd_pids_tests();
 
 // Функции, необходимые для работы Unity
 extern "C" void setUp() {
@@ -25,6 +27,10 @@ int main() {
 
   run_iso_tp_tests();
   run_iso_tp_extended_tests();
+
+  printf("\n=== Запуск тестов OBD2 ===\n");
+  run_obd_basic_tests();
+  run_obd_pids_tests();
 
   // Завершение Unity и получение результата
   int failures = UNITY_END();

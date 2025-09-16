@@ -1,10 +1,13 @@
 #pragma once
+
+#include <cstdint>
+
 #include "twai_interface.h"
 
 class IsoTp {
  public:
   // Static constants
-  static const bool ISO_TP_DEBUG = true;
+  static const bool ISO_TP_DEBUG = false;
 
   static const uint8_t CAN_MAX_DLEN = 8;  // Not extended CAN
 
