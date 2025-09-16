@@ -6,6 +6,7 @@ add_executable(unity_app
     src/main.cpp
     tests/iso-tp/tests_single.cpp
     tests/iso-tp/tests_long_send.cpp
+    tests/iso-tp/tests_edge_cases.cpp
     tests/obd/tests_obd_basic.cpp
     tests/obd/tests_obd_pids.cpp
     

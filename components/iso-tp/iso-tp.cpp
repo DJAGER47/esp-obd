@@ -11,7 +11,8 @@ static uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-static const char* const TAG = "ISO_TP";
+static const char* const TAG   = "ISO_TP";
+static const bool ISO_TP_DEBUG = false;
 
 IsoTp::IsoTp(ITwaiInterface& bus) :
     _bus(bus) {}
@@ -247,7 +248,7 @@ bool IsoTp::rcv_fc(Message_t& msg) {
         log_print("FC wait frames exceeded.");
         fc_wait_frames = 0;
         msg.tp_state   = ISOTP_IDLE;
-        retval         = true;
+        retval         = false;
       }
       log_print("Start waiting for next FC");
       break;
@@ -315,7 +316,7 @@ bool IsoTp::send(Message& msg) {
         if (delta >= TIMEOUT_FC) {
           log_print("FC timeout during receive wait_fc=%lu delta=%lu", wait_fc, delta);
           internalMsg.tp_state = ISOTP_IDLE;
-          retval               = true;
+          retval               = false;
         }
         break;
 
@@ -366,7 +367,8 @@ bool IsoTp::send(Message& msg) {
       if (can_receive()) {
         log_print("Send branch:");
         if (rxFrame.id == internalMsg.rx_id) {
-          retval = rcv_fc(internalMsg);
+          // retval = rcv_fc(internalMsg);
+          rcv_fc(internalMsg);
           memset(rxFrame.data, 0, sizeof(rxFrame.data));
           log_print("rxId OK!");
         }
@@ -423,8 +425,8 @@ bool IsoTp::receive(Message& msg) {
             break;
 
           case N_PCI_FF:
-            log_print("FF");      // first frame
-            rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
+            log_print("FF");                  // first frame
+            /*ret err*/ rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
             break;
 
           case N_PCI_CF:
