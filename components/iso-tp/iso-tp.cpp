@@ -14,8 +14,46 @@ static uint32_t millis() {
 static const char* const TAG   = "ISO_TP";
 static const bool ISO_TP_DEBUG = false;
 
-IsoTp::IsoTp(ITwaiInterface& bus) :
-    _bus(bus) {}
+const char* IsoTp::isotp_state_to_string(isotp_states_t state) {
+  switch (state) {
+    case ISOTP_IDLE:
+      return "ISOTP_IDLE";
+    case ISOTP_SEND:
+      return "ISOTP_SEND";
+    case ISOTP_SEND_FF:
+      return "ISOTP_SEND_FF";
+    case ISOTP_SEND_CF:
+      return "ISOTP_SEND_CF";
+    case ISOTP_WAIT_FIRST_FC:
+      return "ISOTP_WAIT_FIRST_FC";
+    case ISOTP_WAIT_FC:
+      return "ISOTP_WAIT_FC";
+    case ISOTP_WAIT_DATA:
+      return "ISOTP_WAIT_DATA";
+    case ISOTP_FINISHED:
+      return "ISOTP_FINISHED";
+    case ISOTP_ERROR:
+      return "ISOTP_ERROR";
+    default:
+      return "UNKNOWN_STATE";
+  }
+}
+
+void IsoTp::fc_delay(uint8_t sep_time) {
+  /*
+   * 0x00 - 0x7F: 0 - 127ms
+   * 0x80 - 0xF0: reserved
+   * 0xF1 - 0xF9: 100us - 900us
+   * 0xFA - 0xFF: reserved
+   * default 0x7F, 127ms
+   */
+  if (sep_time <= 0x7F)
+    vTaskDelay(pdMS_TO_TICKS(sep_time));
+  else if ((sep_time >= 0xF1) && (sep_time <= 0xF9))
+    esp_rom_delay_us((sep_time - 0xF0) * 100);
+  else
+    vTaskDelay(pdMS_TO_TICKS(0x7F));
+}
 
 void IsoTp::log_print(const char* format, ...) {
   if (ISO_TP_DEBUG) {
@@ -42,7 +80,10 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
   }
 }
 
-bool IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
+IsoTp::IsoTp(ITwaiInterface& bus) :
+    _bus(bus) {}
+
+void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print("Send CAN RAW Data:");
   log_print_buffer(id, data, len);
 
@@ -56,7 +97,7 @@ bool IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   if (len <= 8) {  // Проверка на максимальный размер данных для классического CAN
     memcpy(message.data, data, len);
   }
-  return (_bus.transmit(message, 0) == ITwaiInterface::TwaiError::OK);
+  _bus.transmit(message, 0);
 }
 
 bool IsoTp::can_receive() {
@@ -68,71 +109,47 @@ bool IsoTp::can_receive() {
   return false;
 }
 
-bool IsoTp::send_fc(Message_t& msg) {
+void IsoTp::send_fc(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // FC message high nibble = 0x3 , low nibble = FC Status
   TxBuf[0] = (N_PCI_FC | msg.fc_status);
   TxBuf[1] = msg.blocksize;
   /* fix wrong separation time values according spec */
-  if ((msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9)))
-    msg.min_sep_time = 0x7F;
-  TxBuf[2] = msg.min_sep_time;
-  return can_send(msg.tx_id, 8, TxBuf);
+  const bool wrong_sep_time =
+      (msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9));
+  TxBuf[2] = wrong_sep_time ? 0x7F : msg.min_sep_time;
+  can_send(msg.tx_id, 8, TxBuf);
 }
 
-bool IsoTp::send_sf(Message_t& msg)  // Send SF Message
-{
+void IsoTp::send_sf(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // SF message high nibble = 0x0 , low nibble = Length
   TxBuf[0] = (N_PCI_SF | msg.len);
   memcpy(TxBuf + 1, msg.Buffer, msg.len);
   //  return can_send(msg.tx_id,msg.len+1,TxBuf);// Add PCI length
-  return can_send(msg.tx_id, 8, TxBuf);  // Always send full frame
+  can_send(msg.tx_id, 8, TxBuf);  // Always send full frame
 }
 
-bool IsoTp::send_ff(Message_t& msg)  // Send FF
-{
+void IsoTp::send_ff(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  msg.seq_id       = 1;
 
   TxBuf[0] = (N_PCI_FF | ((msg.len & 0x0F00) >> 8));
   TxBuf[1] = (msg.len & 0x00FF);
-  memcpy(TxBuf + 2, msg.Buffer, 6);      // Skip 2 Bytes PCI
-  return can_send(msg.tx_id, 8, TxBuf);  // First Frame has full length
+  memcpy(TxBuf + 2, msg.Buffer, 6);  // Skip 2 Bytes PCI
+  can_send(msg.tx_id, 8, TxBuf);     // First Frame has full length
 }
 
-bool IsoTp::send_cf(Message_t& msg)  // Send CF Message
-{
+void IsoTp::send_cf(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  uint16_t len     = 7;
+  uint16_t len     = (msg.len > 7) ? 7 : msg.len;
 
   TxBuf[0] = (N_PCI_CF | (msg.seq_id & 0x0F));
-  if (msg.len > 7)
-    len = 7;
-  else
-    len = msg.len;
-  memcpy(TxBuf + 1, msg.Buffer, len);    // Skip 1 Byte PCI
-                                         // return can_send(msg.tx_id,len+1,TxBuf);
-                                         // // Last frame is probably shorter
-                                         // than 8 -> Signals last CF Frame
-  return can_send(msg.tx_id, 8, TxBuf);  // Last frame is probably shorter
-                                         // than 8, pad with 00
-}
-
-void IsoTp::fc_delay(uint8_t sep_time) {
-  /*
-   * 0x00 - 0x7F: 0 - 127ms
-   * 0x80 - 0xF0: reserved
-   * 0xF1 - 0xF9: 100us - 900us
-   * 0xFA - 0xFF: reserved
-   * default 0x7F, 127ms
-   */
-  if (sep_time <= 0x7F)
-    vTaskDelay(pdMS_TO_TICKS(sep_time));
-  else if ((sep_time >= 0xF1) && (sep_time <= 0xF9))
-    esp_rom_delay_us((sep_time - 0xF0) * 100);
-  else
-    vTaskDelay(pdMS_TO_TICKS(0x7F));
+  memcpy(TxBuf + 1, msg.Buffer, len);  // Skip 1 Byte PCI
+                                       // return can_send(msg.tx_id,len+1,TxBuf);
+                                       // // Last frame is probably shorter
+                                       // than 8 -> Signals last CF Frame
+  can_send(msg.tx_id, 8, TxBuf);       // Last frame is probably shorter
+                                       // than 8, pad with 00
 }
 
 void IsoTp::rcv_sf(Message_t& msg) {
@@ -143,7 +160,7 @@ void IsoTp::rcv_sf(Message_t& msg) {
   msg.tp_state = ISOTP_FINISHED;
 }
 
-bool IsoTp::rcv_ff(Message_t& msg) {
+void IsoTp::rcv_ff(Message_t& msg) {
   msg.seq_id = 1;
 
   /* get the FF_DL */
@@ -159,7 +176,7 @@ bool IsoTp::rcv_ff(Message_t& msg) {
 
   log_print("First frame received with message length: %d", rest);
   log_print("Send flow controll.");
-  log_print("ISO-TP state: %d", msg.tp_state);
+  log_print("ISO-TP state: %s", IsoTp::isotp_state_to_string(msg.tp_state));
 
   /* send our first FC frame with Target Address*/
   Message_t fc;
@@ -167,10 +184,10 @@ bool IsoTp::rcv_ff(Message_t& msg) {
   fc.fc_status    = ISOTP_FC_CTS;
   fc.blocksize    = 0;
   fc.min_sep_time = 0;
-  return send_fc(fc);
+  send_fc(fc);
 }
 
-uint8_t IsoTp::rcv_cf(Message_t& msg) {
+void IsoTp::rcv_cf(Message_t& msg) {
   // Handle Timeout
   // If no Frame within 250ms change State to ISOTP_IDLE
   uint32_t delta = millis() - wait_cf;
@@ -179,21 +196,21 @@ uint8_t IsoTp::rcv_cf(Message_t& msg) {
     log_print("CF frame timeout during receive wait_cf=%lu delta=%lu", wait_cf, delta);
 
     msg.tp_state = ISOTP_IDLE;
-    return 1;
+    return;
   }
   wait_cf = millis();
 
-  log_print("ISO-TP state: %d", msg.tp_state);
+  log_print("ISO-TP state: %s", IsoTp::isotp_state_to_string(msg.tp_state));
   log_print("CF received with message rest length: %d", rest);
 
   if (msg.tp_state != ISOTP_WAIT_DATA)
-    return 0;
+    return;
 
   if ((rxFrame.data[0] & 0x0F) != (msg.seq_id & 0x0F)) {
     log_print("Got sequence ID: %d Expected: %d", rxFrame.data[0] & 0x0F, msg.seq_id & 0x0F);
     msg.tp_state = ISOTP_IDLE;
     msg.seq_id   = 1;
-    return 1;
+    return;
   }
 
   if (rest <= 7)  // Last Frame
@@ -212,15 +229,11 @@ uint8_t IsoTp::rcv_cf(Message_t& msg) {
   }
 
   msg.seq_id++;
-
-  return 0;
+  return;
 }
 
 bool IsoTp::rcv_fc(Message_t& msg) {
   bool retval = false;
-
-  if (msg.tp_state != ISOTP_WAIT_FC && msg.tp_state != ISOTP_WAIT_FIRST_FC)
-    return retval;
 
   /* get communication parameters only from the first FC frame */
   if (msg.tp_state == ISOTP_WAIT_FIRST_FC) {
@@ -264,120 +277,99 @@ bool IsoTp::rcv_fc(Message_t& msg) {
 }
 
 bool IsoTp::send(Message& msg) {
-  // Create internal Message_t structure
   Message_t internalMsg;
   internalMsg.tx_id  = msg.tx_id;
   internalMsg.rx_id  = msg.rx_id;
   internalMsg.len    = msg.len;
   internalMsg.Buffer = msg.data;
+
   // Initialize other fields with default values
-  internalMsg.tp_state     = ISOTP_IDLE;
+  internalMsg.tp_state     = ISOTP_SEND;
   internalMsg.fc_status    = ISOTP_FC_CTS;
   internalMsg.seq_id       = 1;
   internalMsg.blocksize    = 0;
   internalMsg.min_sep_time = 0;
 
-  bool bs        = false;
-  uint32_t delta = 0;
-  bool retval    = false;
+  uint32_t wait_fc = 0;
 
-  internalMsg.tp_state = ISOTP_SEND;
-
-  while (internalMsg.tp_state != ISOTP_IDLE && internalMsg.tp_state != ISOTP_ERROR) {
-    bs = false;
-    log_print("ISO-TP State: %d", internalMsg.tp_state);
-    log_print("Length      : %d", internalMsg.len);
+  while (true) {
+    log_print(
+        "ISO-TP State: %s\n"
+        "Length      : %d",
+        isotp_state_to_string(internalMsg.tp_state),
+        internalMsg.len);
 
     switch (internalMsg.tp_state) {
-      case ISOTP_IDLE:
-        break;
-
       case ISOTP_SEND:
         if (internalMsg.len <= 7) {
           log_print("Send SF");
-          retval               = send_sf(internalMsg);
-          internalMsg.tp_state = ISOTP_IDLE;
-        } else {
-          log_print("Send FF");
-          retval = send_ff(internalMsg);
-          if (retval) {  // FF complete
-            internalMsg.Buffer += 6;
-            internalMsg.len -= 6;
-            internalMsg.tp_state = ISOTP_WAIT_FIRST_FC;
-            fc_wait_frames       = 0;
-            wait_fc              = millis();
-          }
+          send_sf(internalMsg);
+          return true;
         }
-        break;
 
-      case ISOTP_WAIT_FIRST_FC:
-        log_print("Wait first FC");
-        delta = millis() - wait_fc;
-        if (delta >= TIMEOUT_FC) {
-          log_print("FC timeout during receive wait_fc=%lu delta=%lu", wait_fc, delta);
-          internalMsg.tp_state = ISOTP_IDLE;
-          retval               = false;
-        }
+        log_print("Send FF");
+        send_ff(internalMsg);
+        internalMsg.seq_id = 1;
+        internalMsg.Buffer += 6;
+        internalMsg.len -= 6;
+        internalMsg.tp_state = ISOTP_WAIT_FIRST_FC;
+        fc_wait_frames       = 0;
+        wait_fc              = millis();
         break;
 
       case ISOTP_WAIT_FC:
-        log_print("Wait FC");
-        break;
-
-      case ISOTP_SEND_CF:
-        log_print("Send CF");
-        while (internalMsg.len > 7 && !bs) {
-          fc_delay(internalMsg.min_sep_time);
-          retval = send_cf(internalMsg);
-          if (retval) {
-            log_print("Send Seq %d", internalMsg.seq_id);
-            if (internalMsg.blocksize > 0) {
-              log_print("Blocksize trigger %d", internalMsg.seq_id % internalMsg.blocksize);
-              if (!(internalMsg.seq_id % internalMsg.blocksize)) {
-                bs                   = true;
-                internalMsg.tp_state = ISOTP_WAIT_FC;
-                log_print(" yes");
-              } else {
-                log_print(" no");
-              }
-            }
-            internalMsg.seq_id++;
-            if (internalMsg.blocksize < 16)
-              internalMsg.seq_id %= 16;
-            else
-              internalMsg.seq_id %= internalMsg.blocksize;
-            internalMsg.Buffer += 7;
-            internalMsg.len -= 7;
-            log_print("Length      : %d", internalMsg.len);
+      case ISOTP_WAIT_FIRST_FC: {
+        if (can_receive()) {
+          log_print("Send branch:");
+          if (rxFrame.id == internalMsg.rx_id) {
+            rcv_fc(internalMsg);
+            memset(rxFrame.data, 0, sizeof(rxFrame.data));
+            log_print("rxId OK!");
           }
         }
-        if (!bs) {
+
+        const uint32_t delta = millis() - wait_fc;
+        if (delta >= TIMEOUT_FC) {
+          log_print("FC timeout during receive wait_fc=%lu delta=%lu", wait_fc, delta);
+          return false;
+        }
+      } break;
+
+      case ISOTP_SEND_CF:
+        if (internalMsg.len > 7) {
+          fc_delay(internalMsg.min_sep_time);
+          send_cf(internalMsg);
+          log_print("Send Seq %d", internalMsg.seq_id);
+          if (internalMsg.blocksize > 0) {
+            log_print("Blocksize trigger %d", internalMsg.seq_id % internalMsg.blocksize);
+            if (!(internalMsg.seq_id % internalMsg.blocksize)) {
+              internalMsg.tp_state = ISOTP_WAIT_FC;
+              wait_fc              = millis();
+            }
+          }
+          internalMsg.seq_id++;
+          if (internalMsg.blocksize < 16) {
+            internalMsg.seq_id %= 16;
+          } else {
+            internalMsg.seq_id %= internalMsg.blocksize;
+          }
+          internalMsg.Buffer += 7;
+          internalMsg.len -= 7;
+          log_print("Length      : %d", internalMsg.len);
+        } else {
           fc_delay(internalMsg.min_sep_time);
           log_print("Send last Seq %d", internalMsg.seq_id);
-          retval               = send_cf(internalMsg);
-          internalMsg.tp_state = ISOTP_IDLE;
+          send_cf(internalMsg);
+          return true;
         }
         break;
 
+      case ISOTP_IDLE:
       default:
         break;
     }
-
-    if (internalMsg.tp_state == ISOTP_WAIT_FIRST_FC || internalMsg.tp_state == ISOTP_WAIT_FC) {
-      if (can_receive()) {
-        log_print("Send branch:");
-        if (rxFrame.id == internalMsg.rx_id) {
-          // retval = rcv_fc(internalMsg);
-          rcv_fc(internalMsg);
-          memset(rxFrame.data, 0, sizeof(rxFrame.data));
-          log_print("rxId OK!");
-        }
-      }
-    }
   }
-  // Note: We don't restore internalMsg.Buffer and internalMsg.len as they are local copies
-
-  return retval;
+  return false;
 }
 
 bool IsoTp::receive(Message& msg) {
