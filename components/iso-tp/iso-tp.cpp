@@ -32,8 +32,6 @@ const char* IsoTp::isotp_state_to_string(isotp_states_t state) {
       return "ISOTP_WAIT_DATA";
     case ISOTP_FINISHED:
       return "ISOTP_FINISHED";
-    case ISOTP_ERROR:
-      return "ISOTP_ERROR";
     default:
       return "UNKNOWN_STATE";
   }
@@ -84,9 +82,7 @@ IsoTp::IsoTp(ITwaiInterface& bus) :
     _bus(bus) {}
 
 void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
-  log_print("Send CAN RAW Data:");
   log_print_buffer(id, data, len);
-
   ITwaiInterface::TwaiFrame message;
   message.id          = id;
   message.is_extended = false;  // Standard frame
@@ -102,7 +98,6 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
 
 bool IsoTp::can_receive() {
   if (_bus.receive(rxFrame, 0) == ITwaiInterface::TwaiError::OK) {
-    log_print("Received CAN RAW Data:");
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
     return true;
   }
@@ -233,10 +228,8 @@ void IsoTp::rcv_cf(Message_t& msg) {
 }
 
 bool IsoTp::rcv_fc(Message_t& msg) {
-  bool retval = false;
-
   /* get communication parameters only from the first FC frame */
-  if (msg.tp_state == ISOTP_WAIT_FIRST_FC) {
+  if (msg.tp_state == ISOTP_WAIT_FIRST_FC) {  //??????????????????????????????????????????????????
     msg.blocksize    = rxFrame.data[1];
     msg.min_sep_time = rxFrame.data[2];
 
@@ -260,8 +253,6 @@ bool IsoTp::rcv_fc(Message_t& msg) {
       if (fc_wait_frames >= MAX_FCWAIT_FRAME) {
         log_print("FC wait frames exceeded.");
         fc_wait_frames = 0;
-        msg.tp_state   = ISOTP_IDLE;
-        retval         = false;
       }
       log_print("Start waiting for next FC");
       break;
@@ -270,10 +261,9 @@ bool IsoTp::rcv_fc(Message_t& msg) {
       log_print("Overflow in receiver side");
       // fall through
     default:
-      msg.tp_state = ISOTP_IDLE;
-      retval       = false;
+      return false;
   }
-  return retval;
+  return true;
 }
 
 bool IsoTp::send(Message& msg) {
@@ -293,11 +283,7 @@ bool IsoTp::send(Message& msg) {
   uint32_t wait_fc = 0;
 
   while (true) {
-    log_print(
-        "ISO-TP State: %s\n"
-        "Length      : %d",
-        isotp_state_to_string(internalMsg.tp_state),
-        internalMsg.len);
+    log_print("\tISO-TP State: %s", isotp_state_to_string(internalMsg.tp_state));
 
     switch (internalMsg.tp_state) {
       case ISOTP_SEND:
@@ -319,12 +305,9 @@ bool IsoTp::send(Message& msg) {
 
       case ISOTP_WAIT_FC:
       case ISOTP_WAIT_FIRST_FC: {
-        if (can_receive()) {
-          log_print("Send branch:");
-          if (rxFrame.id == internalMsg.rx_id) {
-            rcv_fc(internalMsg);
-            memset(rxFrame.data, 0, sizeof(rxFrame.data));
-            log_print("rxId OK!");
+        if (can_receive() && (rxFrame.id == internalMsg.rx_id)) {
+          if (!rcv_fc(internalMsg)) {
+            return false;
           }
         }
 
@@ -364,7 +347,10 @@ bool IsoTp::send(Message& msg) {
         }
         break;
 
-      case ISOTP_IDLE:
+      case ISOTP_IDLE:  //??????????????????????????????????????????????????
+      case ISOTP_SEND_FF:
+      case ISOTP_WAIT_DATA:
+      case ISOTP_FINISHED:
       default:
         break;
     }
@@ -391,9 +377,8 @@ bool IsoTp::receive(Message& msg) {
 
   wait_session = millis();
   log_print("Start receive...");
-  internalMsg.tp_state = ISOTP_IDLE;
 
-  while (internalMsg.tp_state != ISOTP_FINISHED && internalMsg.tp_state != ISOTP_ERROR) {
+  while (internalMsg.tp_state != ISOTP_FINISHED) {
     delta = millis() - wait_session;
     if (delta >= TIMEOUT_SESSION) {
       log_print("ISO-TP Session timeout wait_session=%lu delta=%lu", wait_session, delta);
@@ -417,8 +402,8 @@ bool IsoTp::receive(Message& msg) {
             break;
 
           case N_PCI_FF:
-            log_print("FF");                  // first frame
-            /*ret err*/ rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
+            log_print("FF");      // first frame
+            rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
             break;
 
           case N_PCI_CF:
@@ -426,7 +411,6 @@ bool IsoTp::receive(Message& msg) {
             rcv_cf(internalMsg);
             break;
         }
-        memset(rxFrame.data, 0, sizeof(rxFrame.data));
       }
     }
   }

@@ -30,8 +30,7 @@ class IsoTp {
     ISOTP_WAIT_FIRST_FC,
     ISOTP_WAIT_FC,
     ISOTP_WAIT_DATA,
-    ISOTP_FINISHED,
-    ISOTP_ERROR
+    ISOTP_FINISHED
   } isotp_states_t;
 
   struct Message_t {
@@ -58,9 +57,6 @@ class IsoTp {
   static const uint32_t TIMEOUT_FC      = 250;  // Timeout between FF and FC or Block CF and FC
   static const uint32_t TIMEOUT_CF      = 250;  // Timeout between CFs
   static const uint8_t MAX_FCWAIT_FRAME = 10;
-
-  static const uint16_t MAX_MSGBUF = 128;  // Received Message Buffer. Depends on uC ressources!
-                                           // Should be enough for our needs
 
   // N_PCI type values in bits 7-4 of N_PCI bytes
   static const uint8_t N_PCI_SF = 0x00;  // single frame
@@ -90,6 +86,7 @@ class IsoTp {
 
   ITwaiInterface &_bus;
   ITwaiInterface::TwaiFrame rxFrame;
+
   uint16_t rest;
   uint8_t fc_wait_frames = 0;
   uint32_t wait_cf       = 0;
