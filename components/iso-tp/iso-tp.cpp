@@ -281,7 +281,7 @@ bool IsoTp::rcv_fc(Message_t& msg) {
 }
 
 bool IsoTp::send(Message& msg) {
-  if (msg.len > 4095) {
+  if ((msg.len > 4095) || ((msg.len > 0) && (msg.data == nullptr))) {
     return false;
   }
 
