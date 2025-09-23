@@ -1,25 +1,20 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
+#include "iso_tp_interface.h"
 #include "twai_interface.h"
 
-class IsoTp {
+class IsoTp : public IIsoTp {
   // Single Frame       = SF
   // First Frame        = FF
   // Consecutive Frame  = CF
   // Flow control Frame = FC
  public:
-  struct Message {
-    uint32_t tx_id = 0;
-    uint32_t rx_id = 0;
-    size_t len     = 0;
-    uint8_t *data  = nullptr;
-  };
-
   IsoTp(ITwaiInterface &bus);
-  bool send(Message &msg);
-  bool receive(Message &msg, size_t size_buffer);
+  bool send(Message &msg) override;
+  bool receive(Message &msg, size_t size_buffer) override;
 
  private:
   typedef enum {

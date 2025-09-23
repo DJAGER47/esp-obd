@@ -1,4 +1,4 @@
-idf_component_register(SRCS "iso-tp.cpp"
+idf_component_register(SRCS "iso_tp.cpp"
                        REQUIRES twai_interface 
                                 freertos
                                 driver
