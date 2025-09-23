@@ -172,7 +172,7 @@ void test_iso_tp_receive_single_frame() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed (returns 0 on success)");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(4, msg.len, "Received length should be 4");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_data, msg.data, 4, "Received data should match");
 }
@@ -196,7 +196,7 @@ void test_iso_tp_receive_single_frame_max() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(7, msg.len, "Received length should be 7");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_data, msg.data, 7, "Received data should match");
 }
@@ -219,7 +219,7 @@ void test_iso_tp_receive_empty_frame() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(0, msg.len, "Received length should be 0");
 }
 

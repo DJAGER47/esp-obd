@@ -209,7 +209,7 @@ void test_iso_tp_receive_multi_frame() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed (returns 0)");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed (returns 0)");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(12, msg.len, "Received length should be 12");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_data, msg.data, 12, "Received data should match");
 
@@ -252,7 +252,7 @@ void test_iso_tp_receive_wrong_sequence() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should fail due to wrong sequence");
+  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail due to wrong sequence");
 }
 
 // Тест 8: Максимальная длина сообщения (4095 байт)

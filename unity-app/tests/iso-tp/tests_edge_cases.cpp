@@ -392,7 +392,7 @@ void test_iso_tp_receive_duplicate_consecutive_frame() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться успешно, игнорируя дублированный кадр
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed ignoring duplicate CF");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed ignoring duplicate CF");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(15, msg.len, "Received length should be correct");
 }
 
@@ -427,7 +427,7 @@ void test_iso_tp_receive_missing_consecutive_frame() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться с ошибкой из-за пропущенного кадра
-  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should fail due to missing CF");
+  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail due to missing CF");
 }
 
 // ============================================================================
@@ -459,7 +459,7 @@ void test_iso_tp_receive_invalid_pci_type() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться с ошибкой или таймаутом
-  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should fail with invalid PCI type");
+  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with invalid PCI type");
 }
 
 // Тест 5.2: Получение FF с некорректной длиной (0)
@@ -487,7 +487,7 @@ void test_iso_tp_receive_ff_zero_length() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться с ошибкой
-  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should fail with FF zero length");
+  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with FF zero length");
 }
 
 // Тест 5.3: Получение CF без предшествующего FF
@@ -511,7 +511,7 @@ void test_iso_tp_receive_cf_without_ff() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться с ошибкой или таймаутом
-  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should fail with CF without FF");
+  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with CF without FF");
 }
 
 // ============================================================================
@@ -645,7 +645,7 @@ void test_iso_tp_receive_wrong_can_id() {
 
   bool result = iso_tp.receive(msg);
 
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed with correct ID");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with correct ID");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(4, msg.len, "Should receive data from correct ID only");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(expected_data, msg.data, 4, "Data should match");
 }
@@ -755,7 +755,7 @@ void test_iso_tp_receive_multiple_ff() {
   bool result = iso_tp.receive(msg);
 
   // Должно быть получено второе сообщение (12 байт)
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed with second message");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with second message");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(12, msg.len, "Should receive second message length");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(
       expected_data2, msg.data, 12, "Should receive second message data");
@@ -842,7 +842,7 @@ void test_iso_tp_receive_insufficient_buffer() {
   bool result = iso_tp.receive(msg);
 
   // Приём должен завершиться успешно, но данные могут быть обрезаны
-  TEST_ASSERT_FALSE_MESSAGE(result, "Receive should succeed");
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   // Проверяем, что длина корректна, даже если буфер мал
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Length should reflect actual message size");
 }
@@ -874,13 +874,13 @@ void test_iso_tp_mixed_frame_types() {
 
   // Первый вызов должен получить SF
   bool result1 = iso_tp.receive(msg);
-  TEST_ASSERT_FALSE_MESSAGE(result1, "First receive should get SF");
+  TEST_ASSERT_TRUE_MESSAGE(result1, "First receive should get SF");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(3, msg.len, "Should receive SF data");
 
   // Второй вызов должен получить многокадровое сообщение
   msg.len      = 0;
   bool result2 = iso_tp.receive(msg);
-  TEST_ASSERT_FALSE_MESSAGE(result2, "Second receive should get multi-frame message");
+  TEST_ASSERT_TRUE_MESSAGE(result2, "Second receive should get multi-frame message");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Should receive FF+CF data");
 }
 
