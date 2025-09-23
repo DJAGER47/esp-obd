@@ -690,38 +690,54 @@ void test_iso_tp_transmission_interrupted_by_new_ff() {
   IsoTp iso_tp(mock_can);
 
   // Первое сообщение (будет прервано)
-  uint8_t test_data1[15] = {
+  uint8_t expected_data1[15] = {
       0xF0, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0xF7, 0xF8, 0xF9, 0xFA, 0xFB, 0xFC, 0xFD, 0xFE};
 
   // Второе сообщение (прерывающее)
-  uint8_t test_data2[10] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
+  uint8_t expected_data2[10] = {0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19};
 
-  // Начинаем первую передачу
-  IsoTp::Message msg1;
-  msg1.tx_id = 0x700;
-  msg1.rx_id = 0x800;
-  msg1.len   = sizeof(test_data1);
-  msg1.data  = test_data1;
+  // Создаем First Frame для первого сообщения
+  ITwaiInterface::TwaiFrame ff1_frame = create_first_frame(0x800, 15, expected_data1);
 
-  // Не добавляем FC для первого сообщения - оно должно прерваться
+  // Создаем First Frame для второго сообщения (прерывающий)
+  ITwaiInterface::TwaiFrame ff2_frame = create_first_frame(0x800, 10, expected_data2);
 
-  // Начинаем вторую передачу
-  IsoTp::Message msg2;
-  msg2.tx_id = 0x700;
-  msg2.rx_id = 0x800;
-  msg2.len   = sizeof(test_data2);
-  msg2.data  = test_data2;
+  // Создаем Consecutive Frame для второго сообщения
+  ITwaiInterface::TwaiFrame cf2_frame = create_consecutive_frame(0x800, 1, &expected_data2[6], 4);
 
-  ITwaiInterface::TwaiFrame fc2 = create_flow_control_frame(0x800, 0, 0, 0);
-  mock_can.add_receive_frame(fc2);
+  // Добавляем кадры в последовательности:
+  // 1. FF1 (первое сообщение)
+  // 2. FF2 (прерывающее сообщение) - должно прервать первое
+  // 3. CF2 (завершение второго сообщения)
+  mock_can.add_receive_frame(ff1_frame);
+  mock_can.add_receive_frame(ff2_frame);  // Прерывает первое сообщение
+  mock_can.add_receive_frame(cf2_frame);
 
-  // Первая передача должна завершиться неудачей
-  bool result1 = iso_tp.send(msg1);
-  TEST_ASSERT_FALSE_MESSAGE(result1, "First send should fail (no FC)");
+  uint8_t receive_buffer[128] = {0};
+  IsoTp::Message msg;
+  msg.tx_id = 0x700;
+  msg.rx_id = 0x800;
+  msg.len   = 0;
+  msg.data  = receive_buffer;
 
-  // Вторая передача должна быть успешной
-  bool result2 = iso_tp.send(msg2);
-  TEST_ASSERT_TRUE_MESSAGE(result2, "Second send should succeed");
+  bool result = iso_tp.receive(msg);
+
+  // Прием должен быть успешным и содержать данные второго сообщения
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with second message");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Should receive second message length");
+  TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(
+      expected_data2, receive_buffer, 10, "Should receive second message data");
+
+  // Проверяем, что было отправлено два FC кадра (по одному на каждый FF)
+  TEST_ASSERT_EQUAL_INT_MESSAGE(
+      2, mock_can.transmitted_frames.size(), "Should transmit two FC frames");
+
+  // Проверяем, что оба FC кадра имеют правильный тип
+  for (int i = 0; i < 2; i++) {
+    const auto& fc = mock_can.transmitted_frames[i];
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x30, fc.data[0] & 0xF0, "Should be Flow Control frame");
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x00, fc.data[0] & 0x0F, "Should be CTS (Clear To Send)");
+  }
 }
 
 // Тест 8.2: Получение нескольких FF подряд
