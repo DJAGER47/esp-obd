@@ -87,8 +87,8 @@ class IsoTp {
   ITwaiInterface &_bus;
   ITwaiInterface::TwaiFrame rxFrame;
 
-  uint16_t rest;
   uint8_t fc_wait_frames = 0;
   uint32_t wait_cf       = 0;
   uint32_t wait_session  = 0;
+  uint16_t rest;
 };

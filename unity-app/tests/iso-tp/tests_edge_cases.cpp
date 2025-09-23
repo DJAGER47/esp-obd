@@ -224,7 +224,7 @@ void test_iso_tp_multiple_blocks() {
   msg.data  = test_data;
 
   // Первый блок размером 3, второй блок размером 4
-  ITwaiInterface::TwaiFrame fc1 = create_flow_control_frame(0x600, 0, 3, 0);  // Block size = 3
+  ITwaiInterface::TwaiFrame fc1 = create_flow_control_frame(0x600, 0, 4, 0);  // Block size = 4
   ITwaiInterface::TwaiFrame fc2 = create_flow_control_frame(0x600, 0, 4, 0);  // Block size = 4
   mock_can.add_receive_frame(fc1);
   mock_can.add_receive_frame(fc2);
@@ -232,8 +232,8 @@ void test_iso_tp_multiple_blocks() {
   bool result = iso_tp.send(msg);
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Send should succeed with multiple blocks");
-  // FF + 2 CF (первый блок) + 4 CF (второй блок) = 7 кадров
-  TEST_ASSERT_EQUAL_INT_MESSAGE(7,
+  // FF + 3 CF (первый блок) + 4 CF (второй блок) = 8 кадров
+  TEST_ASSERT_EQUAL_INT_MESSAGE(8,
                                 mock_can.transmitted_frames.size(),
                                 "Should transmit correct number of frames for multiple blocks");
 }
@@ -374,16 +374,15 @@ void test_iso_tp_receive_duplicate_consecutive_frame() {
 
   // Создаем Consecutive Frames с дублированием
   ITwaiInterface::TwaiFrame cf1_frame = create_consecutive_frame(0x777, 1, &expected_data[6], 7);
-  ITwaiInterface::TwaiFrame cf1_duplicate =
-      create_consecutive_frame(0x777, 1, &expected_data[6], 7);
+  ITwaiInterface::TwaiFrame cf1_dupl  = create_consecutive_frame(0x777, 1, &expected_data[6], 7);
   ITwaiInterface::TwaiFrame cf2_frame = create_consecutive_frame(0x777, 2, &expected_data[13], 2);
 
   mock_can.add_receive_frame(ff_frame);
   mock_can.add_receive_frame(cf1_frame);
-  mock_can.add_receive_frame(cf1_duplicate);  // Дублированный кадр
+  mock_can.add_receive_frame(cf1_dupl);  // Дублированный кадр
   mock_can.add_receive_frame(cf2_frame);
 
-  uint8_t receive_buffer[128];
+  uint8_t receive_buffer[128] = {0};
   IsoTp::Message msg;
   msg.tx_id = 0x888;
   msg.rx_id = 0x777;

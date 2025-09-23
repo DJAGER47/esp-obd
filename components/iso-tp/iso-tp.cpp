@@ -382,7 +382,7 @@ bool IsoTp::receive(Message& msg) {
     delta = millis() - wait_session;
     if (delta >= TIMEOUT_SESSION) {
       log_print("ISO-TP Session timeout wait_session=%lu delta=%lu", wait_session, delta);
-      return 1;
+      return false;
     }
 
     if (can_receive()) {
@@ -424,5 +424,5 @@ bool IsoTp::receive(Message& msg) {
   log_print("ISO-TP message received:");
   log_print_buffer(internalMsg.rx_id, internalMsg.Buffer, internalMsg.len);
 
-  return 0;
+  return true;
 }
