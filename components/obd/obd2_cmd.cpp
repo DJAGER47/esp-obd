@@ -551,7 +551,7 @@ int8_t OBD2::get_response() {
   msg.data = buffer;
 
   // Try to receive message via ISO-TP
-  if (iso_tp_.receive(msg) == 0) {  // ISO-TP receive returns 0 on success
+  if (iso_tp_.receive(msg, sizeof(buffer))) {  // ISO-TP receive returns 0 on success
     // Successfully received message
     nb_rx_state = OBD_SUCCESS;
 

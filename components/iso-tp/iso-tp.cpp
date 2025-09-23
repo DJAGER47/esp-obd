@@ -120,7 +120,7 @@ void IsoTp::send_sf(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // SF message high nibble = 0x0 , low nibble = Length
   TxBuf[0] = (N_PCI_SF | msg.len);
-  memcpy(TxBuf + 1, msg.Buffer, msg.len);
+  memcpy(TxBuf + 1, msg.buffer, msg.len);
   //  return can_send(msg.tx_id,msg.len+1,TxBuf);// Add PCI length
   can_send(msg.tx_id, 8, TxBuf);  // Always send full frame
 }
@@ -130,7 +130,7 @@ void IsoTp::send_ff(const Message_t& msg) {
 
   TxBuf[0] = (N_PCI_FF | ((msg.len & 0x0F00) >> 8));
   TxBuf[1] = (msg.len & 0x00FF);
-  memcpy(TxBuf + 2, msg.Buffer, 6);  // Skip 2 Bytes PCI
+  memcpy(TxBuf + 2, msg.buffer, 6);  // Skip 2 Bytes PCI
   can_send(msg.tx_id, 8, TxBuf);     // First Frame has full length
 }
 
@@ -139,7 +139,7 @@ void IsoTp::send_cf(const Message_t& msg) {
   uint16_t len     = (msg.len > 7) ? 7 : msg.len;
 
   TxBuf[0] = (N_PCI_CF | (msg.seq_id & 0x0F));
-  memcpy(TxBuf + 1, msg.Buffer, len);  // Skip 1 Byte PCI
+  memcpy(TxBuf + 1, msg.buffer, len);  // Skip 1 Byte PCI
                                        // return can_send(msg.tx_id,len+1,TxBuf);
                                        // // Last frame is probably shorter
                                        // than 8 -> Signals last CF Frame
@@ -150,8 +150,15 @@ void IsoTp::send_cf(const Message_t& msg) {
 void IsoTp::rcv_sf(Message_t& msg) {
   /* get the SF_DL from the N_PCI byte */
   msg.len = rxFrame.data[0] & 0x0F;
+
+  if (msg.max_len < msg.len) {
+    log_print("Error: Buffer too small for SF (need %d, have %d)", msg.len, msg.max_len);
+    msg.tp_state = ISOTP_ERROR_LENGTH;
+    return;
+  }
+
   /* copy the received data bytes */
-  memcpy(msg.Buffer, rxFrame.data + 1, msg.len);  // Skip PCI, SF uses len bytes
+  memcpy(msg.buffer, rxFrame.data + 1, msg.len);  // Skip PCI, SF uses len bytes
   msg.tp_state = ISOTP_FINISHED;
 }
 
@@ -161,10 +168,17 @@ void IsoTp::rcv_ff(Message_t& msg) {
   /* get the FF_DL */
   msg.len = (rxFrame.data[0] & 0x0F) << 8;
   msg.len += rxFrame.data[1];
+
+  if (msg.len > msg.max_len) {
+    log_print("Error: Buffer too small for FF (need %d, have %d)", msg.len, msg.max_len);
+    msg.tp_state = ISOTP_ERROR_LENGTH;
+    return;
+  }
+
   rest = msg.len;
 
   /* copy the first received data bytes */
-  memcpy(msg.Buffer, rxFrame.data + 2, 6);  // Skip 2 bytes PCI, FF must have 6 bytes!
+  memcpy(msg.buffer, rxFrame.data + 2, 6);  // Skip 2 bytes PCI, FF must have 6 bytes!
   rest -= 6;                                // Restlength
 
   msg.tp_state = ISOTP_WAIT_DATA;
@@ -224,13 +238,13 @@ void IsoTp::rcv_cf(Message_t& msg) {
 
   if (rest <= 7)  // Last Frame
   {
-    memcpy(msg.Buffer + 6 + 7 * (msg.seq_id - 1), rxFrame.data + 1,
+    memcpy(msg.buffer + 6 + 7 * (msg.seq_id - 1), rxFrame.data + 1,
            rest);                   // 6 Bytes in FF +7
     msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
     log_print("Last CF received with seq. ID: %d", msg.seq_id);
   } else {
     log_print("CF received with seq. ID: %d", msg.seq_id);
-    memcpy(msg.Buffer + 6 + 7 * (msg.seq_id - 1),
+    memcpy(msg.buffer + 6 + 7 * (msg.seq_id - 1),
            rxFrame.data + 1,
            7);  // 6 Bytes in FF +7
                 // per CF
@@ -289,7 +303,7 @@ bool IsoTp::send(Message& msg) {
   internalMsg.tx_id  = msg.tx_id;
   internalMsg.rx_id  = msg.rx_id;
   internalMsg.len    = msg.len;
-  internalMsg.Buffer = msg.data;
+  internalMsg.buffer = msg.data;
 
   // Initialize other fields with default values
   internalMsg.tp_state     = ISOTP_SEND;
@@ -314,7 +328,7 @@ bool IsoTp::send(Message& msg) {
         log_print("Send FF");
         send_ff(internalMsg);
         internalMsg.seq_id = 1;
-        internalMsg.Buffer += 6;
+        internalMsg.buffer += 6;
         internalMsg.len -= 6;
         internalMsg.tp_state = ISOTP_WAIT_FIRST_FC;
         fc_wait_frames       = 0;
@@ -354,7 +368,7 @@ bool IsoTp::send(Message& msg) {
           } else {
             internalMsg.seq_id %= internalMsg.blocksize;
           }
-          internalMsg.Buffer += 7;
+          internalMsg.buffer += 7;
           internalMsg.len -= 7;
           log_print("Length      : %d", internalMsg.len);
         } else {
@@ -376,13 +390,18 @@ bool IsoTp::send(Message& msg) {
   return false;
 }
 
-bool IsoTp::receive(Message& msg) {
+bool IsoTp::receive(Message& msg, size_t size_buffer) {
+  if (msg.data == nullptr || size_buffer == 0) {
+    return false;
+  }
+
   // Create internal Message_t structure
   Message_t internalMsg;
-  internalMsg.tx_id  = msg.tx_id;
-  internalMsg.rx_id  = msg.rx_id;
-  internalMsg.len    = 0;  // Will be set during reception
-  internalMsg.Buffer = msg.data;
+  internalMsg.tx_id   = msg.tx_id;
+  internalMsg.rx_id   = msg.rx_id;
+  internalMsg.len     = 0;  // Will be set during reception
+  internalMsg.max_len = size_buffer;
+  internalMsg.buffer  = msg.data;
   // Initialize other fields with default values
   internalMsg.tp_state     = ISOTP_IDLE;
   internalMsg.fc_status    = ISOTP_FC_CTS;
@@ -431,16 +450,21 @@ bool IsoTp::receive(Message& msg) {
         }
       }
     }
+
+    if (internalMsg.tp_state == ISOTP_ERROR_LENGTH) {
+      log_print("ISO-TP Error Length");
+      return false;
+    }
   }
 
   // Copy received data back to the external message structure
   msg.tx_id = internalMsg.tx_id;
   msg.rx_id = internalMsg.rx_id;
   msg.len   = internalMsg.len;
-  // Note: msg.data points to the same buffer as internalMsg.Buffer, so data is already there
+  // Note: msg.data points to the same buffer as internalMsg.buffer, so data is already there
 
   log_print("ISO-TP message received:");
-  log_print_buffer(internalMsg.rx_id, internalMsg.Buffer, internalMsg.len);
+  log_print_buffer(internalMsg.rx_id, internalMsg.buffer, internalMsg.len);
 
   return true;
 }

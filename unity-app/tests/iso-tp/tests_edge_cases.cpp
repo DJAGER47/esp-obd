@@ -382,14 +382,14 @@ void test_iso_tp_receive_duplicate_consecutive_frame() {
   mock_can.add_receive_frame(cf1_dupl);  // Дублированный кадр
   mock_can.add_receive_frame(cf2_frame);
 
-  uint8_t receive_buffer[128] = {0};
+  uint8_t receive_buffer[128];
   IsoTp::Message msg;
   msg.tx_id = 0x888;
   msg.rx_id = 0x777;
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Приём должен завершиться успешно, игнорируя дублированный кадр
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed ignoring duplicate CF");
@@ -424,7 +424,7 @@ void test_iso_tp_receive_missing_consecutive_frame() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Приём должен завершиться с ошибкой из-за пропущенного кадра
   TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail due to missing CF");
@@ -456,7 +456,7 @@ void test_iso_tp_receive_invalid_pci_type() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Приём должен завершиться с ошибкой или таймаутом
   TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with invalid PCI type");
@@ -484,7 +484,7 @@ void test_iso_tp_receive_ff_zero_length() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Приём должен завершиться с ошибкой
   TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with FF zero length");
@@ -508,7 +508,7 @@ void test_iso_tp_receive_cf_without_ff() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Приём должен завершиться с ошибкой или таймаутом
   TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail with CF without FF");
@@ -643,7 +643,7 @@ void test_iso_tp_receive_wrong_can_id() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with correct ID");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(4, msg.len, "Should receive data from correct ID only");
@@ -720,7 +720,7 @@ void test_iso_tp_transmission_interrupted_by_new_ff() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Прием должен быть успешным и содержать данные второго сообщения
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with second message");
@@ -768,7 +768,7 @@ void test_iso_tp_receive_multiple_ff() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   // Должно быть получено второе сообщение (12 байт)
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with second message");
@@ -840,27 +840,27 @@ void test_iso_tp_send_null_data_pointer() {
 
 // Тест 9.2: Приём в буфер недостаточного размера
 void test_iso_tp_receive_insufficient_buffer() {
-  // MockTwaiInterface mock_can;
-  // mock_can.reset();
-  // IsoTp iso_tp(mock_can);
+  MockTwaiInterface mock_can;
+  mock_can.reset();
+  IsoTp iso_tp(mock_can);
 
-  // uint8_t expected_data[10]          = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68,
-  // 0x69}; ITwaiInterface::TwaiFrame sf_frame = create_single_frame(0xF00, 10, expected_data);
-  // mock_can.add_receive_frame(sf_frame);
+  uint8_t expected_data[10]          = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69};
+  ITwaiInterface::TwaiFrame sf_frame = create_single_frame(0xF00, 10, expected_data);
+  mock_can.add_receive_frame(sf_frame);
 
-  // uint8_t small_buffer[5];  // Буфер меньше размера сообщения
-  // IsoTp::Message msg;
-  // msg.tx_id = 0x100;
-  // msg.rx_id = 0xF00;
-  // msg.len   = 0;
-  // msg.data  = small_buffer;
+  uint8_t small_buffer[5];  // Буфер меньше размера сообщения
+  IsoTp::Message msg;
+  msg.tx_id = 0x100;
+  msg.rx_id = 0xF00;
+  msg.len   = 0;
+  msg.data  = small_buffer;
 
-  // bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(small_buffer));
 
-  // // Приём должен завершиться успешно, но данные могут быть обрезаны
-  // TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
-  // // Проверяем, что длина корректна, даже если буфер мал
-  // TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Length should reflect actual message size");
+  // Приём должен завершиться успешно, но данные могут быть обрезаны
+  TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
+  // Проверяем, что длина корректна, даже если буфер мал
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Length should reflect actual message size");
 }
 
 // Тест 9.3: Смешанные типы кадров в одной последовательности
@@ -889,13 +889,13 @@ void test_iso_tp_mixed_frame_types() {
   msg.data  = receive_buffer;
 
   // Первый вызов должен получить SF
-  bool result1 = iso_tp.receive(msg);
+  bool result1 = iso_tp.receive(msg, sizeof(receive_buffer));
   TEST_ASSERT_TRUE_MESSAGE(result1, "First receive should get SF");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(3, msg.len, "Should receive SF data");
 
   // Второй вызов должен получить многокадровое сообщение
   msg.len      = 0;
-  bool result2 = iso_tp.receive(msg);
+  bool result2 = iso_tp.receive(msg, sizeof(receive_buffer));
   TEST_ASSERT_TRUE_MESSAGE(result2, "Second receive should get multi-frame message");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Should receive FF+CF data");
 }

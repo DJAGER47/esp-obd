@@ -207,7 +207,7 @@ void test_iso_tp_receive_multi_frame() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed (returns 0)");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(12, msg.len, "Received length should be 12");
@@ -250,7 +250,7 @@ void test_iso_tp_receive_wrong_sequence() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_FALSE_MESSAGE(result, "Receive should fail due to wrong sequence");
 }

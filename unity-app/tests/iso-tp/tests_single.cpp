@@ -170,7 +170,7 @@ void test_iso_tp_receive_single_frame() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(4, msg.len, "Received length should be 4");
@@ -194,7 +194,7 @@ void test_iso_tp_receive_single_frame_max() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(7, msg.len, "Received length should be 7");
@@ -217,7 +217,7 @@ void test_iso_tp_receive_empty_frame() {
   msg.len   = 0;
   msg.data  = receive_buffer;
 
-  bool result = iso_tp.receive(msg);
+  bool result = iso_tp.receive(msg, sizeof(receive_buffer));
 
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(0, msg.len, "Received length should be 0");

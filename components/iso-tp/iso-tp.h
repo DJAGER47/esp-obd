@@ -13,13 +13,13 @@ class IsoTp {
   struct Message {
     uint32_t tx_id = 0;
     uint32_t rx_id = 0;
-    uint16_t len   = 0;
+    size_t len     = 0;
     uint8_t *data  = nullptr;
   };
 
   IsoTp(ITwaiInterface &bus);
   bool send(Message &msg);
-  bool receive(Message &msg);
+  bool receive(Message &msg, size_t size_buffer);
 
  private:
   typedef enum {
@@ -30,19 +30,21 @@ class IsoTp {
     ISOTP_WAIT_FIRST_FC,
     ISOTP_WAIT_FC,
     ISOTP_WAIT_DATA,
+    ISOTP_ERROR_LENGTH,
     ISOTP_FINISHED
   } isotp_states_t;
 
   struct Message_t {
     uint32_t tx_id          = 0;
     uint32_t rx_id          = 0;
-    isotp_states_t tp_state = ISOTP_IDLE;
-    uint8_t fc_status       = ISOTP_FC_CTS;
+    uint8_t *buffer         = nullptr;
+    size_t len              = 0;
+    size_t max_len          = 0;
     uint16_t seq_id         = 1;
+    uint8_t fc_status       = ISOTP_FC_CTS;
     uint8_t blocksize       = 0;
     uint8_t min_sep_time    = 0;
-    uint16_t len            = 0;
-    uint8_t *Buffer;
+    isotp_states_t tp_state = ISOTP_IDLE;
   };
 
   static const uint8_t CAN_MAX_DLEN = 8;  // Not extended CAN
