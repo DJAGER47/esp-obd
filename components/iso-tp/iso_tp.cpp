@@ -79,12 +79,12 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
   }
 }
 
-IsoTp::IsoTp(ITwaiInterface& bus) :
+IsoTp::IsoTp(IPhyInterface& bus) :
     _bus(bus) {}
 
 void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print_buffer(id, data, len);
-  ITwaiInterface::TwaiFrame message;
+  IPhyInterface::TwaiFrame message;
   message.id          = id;
   message.is_extended = false;  // Standard frame
   message.is_rtr      = false;
@@ -98,7 +98,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
 }
 
 bool IsoTp::can_receive() {
-  if (_bus.receive(rxFrame, 0) == ITwaiInterface::TwaiError::OK) {
+  if (_bus.receive(rxFrame, 0) == IPhyInterface::TwaiError::OK) {
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
     return true;
   }

@@ -4,7 +4,7 @@ idf_component_register(SRCS "main.cpp"
                             "twai/twai_driver.cpp"
                             
                        REQUIRES driver
-                                twai_interface
+                                phy_interface
                                 iso-tp
                                 obd
 

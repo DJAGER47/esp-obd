@@ -6,7 +6,7 @@
         "${workspaceFolder}/**",
         "${workspaceFolder}/unity-app/Unity-2.6.1/src",
         "${workspaceFolder}/unity-app/components/iso-tp",
-        "${workspaceFolder}/unity-app/components/twai_interface",
+        "${workspaceFolder}/unity-app/components/phy_interface",
         "${workspaceFolder}/unity-app/mocks",
         "${workspaceFolder}/unity-app/mocks/freertos"
       ],

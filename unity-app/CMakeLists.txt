@@ -41,7 +41,7 @@ target_include_directories(unity_app PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/obd
 
     ${CMAKE_CURRENT_SOURCE_DIR}/../components/iso-tp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../components/twai_interface
+    ${CMAKE_CURRENT_SOURCE_DIR}/../components/phy_interface
     ${CMAKE_CURRENT_SOURCE_DIR}/../components/obd
     
     ${CMAKE_CURRENT_SOURCE_DIR}/Unity-2.6.1/src
@@ -104,7 +104,7 @@ message(STATUS "=============================================================")
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/tests/iso-tp
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/tests/obd
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/iso-tp
-#             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/twai_interface
+#             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/phy_interface
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/../components/obd
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/Unity-2.6.1/src
 #             -extra-arg=-I${CMAKE_CURRENT_SOURCE_DIR}/mocks

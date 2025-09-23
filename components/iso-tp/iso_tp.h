@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #include "iso_tp_interface.h"
-#include "twai_interface.h"
+#include "phy_interface.h"
 
 class IsoTp : public IIsoTp {
   // Single Frame       = SF
@@ -12,7 +12,7 @@ class IsoTp : public IIsoTp {
   // Consecutive Frame  = CF
   // Flow control Frame = FC
  public:
-  IsoTp(ITwaiInterface &bus);
+  IsoTp(IPhyInterface &bus);
   bool send(Message &msg) override;
   bool receive(Message &msg, size_t size_buffer) override;
 
@@ -80,8 +80,8 @@ class IsoTp : public IIsoTp {
   void rcv_cf(Message_t &msg);
   bool rcv_fc(Message_t &msg);
 
-  ITwaiInterface &_bus;
-  ITwaiInterface::TwaiFrame rxFrame;
+  IPhyInterface &_bus;
+  IPhyInterface::TwaiFrame rxFrame;
 
   uint8_t fc_wait_frames = 0;
   uint32_t wait_cf       = 0;

@@ -5,7 +5,7 @@
 ## Структура проекта
 
 - `src/` - Основной исходный код приложения
-- `components/` - Компоненты проекта (iso-tp, twai_interface)
+- `components/` - Компоненты проекта (iso-tp, phy_interface)
 - `tests/` - Unit-тесты
 - `Unity-2.6.1/` - Фреймворк Unity для unit-тестирования
 

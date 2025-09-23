@@ -4,9 +4,9 @@
 #include "esp_twai.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
-#include "twai_interface.h"
+#include "phy_interface.h"
 
-class TwaiDriver final : public ITwaiInterface {
+class TwaiDriver final : public IPhyInterface {
  public:
   TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps);
 

@@ -5,7 +5,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-class ITwaiInterface {
+class IPhyInterface {
  public:
   enum class TwaiError : uint32_t {
     OK = 0,
@@ -56,5 +56,5 @@ class ITwaiInterface {
   virtual TwaiError receive(TwaiFrame& message, TickType_t ticks_to_wait) = 0;
 
  protected:
-  ~ITwaiInterface() = default;
+  ~IPhyInterface() = default;
 };

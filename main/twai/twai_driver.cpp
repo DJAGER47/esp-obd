@@ -15,10 +15,10 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps
     tx_queue_(nullptr),
     rx_queue_(nullptr) {}
 
-ITwaiInterface::TwaiError TwaiDriver::install_and_start() {
+IPhyInterface::TwaiError TwaiDriver::install_and_start() {
   if (node_handle_ != nullptr) {
     ESP_LOGE(TAG, "Driver already installed");
-    return ITwaiInterface::TwaiError::ALREADY_INITIALIZED;
+    return IPhyInterface::TwaiError::ALREADY_INITIALIZED;
   }
 
   // Создание конфигурации узла TWAI
@@ -52,7 +52,7 @@ ITwaiInterface::TwaiError TwaiDriver::install_and_start() {
   esp_err_t err = twai_new_node_onchip(&node_config, &node_handle_);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Failed to create TWAI node: %s", esp_err_to_name(err));
-    return ITwaiInterface::TwaiError::DRIVER_INSTALL_FAILED;
+    return IPhyInterface::TwaiError::DRIVER_INSTALL_FAILED;
   }
 
   // Регистрация обратных вызовов
@@ -67,26 +67,26 @@ ITwaiInterface::TwaiError TwaiDriver::install_and_start() {
     ESP_LOGE(TAG, "Failed to register callbacks: %s", esp_err_to_name(err));
     twai_node_delete(node_handle_);
     node_handle_ = nullptr;
-    return ITwaiInterface::TwaiError::GENERAL_FAILURE;
+    return IPhyInterface::TwaiError::GENERAL_FAILURE;
   }
 
   // Создание очередей FreeRTOS
-  tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(ITwaiInterface::TwaiFrame));
+  tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(IPhyInterface::TwaiFrame));
   if (tx_queue_ == nullptr) {
     ESP_LOGE(TAG, "Failed to create TX queue");
     twai_node_delete(node_handle_);
     node_handle_ = nullptr;
-    return ITwaiInterface::TwaiError::GENERAL_FAILURE;
+    return IPhyInterface::TwaiError::GENERAL_FAILURE;
   }
 
-  rx_queue_ = xQueueCreate(kRxQueueDepth, sizeof(ITwaiInterface::TwaiFrame));
+  rx_queue_ = xQueueCreate(kRxQueueDepth, sizeof(IPhyInterface::TwaiFrame));
   if (rx_queue_ == nullptr) {
     ESP_LOGE(TAG, "Failed to create RX queue");
     vQueueDelete(tx_queue_);
     tx_queue_ = nullptr;
     twai_node_delete(node_handle_);
     node_handle_ = nullptr;
-    return ITwaiInterface::TwaiError::GENERAL_FAILURE;
+    return IPhyInterface::TwaiError::GENERAL_FAILURE;
   }
 
   // Включение узла
@@ -99,11 +99,11 @@ ITwaiInterface::TwaiError TwaiDriver::install_and_start() {
     tx_queue_ = nullptr;
     twai_node_delete(node_handle_);
     node_handle_ = nullptr;
-    return ITwaiInterface::TwaiError::DRIVER_START_FAILED;
+    return IPhyInterface::TwaiError::DRIVER_START_FAILED;
   }
 
   ESP_LOGI(TAG, "TWAI driver installed and started successfully");
-  return ITwaiInterface::TwaiError::OK;
+  return IPhyInterface::TwaiError::OK;
 }
 
 // Статическая функция обратного вызова для передачи
@@ -133,13 +133,13 @@ bool TwaiDriver::RxCallback(twai_node_handle_t handle,
     esp_err_t err = twai_node_receive_from_isr(handle, &frame);
     if (err == ESP_OK) {
       // Преобразование в TwaiFrame
-      ITwaiInterface::TwaiFrame received_frame = {};
-      received_frame.id                        = frame.header.id;
-      received_frame.is_extended               = frame.header.ide;
-      received_frame.is_rtr                    = frame.header.rtr;
-      received_frame.is_fd                     = frame.header.fdf;
-      received_frame.brs                       = frame.header.brs;
-      received_frame.data_length               = frame.header.dlc;
+      IPhyInterface::TwaiFrame received_frame = {};
+      received_frame.id                       = frame.header.id;
+      received_frame.is_extended              = frame.header.ide;
+      received_frame.is_rtr                   = frame.header.rtr;
+      received_frame.is_fd                    = frame.header.fdf;
+      received_frame.brs                      = frame.header.brs;
+      received_frame.data_length              = frame.header.dlc;
       if (frame.header.dlc <= 64) {
         memcpy(received_frame.data, frame.buffer, frame.header.dlc);
       }
@@ -161,11 +161,11 @@ bool TwaiDriver::RxCallback(twai_node_handle_t handle,
   return false;  // Не требуется переключение контекста
 }
 
-ITwaiInterface::TwaiError TwaiDriver::transmit(const ITwaiInterface::TwaiFrame& message,
-                                               TickType_t ticks_to_wait) {
+IPhyInterface::TwaiError TwaiDriver::transmit(const IPhyInterface::TwaiFrame& message,
+                                              TickType_t ticks_to_wait) {
   if (node_handle_ == nullptr) {
     ESP_LOGE(TAG, "Driver not initialized");
-    return ITwaiInterface::TwaiError::NOT_INITIALIZED;
+    return IPhyInterface::TwaiError::NOT_INITIALIZED;
   }
 
   // Преобразование в twai_frame_t
@@ -187,25 +187,25 @@ ITwaiInterface::TwaiError TwaiDriver::transmit(const ITwaiInterface::TwaiFrame& 
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
     if (err == ESP_ERR_TIMEOUT) {
-      return ITwaiInterface::TwaiError::TIMEOUT;
+      return IPhyInterface::TwaiError::TIMEOUT;
     }
-    return ITwaiInterface::TwaiError::TRANSMIT_FAILED;
+    return IPhyInterface::TwaiError::TRANSMIT_FAILED;
   }
 
-  return ITwaiInterface::TwaiError::OK;
+  return IPhyInterface::TwaiError::OK;
 }
 
-ITwaiInterface::TwaiError TwaiDriver::receive(ITwaiInterface::TwaiFrame& message,
-                                              TickType_t ticks_to_wait) {
+IPhyInterface::TwaiError TwaiDriver::receive(IPhyInterface::TwaiFrame& message,
+                                             TickType_t ticks_to_wait) {
   if (node_handle_ == nullptr) {
     ESP_LOGE(TAG, "Driver not initialized");
-    return ITwaiInterface::TwaiError::NOT_INITIALIZED;
+    return IPhyInterface::TwaiError::NOT_INITIALIZED;
   }
 
   // Получение фрейма из очереди приема
   if (xQueueReceive(rx_queue_, &message, ticks_to_wait) != pdTRUE) {
-    return ITwaiInterface::TwaiError::TIMEOUT;
+    return IPhyInterface::TwaiError::TIMEOUT;
   }
 
-  return ITwaiInterface::TwaiError::OK;
+  return IPhyInterface::TwaiError::OK;
 }
