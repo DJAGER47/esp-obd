@@ -151,14 +151,15 @@ void IsoTp::rcv_sf(Message_t& msg) {
   /* get the SF_DL from the N_PCI byte */
   msg.len = rxFrame.data[0] & 0x0F;
 
+  uint16_t copy_len = msg.len;
   if (msg.max_len < msg.len) {
-    log_print("Error: Buffer too small for SF (need %d, have %d)", msg.len, msg.max_len);
-    msg.tp_state = ISOTP_ERROR_LENGTH;
-    return;
+    log_print(
+        "Warning: Buffer too small for SF (need %d, have %d), truncating", msg.len, msg.max_len);
+    copy_len = msg.max_len;
   }
 
   /* copy the received data bytes */
-  memcpy(msg.buffer, rxFrame.data + 1, msg.len);  // Skip PCI, SF uses len bytes
+  memcpy(msg.buffer, rxFrame.data + 1, copy_len);  // Skip PCI, SF uses len bytes
   msg.tp_state = ISOTP_FINISHED;
 }
 
@@ -170,16 +171,17 @@ void IsoTp::rcv_ff(Message_t& msg) {
   msg.len += rxFrame.data[1];
 
   if (msg.len > msg.max_len) {
-    log_print("Error: Buffer too small for FF (need %d, have %d)", msg.len, msg.max_len);
-    msg.tp_state = ISOTP_ERROR_LENGTH;
-    return;
+    log_print(
+        "Warning: Buffer too small for FF (need %d, have %d), truncating", msg.len, msg.max_len);
+    msg.len = msg.max_len;
   }
 
   rest = msg.len;
 
   /* copy the first received data bytes */
-  memcpy(msg.buffer, rxFrame.data + 2, 6);  // Skip 2 bytes PCI, FF must have 6 bytes!
-  rest -= 6;                                // Restlength
+  uint16_t copy_len = (msg.len > 6) ? 6 : msg.len;
+  memcpy(msg.buffer, rxFrame.data + 2, copy_len);  // Skip 2 bytes PCI
+  rest -= 6;                                       // Restlength
 
   msg.tp_state = ISOTP_WAIT_DATA;
 
@@ -236,19 +238,30 @@ void IsoTp::rcv_cf(Message_t& msg) {
     }
   }
 
-  if (rest <= 7)  // Last Frame
-  {
-    memcpy(msg.buffer + 6 + 7 * (msg.seq_id - 1), rxFrame.data + 1,
-           rest);                   // 6 Bytes in FF +7
+  uint16_t offset          = 6 + 7 * (msg.seq_id - 1);
+  uint16_t available_space = msg.max_len - offset;
+
+  if (rest <= 7) {  // Last Frame
+    uint16_t copy_len = (rest > available_space) ? available_space : rest;
+    if (copy_len > 0) {
+      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
+    }
+    if (copy_len < rest) {
+      log_print(
+          "Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
+    }
     msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
     log_print("Last CF received with seq. ID: %d", msg.seq_id);
   } else {
-    log_print("CF received with seq. ID: %d", msg.seq_id);
-    memcpy(msg.buffer + 6 + 7 * (msg.seq_id - 1),
-           rxFrame.data + 1,
-           7);  // 6 Bytes in FF +7
-                // per CF
+    uint16_t copy_len = (7 > available_space) ? available_space : 7;
+    if (copy_len > 0) {
+      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
+    }
+    if (copy_len < 7) {
+      log_print("Warning: Truncated CF frame (needed 7, had %d space)", available_space);
+    }
     rest -= 7;  // Got another 7 Bytes of Data;
+    log_print("CF received with seq. ID: %d", msg.seq_id);
   }
 
   msg.seq_id++;
