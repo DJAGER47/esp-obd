@@ -281,6 +281,10 @@ bool IsoTp::rcv_fc(Message_t& msg) {
 }
 
 bool IsoTp::send(Message& msg) {
+  if (msg.len > 4095) {
+    return false;
+  }
+
   Message_t internalMsg;
   internalMsg.tx_id  = msg.tx_id;
   internalMsg.rx_id  = msg.rx_id;
