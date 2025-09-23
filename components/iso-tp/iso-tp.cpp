@@ -1,5 +1,6 @@
 #include "iso-tp.h"
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdint>
 
@@ -152,7 +153,7 @@ void IsoTp::rcv_sf(Message_t& msg) {
   msg.len = rxFrame.data[0] & 0x0F;
 
   uint16_t copy_len = msg.len;
-  if (msg.max_len < msg.len) {
+  if (msg.len > msg.max_len) {
     log_print(
         "Warning: Buffer too small for SF (need %d, have %d), truncating", msg.len, msg.max_len);
     copy_len = msg.max_len;
@@ -169,17 +170,10 @@ void IsoTp::rcv_ff(Message_t& msg) {
   /* get the FF_DL */
   msg.len = (rxFrame.data[0] & 0x0F) << 8;
   msg.len += rxFrame.data[1];
-
-  if (msg.len > msg.max_len) {
-    log_print(
-        "Warning: Buffer too small for FF (need %d, have %d), truncating", msg.len, msg.max_len);
-    msg.len = msg.max_len;
-  }
-
   rest = msg.len;
 
   /* copy the first received data bytes */
-  uint16_t copy_len = (msg.len > 6) ? 6 : msg.len;
+  uint16_t copy_len = (msg.max_len > 6) ? 6 : msg.max_len;
   memcpy(msg.buffer, rxFrame.data + 2, copy_len);  // Skip 2 bytes PCI
   rest -= 6;                                       // Restlength
 
@@ -201,7 +195,7 @@ void IsoTp::rcv_ff(Message_t& msg) {
 void IsoTp::rcv_cf(Message_t& msg) {
   // Handle Timeout
   // If no Frame within 250ms change State to ISOTP_IDLE
-  uint32_t delta = millis() - wait_cf;
+  const uint32_t delta = millis() - wait_cf;
 
   if ((delta >= TIMEOUT_FC) && msg.seq_id > 1) {
     log_print("CF frame timeout during receive wait_cf=%lu delta=%lu", wait_cf, delta);
@@ -217,8 +211,8 @@ void IsoTp::rcv_cf(Message_t& msg) {
   if (msg.tp_state != ISOTP_WAIT_DATA)
     return;
 
-  uint8_t received_seq_id = rxFrame.data[0] & 0x0F;
-  uint8_t expected_seq_id = msg.seq_id & 0x0F;
+  const uint8_t received_seq_id = rxFrame.data[0] & 0x0F;
+  const uint8_t expected_seq_id = msg.seq_id & 0x0F;
 
   if (received_seq_id != expected_seq_id) {
     if (received_seq_id < expected_seq_id) {
@@ -238,14 +232,12 @@ void IsoTp::rcv_cf(Message_t& msg) {
     }
   }
 
-  uint16_t offset          = 6 + 7 * (msg.seq_id - 1);
-  uint16_t available_space = msg.max_len - offset;
-
+  const ssize_t offset         = 6 + 7 * (msg.seq_id - 1);
+  const ssize_t tmp_space      = msg.max_len - offset;
+  const size_t available_space = std::max(tmp_space, static_cast<ssize_t>(0));
   if (rest <= 7) {  // Last Frame
     uint16_t copy_len = (rest > available_space) ? available_space : rest;
-    if (copy_len > 0) {
-      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
-    }
+    memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
     if (copy_len < rest) {
       log_print(
           "Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
@@ -254,9 +246,7 @@ void IsoTp::rcv_cf(Message_t& msg) {
     log_print("Last CF received with seq. ID: %d", msg.seq_id);
   } else {
     uint16_t copy_len = (7 > available_space) ? available_space : 7;
-    if (copy_len > 0) {
-      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
-    }
+    memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
     if (copy_len < 7) {
       log_print("Warning: Truncated CF frame (needed 7, had %d space)", available_space);
     }
@@ -462,11 +452,6 @@ bool IsoTp::receive(Message& msg, size_t size_buffer) {
             break;
         }
       }
-    }
-
-    if (internalMsg.tp_state == ISOTP_ERROR_LENGTH) {
-      log_print("ISO-TP Error Length");
-      return false;
     }
   }
 

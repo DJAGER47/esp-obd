@@ -30,7 +30,6 @@ class IsoTp {
     ISOTP_WAIT_FIRST_FC,
     ISOTP_WAIT_FC,
     ISOTP_WAIT_DATA,
-    ISOTP_ERROR_LENGTH,
     ISOTP_FINISHED
   } isotp_states_t;
 

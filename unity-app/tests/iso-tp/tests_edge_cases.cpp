@@ -1,3 +1,4 @@
+#include <array>
 #include <cstdio>
 #include <cstring>
 
@@ -844,8 +845,8 @@ void test_iso_tp_receive_insufficient_buffer() {
   mock_can.reset();
   IsoTp iso_tp(mock_can);
 
-  uint8_t expected_data[10]          = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69};
-  ITwaiInterface::TwaiFrame sf_frame = create_single_frame(0xF00, 10, expected_data);
+  uint8_t expected_data[7]           = {0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66};
+  ITwaiInterface::TwaiFrame sf_frame = create_single_frame(0xF00, 7, expected_data);
   mock_can.add_receive_frame(sf_frame);
 
   uint8_t small_buffer[5];  // Буфер меньше размера сообщения
@@ -860,10 +861,53 @@ void test_iso_tp_receive_insufficient_buffer() {
   // Приём должен завершиться успешно, но данные могут быть обрезаны
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed");
   // Проверяем, что длина корректна, даже если буфер мал
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(10, msg.len, "Length should reflect actual message size");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(7, msg.len, "Length should reflect actual message size");
 }
 
-// Тест 9.3: Смешанные типы кадров в одной последовательности
+// Тест 9.3: Приём с переполнением буфера на Consecutive Frame (CF)
+void test_iso_tp_receive_insufficient_buffer_cf() {
+  std::array<size_t, 5> tests = {6, 7, 13, 14, 19};
+  for (auto test : tests) {
+    MockTwaiInterface mock_can;
+    mock_can.reset();
+    IsoTp iso_tp(mock_can);
+
+    // Создаем сообщение из 20 байт (FF + 2 CF)
+    uint8_t expected_data[20] = {0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79,
+                                 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F, 0x80, 0x81, 0x82, 0x83};
+
+    // First Frame (первые 6 байт)
+    ITwaiInterface::TwaiFrame ff_frame = create_first_frame(0xCF00, 20, expected_data);
+
+    // Consecutive Frames (остальные данные)
+    ITwaiInterface::TwaiFrame cf1_frame = create_consecutive_frame(0xCF00, 1, &expected_data[6], 7);
+    ITwaiInterface::TwaiFrame cf2_frame =
+        create_consecutive_frame(0xCF00, 2, &expected_data[13], 7);
+
+    mock_can.add_receive_frame(ff_frame);
+    mock_can.add_receive_frame(cf1_frame);
+    mock_can.add_receive_frame(cf2_frame);
+
+    uint8_t small_buffer[test];  // Буфер меньше размера сообщения (20 байт)
+    IsoTp::Message msg;
+    msg.tx_id = 0x100;
+    msg.rx_id = 0xCF00;
+    msg.len   = 0;
+    msg.data  = small_buffer;
+
+    bool result = iso_tp.receive(msg, sizeof(small_buffer));
+
+    // Приём должен завершиться успешно, но данные могут быть обрезаны
+    TEST_ASSERT_TRUE_MESSAGE(result, "Receive should succeed with CF overflow");
+    // Проверяем, что длина корректна (полная длина сообщения)
+    TEST_ASSERT_EQUAL_UINT16_MESSAGE(20, msg.len, "Length should reflect actual message size");
+    // Проверяем, что первые 15 байт в буфере корректны
+    TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(
+        expected_data, small_buffer, test, "First X bytes should match");
+  }
+}
+
+// Тест 9.4: Смешанные типы кадров в одной последовательности
 void test_iso_tp_mixed_frame_types() {
   MockTwaiInterface mock_can;
   mock_can.reset();
@@ -958,6 +1002,7 @@ extern "C" void run_iso_tp_edge_case_tests() {
   printf("\n--- Дополнительные граничные случаи ---\n");
   RUN_TEST(test_iso_tp_send_null_data_pointer);
   RUN_TEST(test_iso_tp_receive_insufficient_buffer);
+  RUN_TEST(test_iso_tp_receive_insufficient_buffer_cf);
   RUN_TEST(test_iso_tp_mixed_frame_types);
 
   printf("\n=== ТЕСТЫ ГРАНИЧНЫХ СЛУЧАЕВ ISO-TP ЗАВЕРШЕНЫ ===\n");

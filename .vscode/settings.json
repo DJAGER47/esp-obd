@@ -22,7 +22,8 @@
     "*.tcc": "cpp",
     "format": "cpp",
     "thread": "cpp",
-    "chrono": "cpp"
+    "chrono": "cpp",
+    "algorithm": "cpp"
   },
   "clangd.path": "/home/plavrovskiy/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
   "clangd.arguments": [
