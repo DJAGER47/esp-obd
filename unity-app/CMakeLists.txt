@@ -10,7 +10,7 @@ add_executable(unity_app
     tests/obd/tests_obd_basic.cpp
     tests/obd/tests_obd_pids.cpp
     
-    ../components/iso-tp/iso-tp.cpp
+    ../components/iso-tp/iso_tp.cpp
     ../components/obd/obd2_cmd.cpp
     # ../components/obd/obd2_dtc.cpp
     ../components/obd/obd2_pid_1_20.cpp
