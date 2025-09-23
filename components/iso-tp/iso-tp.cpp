@@ -201,11 +201,25 @@ void IsoTp::rcv_cf(Message_t& msg) {
   if (msg.tp_state != ISOTP_WAIT_DATA)
     return;
 
-  if ((rxFrame.data[0] & 0x0F) != (msg.seq_id & 0x0F)) {
-    log_print("Got sequence ID: %d Expected: %d", rxFrame.data[0] & 0x0F, msg.seq_id & 0x0F);
-    msg.tp_state = ISOTP_IDLE;
-    msg.seq_id   = 1;
-    return;
+  uint8_t received_seq_id = rxFrame.data[0] & 0x0F;
+  uint8_t expected_seq_id = msg.seq_id & 0x0F;
+
+  if (received_seq_id != expected_seq_id) {
+    if (received_seq_id < expected_seq_id) {
+      // Дублированный кадр - игнорируем
+      log_print("Duplicate CF ignored: Got sequence ID: %d Expected: %d",
+                received_seq_id,
+                expected_seq_id);
+      return;
+    } else {
+      // Пропущен кадр - ошибка
+      log_print("Missing CF detected: Got sequence ID: %d Expected: %d",
+                received_seq_id,
+                expected_seq_id);
+      msg.tp_state = ISOTP_IDLE;
+      msg.seq_id   = 1;
+      return;
+    }
   }
 
   if (rest <= 7)  // Last Frame
