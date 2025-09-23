@@ -33,57 +33,33 @@
  * - Отсутствие данных
  */
 
-// Заглушка для ITwaiInterface, которая не используется в тестах
-class DummyTwaiInterface : public ITwaiInterface {
- public:
-  TwaiError install_and_start() override {
-    return TwaiError::OK;
-  }
-  TwaiError transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
-    return TwaiError::OK;
-  }
-  TwaiError receive(TwaiFrame& message, uint32_t ticks_to_wait) override {
-    return TwaiError::TIMEOUT;
-  }
-};
-
 // Глобальные объекты для тестов
-DummyTwaiInterface* g_dummy_twai = nullptr;
-IsoTp* g_iso_tp                  = nullptr;
+static MockIsoTp g_mock_iso_tp;
 
 // Тест 1: Создание объекта OBD2 с дефолтным таймаутом
 void test_obd2_constructor_default_timeout() {
-  g_dummy_twai = new DummyTwaiInterface();
-  g_iso_tp     = new IsoTp(*g_dummy_twai);
+  g_mock_iso_tp.reset();
 
-  OBD2 obd2(*g_iso_tp);
+  OBD2 obd2(g_mock_iso_tp);
 
   // Проверяем, что объект создался без ошибок
   TEST_ASSERT_NOT_NULL_MESSAGE(&obd2, "Объект OBD2 должен быть создан");
-
-  delete g_iso_tp;
-  delete g_dummy_twai;
 }
 
 // Тест 2: Создание объекта OBD2 с кастомным таймаутом
 void test_obd2_constructor_custom_timeout() {
-  g_dummy_twai = new DummyTwaiInterface();
-  g_iso_tp     = new IsoTp(*g_dummy_twai);
+  g_mock_iso_tp.reset();
 
-  OBD2 obd2(*g_iso_tp, 2000);  // 2 секунды таймаут
+  OBD2 obd2(g_mock_iso_tp, 2000);  // 2 секунды таймаут
 
   TEST_ASSERT_NOT_NULL_MESSAGE(&obd2, "Объект OBD2 с кастомным таймаутом должен быть создан");
-
-  delete g_iso_tp;
-  delete g_dummy_twai;
 }
 
 // Тест 3: Тест метода queryPID для SERVICE_01
 void test_obd2_query_pid_service_01() {
-  g_dummy_twai = new DummyTwaiInterface();
-  g_iso_tp     = new IsoTp(*g_dummy_twai);
+  g_mock_iso_tp.reset();
 
-  OBD2 obd2(*g_iso_tp);
+  OBD2 obd2(g_mock_iso_tp);
 
   // Вызываем queryPID для ENGINE_RPM
   obd2.queryPID(OBD2::SERVICE_01, OBD2::ENGINE_RPM);
@@ -91,9 +67,6 @@ void test_obd2_query_pid_service_01() {
   // В реальной реализации здесь должна быть проверка отправленного сообщения
   // Пока просто проверяем, что метод не падает
   TEST_ASSERT_TRUE_MESSAGE(true, "queryPID должен выполняться без ошибок");
-
-  delete g_iso_tp;
-  delete g_dummy_twai;
 }
 
 // Тест 4: Тест константы SERVICE_01
@@ -124,10 +97,9 @@ void test_obd2_error_constants() {
 
 // Тест 7: Тест метода get_response с таймаутом
 void test_obd2_get_response_timeout() {
-  g_dummy_twai = new DummyTwaiInterface();
-  g_iso_tp     = new IsoTp(*g_dummy_twai);
+  g_mock_iso_tp.reset();
 
-  OBD2 obd2(*g_iso_tp);
+  OBD2 obd2(g_mock_iso_tp);
 
   // Вызываем get_response без предварительной настройки данных
   int8_t result = obd2.get_response();
@@ -135,9 +107,6 @@ void test_obd2_get_response_timeout() {
   // Проверяем результат (должен быть не OBD_SUCCESS из-за отсутствия данных)
   TEST_ASSERT_NOT_EQUAL_MESSAGE(
       OBD2::OBD_SUCCESS, result, "get_response должен вернуть ошибку при отсутствии данных");
-
-  delete g_iso_tp;
-  delete g_dummy_twai;
 }
 
 // Тест 8: Тест создания мок-сообщений

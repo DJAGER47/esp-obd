@@ -4,33 +4,25 @@
 #include <queue>
 #include <vector>
 
-#include "iso_tp.h"
+#include "iso_tp_interface.h"
 
 // Мок-класс для IsoTp для тестирования OBD2 протокола
-// Использует композицию вместо наследования, так как методы IsoTp не виртуальные
-class MockIsoTp {
+// Наследуется от IIsoTp и полностью мокает поведение IsoTp
+class MockIsoTp : public IIsoTp {
  public:
-  // Структура сообщения, совместимая с IsoTp::Message
-  struct Message {
-    uint32_t tx_id = 0;
-    uint32_t rx_id = 0;
-    uint16_t len   = 0;
-    uint8_t* data  = nullptr;
-  };
-
   MockIsoTp() {
     reset();
   }
 
-  // Мокированные методы send и receive
-  bool send(Message& message) {
+  // Переопределенные виртуальные методы из IIsoTp
+  bool send(Message& message) override {
     send_called       = true;
     last_sent_message = message;
     sent_messages.push_back(message);
     return send_result;
   }
 
-  bool receive(Message& message) {
+  bool receive(Message& message, size_t size_buffer) override {
     receive_called = true;
     if (!receive_messages.empty()) {
       message = receive_messages.front();
@@ -77,11 +69,11 @@ class MockIsoTp {
 // Вспомогательные функции для создания OBD2 сообщений
 
 // Создание OBD2 ответа для одного байта данных
-inline MockIsoTp::Message create_obd_response_1_byte(uint32_t rx_id,
-                                                     uint8_t service,
-                                                     uint8_t pid,
-                                                     uint8_t data) {
-  MockIsoTp::Message msg;
+inline IIsoTp::Message create_obd_response_1_byte(uint32_t rx_id,
+                                                  uint8_t service,
+                                                  uint8_t pid,
+                                                  uint8_t data) {
+  IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;  // Стандартный OBD2 запрос ID
   msg.rx_id   = rx_id;
   msg.len     = 4;
@@ -94,9 +86,9 @@ inline MockIsoTp::Message create_obd_response_1_byte(uint32_t rx_id,
 }
 
 // Создание OBD2 ответа для двух байт данных
-inline MockIsoTp::Message create_obd_response_2_bytes(
+inline IIsoTp::Message create_obd_response_2_bytes(
     uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data_a, uint8_t data_b) {
-  MockIsoTp::Message msg;
+  IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
   msg.len     = 5;
@@ -110,14 +102,14 @@ inline MockIsoTp::Message create_obd_response_2_bytes(
 }
 
 // Создание OBD2 ответа для четырех байт данных (например, для supportedPIDs)
-inline MockIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
-                                                      uint8_t service,
-                                                      uint8_t pid,
-                                                      uint8_t data_a,
-                                                      uint8_t data_b,
-                                                      uint8_t data_c,
-                                                      uint8_t data_d) {
-  MockIsoTp::Message msg;
+inline IIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
+                                                   uint8_t service,
+                                                   uint8_t pid,
+                                                   uint8_t data_a,
+                                                   uint8_t data_b,
+                                                   uint8_t data_c,
+                                                   uint8_t data_d) {
+  IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
   msg.len     = 7;
@@ -133,10 +125,10 @@ inline MockIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
 }
 
 // Создание сообщения об ошибке OBD2
-inline MockIsoTp::Message create_obd_error_response(uint32_t rx_id,
-                                                    uint8_t service,
-                                                    uint8_t error_code) {
-  MockIsoTp::Message msg;
+inline IIsoTp::Message create_obd_error_response(uint32_t rx_id,
+                                                 uint8_t service,
+                                                 uint8_t error_code) {
+  IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
   msg.len     = 3;

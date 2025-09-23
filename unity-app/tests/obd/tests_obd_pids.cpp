@@ -27,19 +27,8 @@
  * - Проверка математических операций
  */
 
-// Заглушка для ITwaiInterface
-class DummyTwaiInterface : public ITwaiInterface {
- public:
-  TwaiError install_and_start() override {
-    return TwaiError::OK;
-  }
-  TwaiError transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
-    return TwaiError::OK;
-  }
-  TwaiError receive(TwaiFrame& message, uint32_t ticks_to_wait) override {
-    return TwaiError::TIMEOUT;
-  }
-};
+// Глобальные объекты для тестов
+static MockIsoTp g_mock_iso_tp;
 
 // ============================================================================
 // ТЕСТЫ КОНСТАНТ PID ГРУПП
@@ -214,10 +203,9 @@ void test_obd2_pid_ranges() {
 
 // Тест 12: Создание объекта OBD2 для тестирования PID методов
 void test_obd2_object_creation_for_pids() {
-  DummyTwaiInterface dummy_twai;
-  IsoTp iso_tp(dummy_twai);
+  g_mock_iso_tp.reset();
 
-  OBD2 obd2(iso_tp);
+  OBD2 obd2(g_mock_iso_tp);
 
   // Проверяем, что объект создался
   TEST_ASSERT_NOT_NULL_MESSAGE(&obd2, "Объект OBD2 должен быть создан для тестирования PID");

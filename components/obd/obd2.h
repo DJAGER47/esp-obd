@@ -164,7 +164,7 @@ class OBD2 {
   // without breaking backward compatability with code that may use the above
   // response uint8_ts.
 
-  OBD2(IsoTp& driver, uint16_t timeout = 1000);
+  OBD2(IIsoTp& driver, uint16_t timeout = 1000);
 
   uint64_t findResponse();
   void queryPID(uint8_t service, uint16_t pid, uint8_t num_responses = 1);
@@ -280,7 +280,7 @@ class OBD2 {
   void log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len);
   bool timeout();
 
-  IsoTp& iso_tp_;
+  IIsoTp& iso_tp_;
 
   char payload[128];  // Буфер для приема данных
   int8_t nb_rx_state = OBD_GETTING_MSG;

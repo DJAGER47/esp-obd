@@ -73,7 +73,7 @@ void OBD2::printError() {
   // delay(100);
 }
 
-OBD2::OBD2(IsoTp& driver, uint16_t timeout) :
+OBD2::OBD2(IIsoTp& driver, uint16_t timeout) :
     iso_tp_(driver),
     // char payload[128];  // Буфер для приема данных
     nb_rx_state(OBD_GETTING_MSG),
