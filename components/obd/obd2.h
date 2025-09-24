@@ -6,10 +6,10 @@
 #include "esp_err.h"
 #include "iso_tp.h"
 
-class OBD2 {
+class OBD2 final {
  public:
   // Static constants
-  static const bool OBD_DEBUG = true;
+  static const bool OBD_DEBUG = false;
 
   //-------------------------------------------------------------------------------------//
   // PIDs (https://en.wikipedia.org/wiki/OBD-II_PIDs)

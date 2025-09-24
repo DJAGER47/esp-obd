@@ -7,8 +7,15 @@ add_executable(unity_app
     tests/iso-tp/tests_single.cpp
     tests/iso-tp/tests_long_send.cpp
     tests/iso-tp/tests_edge_cases.cpp
-    tests/obd/tests_obd_basic.cpp
-    tests/obd/tests_obd_pids.cpp
+    
+    tests/obd/tests_obd_integration.cpp
+    tests/obd/tests_obd_core_methods.cpp
+    tests/obd/tests_obd_pid_group_1_20.cpp
+    tests/obd/tests_obd_pid_group_21_40.cpp
+    tests/obd/tests_obd_pid_group_41_60.cpp
+    tests/obd/tests_obd_pid_group_61_80.cpp
+    tests/obd/tests_obd_error_handling.cpp
+    tests/obd/tests_obd_performance.cpp
     
     ../components/iso-tp/iso_tp.cpp
     ../components/obd/obd2_cmd.cpp
@@ -57,6 +64,10 @@ target_compile_definitions(unity_app PRIVATE
     # Отключаем реальную реализацию FreeRTOS
     FREERTOS_H
     TASK_H
+    
+    # Включаем поддержку double в Unity
+    UNITY_INCLUDE_DOUBLE
+    UNITY_DOUBLE_PRECISION=1e-12
 )
 
 ##################################################################
