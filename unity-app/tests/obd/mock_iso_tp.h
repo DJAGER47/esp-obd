@@ -149,7 +149,7 @@ class MockIsoTp : public IIsoTp {
     send_called    = false;
     receive_called = false;
     send_result    = true;
-    receive_result = false;  // false означает успех для receive
+    receive_result = true;  // true означает успех для receive
   }
 
   void add_receive_message(const Message& message) {
@@ -184,12 +184,13 @@ inline IIsoTp::Message create_obd_response_1_byte(uint32_t rx_id,
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;  // Стандартный OBD2 запрос ID
   msg.rx_id   = rx_id;
-  msg.len     = 4;
-  msg.data    = new uint8_t[4];
-  msg.data[0] = service + 0x40;  // Положительный ответ
-  msg.data[1] = pid;
-  msg.data[2] = data;
-  msg.data[3] = 0x00;  // Заполнение
+  msg.len     = 5;
+  msg.data    = new uint8_t[5];
+  msg.data[0] = 3;               // Длина данных
+  msg.data[1] = service + 0x40;  // Положительный ответ
+  msg.data[2] = pid;
+  msg.data[3] = data;
+  msg.data[4] = 0x00;  // Заполнение
   return msg;
 }
 
@@ -223,15 +224,16 @@ inline IIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
-  msg.len     = 7;
-  msg.data    = new uint8_t[7];
-  msg.data[0] = service + 0x40;
-  msg.data[1] = pid;
-  msg.data[2] = data_a;
-  msg.data[3] = data_b;
-  msg.data[4] = data_c;
-  msg.data[5] = data_d;
-  msg.data[6] = 0x00;
+  msg.len     = 8;
+  msg.data    = new uint8_t[8];
+  msg.data[0] = 6;  // Длина данных
+  msg.data[1] = service + 0x40;
+  msg.data[2] = pid;
+  msg.data[3] = data_a;
+  msg.data[4] = data_b;
+  msg.data[5] = data_c;
+  msg.data[6] = data_d;
+  msg.data[7] = 0x00;
   return msg;
 }
 

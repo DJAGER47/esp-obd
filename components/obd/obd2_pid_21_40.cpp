@@ -83,7 +83,7 @@ std::optional<float> OBD2::commandedEGR() {
 std::optional<float> OBD2::egrError() {
   ResponseType response;
   if (processPID(SERVICE_01, EGR_ERROR, response)) {
-    return {(response[A] * 100.0 / 255.0) - 100.0};
+    return {(response[A] * 100.0 / 128.0) - 100.0};
   }
   return {};
 }

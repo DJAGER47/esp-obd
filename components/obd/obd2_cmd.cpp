@@ -101,8 +101,8 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
     }
 
     const uint8_t response_service = service + 0x40;
-    if ((payload[1] == response_service) && (payload[2] == pid)) {
-      std::copy(response.begin(), response.end(), payload + 3);
+    if ((msg.data[1] == response_service) && (msg.data[2] == pid)) {
+      std::copy(msg.data + 3, msg.data + 3 + response.size(), response.begin());
       return true;
     }
   }
