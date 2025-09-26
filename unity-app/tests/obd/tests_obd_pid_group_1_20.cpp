@@ -32,7 +32,18 @@
  * ✅ PID 11 - throttle() - положение дроссельной заслонки
  * ✅ PID 12 - commandedSecAirStatus() - статус вторичного воздуха
  * ✅ PID 13 - oxygenSensorsPresent_2banks() - присутствующие кислородные датчики
- * ✅ PID 14 - oxygenSensor1() - кислородный датчик 1
+ * ❌ PID 14 - oxygenSensor1() - кислородный датчик 1 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 15 - oxygenSensor2() - кислородный датчик 2 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 16 - oxygenSensor3() - кислородный датчик 3 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 17 - oxygenSensor4() - кислородный датчик 4 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 18 - oxygenSensor5() - кислородный датчик 5 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 19 - oxygenSensor6() - кислородный датчик 6 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 1A - oxygenSensor7() - кислородный датчик 7 - НЕ РЕАЛИЗОВАН
+ * ❌ PID 1B - oxygenSensor8() - кислородный датчик 8 - НЕ РЕАЛИЗОВАН
+ * ✅ PID 1C - obdStandards() - стандарты OBD
+ * ✅ PID 1D - oxygenSensorsPresent_4banks() - присутствующие кислородные датчики (4 банка)
+ * ✅ PID 1E - auxInputStatus() - статус вспомогательного входа
+ * ✅ PID 1F - runTime() - время работы двигателя с момента запуска
  *
  * ВСЕГО ТЕСТОВ: 40 (по 2-3 теста на каждый PID)
  */
@@ -938,7 +949,183 @@ void test_pid_13_oxygen_sensors_partial() {
 // PID 14 - OXYGEN SENSOR 1 ТЕСТЫ (заглушка, так как метод не реализован)
 // ============================================================================
 
-// Тест 37: oxygenSensor1 - проверка существования константы
+// ============================================================================
+// PID 1C - OBD STANDARDS ТЕСТЫ
+// ============================================================================
+
+// Тест 37: obdStandards - валидные данные
+void test_pid_1c_obd_standards_valid_data() {
+  g_mock_iso_tp.reset();
+
+  // OBD Standards: 0x07 = OBD-II as defined by CARB
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x07);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto standards = obd2.obdStandards();
+  TEST_ASSERT_TRUE_MESSAGE(standards.has_value(), "obdStandards должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
+      0x07, standards.value(), "obdStandards должен вернуть правильный код стандарта");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 38: obdStandards - различные стандарты
+void test_pid_1c_obd_standards_various() {
+  g_mock_iso_tp.reset();
+
+  // OBD Standards: 0x01 = OBD-II as defined by EPA
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x01);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto standards = obd2.obdStandards();
+  TEST_ASSERT_TRUE_MESSAGE(standards.has_value(), "obdStandards должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
+      0x01, standards.value(), "obdStandards должен поддерживать различные стандарты");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 1D - OXYGEN SENSORS PRESENT (4 BANKS) ТЕСТЫ
+// ============================================================================
+
+// Тест 39: oxygenSensorsPresent_4banks - все датчики присутствуют
+void test_pid_1d_oxygen_sensors_4banks_all_present() {
+  g_mock_iso_tp.reset();
+
+  // Все датчики присутствуют: 0xFF
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0xFF);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto sensors = obd2.oxygenSensorsPresent_4banks();
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
+                           "oxygenSensorsPresent_4banks должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
+      0xFF, sensors.value(), "oxygenSensorsPresent_4banks должен показать все датчики");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 40: oxygenSensorsPresent_4banks - частичное присутствие
+void test_pid_1d_oxygen_sensors_4banks_partial() {
+  g_mock_iso_tp.reset();
+
+  // Только первые 4 датчика: 0x0F (B1S1, B1S2, B2S1, B2S2)
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0x0F);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto sensors = obd2.oxygenSensorsPresent_4banks();
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
+                           "oxygenSensorsPresent_4banks должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
+      0x0F, sensors.value(), "oxygenSensorsPresent_4banks должен показать частичное присутствие");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 1E - AUX INPUT STATUS ТЕСТЫ
+// ============================================================================
+
+// Тест 41: auxInputStatus - PTO активен
+void test_pid_1e_aux_input_status_active() {
+  g_mock_iso_tp.reset();
+
+  // PTO активен: 0x01
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x01);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto status = obd2.auxInputStatus();
+  TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "auxInputStatus должен вернуть значение");
+
+  TEST_ASSERT_TRUE_MESSAGE(status.value(), "auxInputStatus должен показать активный статус");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 42: auxInputStatus - PTO неактивен
+void test_pid_1e_aux_input_status_inactive() {
+  g_mock_iso_tp.reset();
+
+  // PTO неактивен: 0x00
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x00);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto status = obd2.auxInputStatus();
+  TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "auxInputStatus должен вернуть значение");
+
+  TEST_ASSERT_FALSE_MESSAGE(status.value(), "auxInputStatus должен показать неактивный статус");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 1F - RUN TIME SINCE ENGINE START ТЕСТЫ
+// ============================================================================
+
+// Тест 43: runTime - нормальное время работы
+void test_pid_1f_run_time_normal() {
+  g_mock_iso_tp.reset();
+
+  // Время работы: 0x0258 = 600 секунд (10 минут)
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0x02, 0x58);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto runtime = obd2.runTime();
+  TEST_ASSERT_TRUE_MESSAGE(runtime.has_value(), "runTime должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
+      600, runtime.value(), "runTime должен вернуть правильное время в секундах");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 44: runTime - максимальное время
+void test_pid_1f_run_time_max() {
+  g_mock_iso_tp.reset();
+
+  // Максимальное время: 0xFFFF = 65535 секунд
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0xFF, 0xFF);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto runtime = obd2.runTime();
+  TEST_ASSERT_TRUE_MESSAGE(runtime.has_value(), "runTime должен вернуть значение");
+
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
+      65535, runtime.value(), "runTime должен обрабатывать максимальные значения");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 45: oxygenSensor1 - проверка существования константы
 void test_pid_14_oxygen_sensor_1_constant() {
   // Проверяем, что константа определена правильно
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(
@@ -1100,6 +1287,22 @@ extern "C" void run_obd_pid_group_1_20_tests() {
 
   // PID 14 - oxygenSensor1 (константа)
   RUN_TEST(test_pid_14_oxygen_sensor_1_constant);
+
+  // PID 1C - obdStandards
+  RUN_TEST(test_pid_1c_obd_standards_valid_data);
+  RUN_TEST(test_pid_1c_obd_standards_various);
+
+  // PID 1D - oxygenSensorsPresent_4banks
+  RUN_TEST(test_pid_1d_oxygen_sensors_4banks_all_present);
+  RUN_TEST(test_pid_1d_oxygen_sensors_4banks_partial);
+
+  // PID 1E - auxInputStatus
+  RUN_TEST(test_pid_1e_aux_input_status_active);
+  RUN_TEST(test_pid_1e_aux_input_status_inactive);
+
+  // PID 1F - runTime
+  RUN_TEST(test_pid_1f_run_time_normal);
+  RUN_TEST(test_pid_1f_run_time_max);
 
   // Дополнительные тесты
   RUN_TEST(test_real_car_data_formulas);
