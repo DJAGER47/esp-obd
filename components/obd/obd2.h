@@ -98,6 +98,11 @@ class OBD2 final {
   std::optional<uint16_t> referenceTorque();
   std::optional<uint16_t> auxSupported();
 
+  // 81 - 100, 101 - 120, 121 - 140
+  std::optional<uint32_t> supportedPIDs81_100();
+  std::optional<uint32_t> supportedPIDs101_120();
+  std::optional<uint32_t> supportedPIDs121_140();
+
  private:
   using ResponseType = std::array<uint8_t, 8>;
 
@@ -236,6 +241,10 @@ class OBD2 final {
   static const uint8_t ENGINE_REFERENCE_TORQUE        = 99;  // 0x63 - Nm
   static const uint8_t ENGINE_PERCENT_TORQUE_DATA = 100;  // 0x64 - % ❌ НЕ РЕАЛИЗОВАН
   static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED = 101;  // 0x65 - bit encoded
+
+  static const uint8_t SUPPORTED_PIDS_81_100  = 128;  // 0x80 - bit encoded
+  static const uint8_t SUPPORTED_PIDS_101_120 = 160;  // 0xA0 - bit encoded
+  static const uint8_t SUPPORTED_PIDS_121_140 = 192;  // 0xC0 - bit encoded
 
   void queryPID(uint8_t service, uint8_t pid);
   bool processPID(uint8_t service, uint16_t pid, ResponseType& response);

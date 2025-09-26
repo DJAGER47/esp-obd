@@ -61,6 +61,45 @@ std::optional<uint32_t> OBD2::supportedPIDs_61_80() {
 }
 
 /**
+ * @brief Получает поддерживаемые PID группы 81-100
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID 81-100
+ */
+std::optional<uint32_t> OBD2::supportedPIDs81_100() {
+  ResponseType response;
+  if (processPID(SERVICE_01, SUPPORTED_PIDS_81_100, response)) {
+    return {(response[A] << 24) | (response[B] << 16) | (response[C] << 8) | response[D]};
+  }
+  return {};
+}
+
+/**
+ * @brief Получает поддерживаемые PID группы 101-120
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID 101-120
+ */
+std::optional<uint32_t> OBD2::supportedPIDs101_120() {
+  ResponseType response;
+  if (processPID(SERVICE_01, SUPPORTED_PIDS_101_120, response)) {
+    return {(response[A] << 24) | (response[B] << 16) | (response[C] << 8) | response[D]};
+  }
+  return {};
+}
+
+/**
+ * @brief Получает поддерживаемые PID группы 121-140
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID 121-140
+ */
+std::optional<uint32_t> OBD2::supportedPIDs121_140() {
+  ResponseType response;
+  if (processPID(SERVICE_01, SUPPORTED_PIDS_121_140, response)) {
+    return {(response[A] << 24) | (response[B] << 16) | (response[C] << 8) | response[D]};
+  }
+  return {};
+}
+
+/**
  * @brief Проверяет, поддерживается ли указанный PID ECU
  *
  * Вспомогательный метод, который выбирает соответствующий запрос supportedPIDS_xx_xx()
