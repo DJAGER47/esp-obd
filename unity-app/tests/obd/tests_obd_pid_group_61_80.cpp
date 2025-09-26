@@ -37,11 +37,14 @@ void test_pid_61_demanded_torque_valid_data() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.demandedTorque();
+  auto torque = obd2.demandedTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 128 - 125 = 3.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, 3.0, torque, "demandedTorque должен вернуть правильный крутящий момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   3.0,
+                                   static_cast<double>(torque.value()),
+                                   "demandedTorque должен вернуть правильный крутящий момент");
 
   if (response.data)
     delete[] response.data;
@@ -57,11 +60,14 @@ void test_pid_61_demanded_torque_negative() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.demandedTorque();
+  auto torque = obd2.demandedTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 80 - 125 = -45.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, -45.0, torque, "demandedTorque должен обрабатывать отрицательный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -45.0,
+                                   static_cast<double>(torque.value()),
+                                   "demandedTorque должен обрабатывать отрицательный момент");
 
   if (response.data)
     delete[] response.data;
@@ -77,11 +83,14 @@ void test_pid_61_demanded_torque_max() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.demandedTorque();
+  auto torque = obd2.demandedTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 255 - 125 = 130.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, 130.0, torque, "demandedTorque должен обрабатывать максимальный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   130.0,
+                                   static_cast<double>(torque.value()),
+                                   "demandedTorque должен обрабатывать максимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -97,11 +106,14 @@ void test_pid_61_demanded_torque_min() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.demandedTorque();
+  auto torque = obd2.demandedTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 0 - 125 = -125.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, -125.0, torque, "demandedTorque должен обрабатывать минимальный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -125.0,
+                                   static_cast<double>(torque.value()),
+                                   "demandedTorque должен обрабатывать минимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -121,11 +133,14 @@ void test_pid_62_actual_torque_valid_data() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.torque();
+  auto torque = obd2.torque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 144 - 125 = 19.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, 19.0, torque, "torque должен вернуть правильный фактический момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   19.0,
+                                   static_cast<double>(torque.value()),
+                                   "torque должен вернуть правильный фактический момент");
 
   if (response.data)
     delete[] response.data;
@@ -141,10 +156,12 @@ void test_pid_62_actual_torque_zero() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.torque();
+  auto torque = obd2.torque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 125 - 125 = 0.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1, 0.0, torque, "torque должен обрабатывать нулевой момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, 0.0, static_cast<double>(torque.value()), "torque должен обрабатывать нулевой момент");
 
   if (response.data)
     delete[] response.data;
@@ -160,11 +177,14 @@ void test_pid_62_actual_torque_negative() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.torque();
+  auto torque = obd2.torque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 60 - 125 = -65.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, -65.0, torque, "torque должен обрабатывать отрицательный момент (торможение)");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -65.0,
+                                   static_cast<double>(torque.value()),
+                                   "torque должен обрабатывать отрицательный момент (торможение)");
 
   if (response.data)
     delete[] response.data;
@@ -180,11 +200,14 @@ void test_pid_62_actual_torque_min() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  double torque = obd2.torque();
+  auto torque = obd2.torque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 0 - 125 = -125.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1, -125.0, torque, "torque должен обрабатывать минимальный фактический момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -125.0,
+                                   static_cast<double>(torque.value()),
+                                   "torque должен обрабатывать минимальный фактический момент");
 
   if (response.data)
     delete[] response.data;
@@ -204,11 +227,12 @@ void test_pid_63_reference_torque_valid_data() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t torque = obd2.referenceTorque();
+  auto torque = obd2.referenceTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      300, torque, "referenceTorque должен вернуть правильный эталонный момент");
+      300, torque.value(), "referenceTorque должен вернуть правильный эталонный момент");
 
   if (response.data)
     delete[] response.data;
@@ -224,11 +248,12 @@ void test_pid_63_reference_torque_high() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t torque = obd2.referenceTorque();
+  auto torque = obd2.referenceTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      5000, torque, "referenceTorque должен обрабатывать высокий момент");
+      5000, torque.value(), "referenceTorque должен обрабатывать высокий момент");
 
   if (response.data)
     delete[] response.data;
@@ -244,11 +269,12 @@ void test_pid_63_reference_torque_max() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t torque = obd2.referenceTorque();
+  auto torque = obd2.referenceTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      65535, torque, "referenceTorque должен обрабатывать максимальный момент");
+      65535, torque.value(), "referenceTorque должен обрабатывать максимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -264,10 +290,11 @@ void test_pid_63_reference_torque_zero() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t torque = obd2.referenceTorque();
+  auto torque = obd2.referenceTorque();
+  TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0, torque, "referenceTorque должен обрабатывать нулевой эталонный момент");
+      0, torque.value(), "referenceTorque должен обрабатывать нулевой эталонный момент");
 
   if (response.data)
     delete[] response.data;
@@ -287,11 +314,12 @@ void test_pid_65_aux_supported_valid_data() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t aux = obd2.auxSupported();
+  auto aux = obd2.auxSupported();
+  TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
   // Формула: (A*256 + B) - битовая маска
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0x1234, aux, "auxSupported должен вернуть правильную битовую маску");
+      0x1234, aux.value(), "auxSupported должен вернуть правильную битовую маску");
 
   if (response.data)
     delete[] response.data;
@@ -307,10 +335,11 @@ void test_pid_65_aux_supported_all_bits() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t aux = obd2.auxSupported();
+  auto aux = obd2.auxSupported();
+  TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0xFFFF, aux, "auxSupported должен обрабатывать все установленные биты");
+      0xFFFF, aux.value(), "auxSupported должен обрабатывать все установленные биты");
 
   if (response.data)
     delete[] response.data;
@@ -326,10 +355,13 @@ void test_pid_65_aux_supported_none() {
   g_mock_iso_tp.set_receive_result(false);
 
   OBD2 obd2(g_mock_iso_tp);
-  uint16_t aux = obd2.auxSupported();
+  auto aux = obd2.auxSupported();
+  TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0x0000, aux, "auxSupported должен обрабатывать отсутствие поддерживаемых входов/выходов");
+      0x0000,
+      aux.value(),
+      "auxSupported должен обрабатывать отсутствие поддерживаемых входов/выходов");
 
   if (response.data)
     delete[] response.data;

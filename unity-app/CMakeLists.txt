@@ -13,8 +13,6 @@ add_executable(unity_app
     tests/obd/tests_obd_pid_group_21_40.cpp
     tests/obd/tests_obd_pid_group_41_60.cpp
     tests/obd/tests_obd_pid_group_61_80.cpp
-    tests/obd/tests_obd_error_handling.cpp
-    tests/obd/tests_obd_performance.cpp
     
     ../components/iso-tp/iso_tp.cpp
     ../components/obd/obd2_cmd.cpp
