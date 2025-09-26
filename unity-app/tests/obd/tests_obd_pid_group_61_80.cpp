@@ -32,7 +32,7 @@ void test_pid_61_demanded_torque_valid_data() {
   g_mock_iso_tp.reset();
 
   // Требуемый крутящий момент: 0x80 = 128, формула: A - 125 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x61, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x61, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -52,7 +52,7 @@ void test_pid_61_demanded_torque_negative() {
   g_mock_iso_tp.reset();
 
   // Отрицательный крутящий момент: 0x50 = 80, формула: 80 - 125 = -45%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x61, 0x50);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x61, 0x50);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -72,7 +72,7 @@ void test_pid_61_demanded_torque_max() {
   g_mock_iso_tp.reset();
 
   // Максимальный крутящий момент: 0xFF = 255, формула: 255 - 125 = 130%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x61, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x61, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -92,7 +92,7 @@ void test_pid_61_demanded_torque_min() {
   g_mock_iso_tp.reset();
 
   // Минимальный крутящий момент: 0x00 = 0, формула: 0 - 125 = -125%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x61, 0x00);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x61, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -116,7 +116,7 @@ void test_pid_62_actual_torque_valid_data() {
   g_mock_iso_tp.reset();
 
   // Фактический крутящий момент: 0x90 = 144, формула: A - 125 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x62, 0x90);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x62, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -136,7 +136,7 @@ void test_pid_62_actual_torque_zero() {
   g_mock_iso_tp.reset();
 
   // Нулевой крутящий момент: 0x7D = 125, формула: 125 - 125 = 0%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x62, 0x7D);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x62, 0x7D);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -155,7 +155,7 @@ void test_pid_62_actual_torque_negative() {
   g_mock_iso_tp.reset();
 
   // Отрицательный крутящий момент: 0x3C = 60, формула: 60 - 125 = -65%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x62, 0x3C);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x62, 0x3C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -175,7 +175,7 @@ void test_pid_62_actual_torque_min() {
   g_mock_iso_tp.reset();
 
   // Минимальный фактический крутящий момент: 0x00 = 0, формула: 0 - 125 = -125%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x62, 0x00);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x62, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -199,7 +199,7 @@ void test_pid_63_reference_torque_valid_data() {
   g_mock_iso_tp.reset();
 
   // Эталонный крутящий момент: 0x012C = 300 Нм
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x63, 0x01, 0x2C);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x63, 0x01, 0x2C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -219,7 +219,7 @@ void test_pid_63_reference_torque_high() {
   g_mock_iso_tp.reset();
 
   // Высокий эталонный крутящий момент: 0x1388 = 5000 Нм
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x63, 0x13, 0x88);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x63, 0x13, 0x88);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -239,7 +239,7 @@ void test_pid_63_reference_torque_max() {
   g_mock_iso_tp.reset();
 
   // Максимальный эталонный крутящий момент: 0xFFFF = 65535 Нм
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x63, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x63, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -259,7 +259,7 @@ void test_pid_63_reference_torque_zero() {
   g_mock_iso_tp.reset();
 
   // Нулевой эталонный крутящий момент: 0x0000 = 0 Нм
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x63, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x63, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -282,7 +282,7 @@ void test_pid_65_aux_supported_valid_data() {
   g_mock_iso_tp.reset();
 
   // Поддерживаемые вспомогательные входы/выходы: 0x1234
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x65, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x65, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -302,7 +302,7 @@ void test_pid_65_aux_supported_all_bits() {
   g_mock_iso_tp.reset();
 
   // Все биты установлены: 0xFFFF
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x65, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x65, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -321,7 +321,7 @@ void test_pid_65_aux_supported_none() {
   g_mock_iso_tp.reset();
 
   // Нет поддерживаемых входов/выходов: 0x0000
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x65, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x65, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 

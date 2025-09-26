@@ -43,7 +43,7 @@ void test_pid_21_dist_travel_with_mil_valid_data() {
   g_mock_iso_tp.reset();
 
   // Расстояние с MIL: 0x1234 = 4660 км
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x21, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x21, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -63,7 +63,7 @@ void test_pid_21_dist_travel_with_mil_boundary() {
   g_mock_iso_tp.reset();
 
   // Максимальное значение: 0xFFFF = 65535 км
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x21, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x21, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -86,7 +86,7 @@ void test_pid_22_fuel_rail_pressure_valid_data() {
   g_mock_iso_tp.reset();
 
   // Давление: 0x1234 = 4660, формула: (A*256 + B) * 0.079 кПа
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x22, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x22, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -105,7 +105,7 @@ void test_pid_22_fuel_rail_pressure_valid_data() {
 void test_pid_22_fuel_rail_pressure_zero() {
   g_mock_iso_tp.reset();
 
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x22, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x22, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -128,7 +128,7 @@ void test_pid_23_fuel_rail_gauge_pressure_valid_data() {
   g_mock_iso_tp.reset();
 
   // Давление: 0x1234 = 4660, формула: (A*256 + B) * 10.0 кПа
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x23, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x23, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -148,7 +148,7 @@ void test_pid_23_fuel_rail_gauge_pressure_boundary() {
   g_mock_iso_tp.reset();
 
   // Максимальное значение: 0xFFFF = 65535
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x23, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x23, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -172,7 +172,7 @@ void test_pid_2c_commanded_egr_valid_data() {
   g_mock_iso_tp.reset();
 
   // EGR: 0x80 = 128, формула: A * 100/255 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2C, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2C, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -192,7 +192,7 @@ void test_pid_2c_commanded_egr_boundary() {
   g_mock_iso_tp.reset();
 
   // Максимальное значение: 0xFF = 255
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2C, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2C, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -216,7 +216,7 @@ void test_pid_2d_egr_error_valid_data() {
   g_mock_iso_tp.reset();
 
   // EGR Error: 0x80 = 128, формула: (A * 100/128) - 100 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2D, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2D, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -235,7 +235,7 @@ void test_pid_2d_egr_error_negative() {
   g_mock_iso_tp.reset();
 
   // EGR Error: 0x40 = 64, формула: (A * 100/128) - 100 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2D, 0x40);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2D, 0x40);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -259,7 +259,7 @@ void test_pid_2e_commanded_evap_purge_valid_data() {
   g_mock_iso_tp.reset();
 
   // Evap Purge: 0x80 = 128, формула: A * 100/255 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2E, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2E, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -278,7 +278,7 @@ void test_pid_2e_commanded_evap_purge_valid_data() {
 void test_pid_2e_commanded_evap_purge_zero() {
   g_mock_iso_tp.reset();
 
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2E, 0x00);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2E, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -301,7 +301,7 @@ void test_pid_2f_fuel_level_valid_data() {
   g_mock_iso_tp.reset();
 
   // Fuel Level: 0x80 = 128, формула: A * 100/255 %
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2F, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2F, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -321,7 +321,7 @@ void test_pid_2f_fuel_level_full_tank() {
   g_mock_iso_tp.reset();
 
   // Полный бак: 0xFF = 255
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x2F, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x2F, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -344,7 +344,7 @@ void test_pid_30_warm_ups_since_codes_cleared_valid_data() {
   g_mock_iso_tp.reset();
 
   // Количество прогревов: 0x15 = 21
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x30, 0x15);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x30, 0x15);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -363,7 +363,7 @@ void test_pid_30_warm_ups_since_codes_cleared_max() {
   g_mock_iso_tp.reset();
 
   // Максимальное значение: 0xFF = 255
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x30, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x30, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -386,7 +386,7 @@ void test_pid_31_dist_since_codes_cleared_valid_data() {
   g_mock_iso_tp.reset();
 
   // Расстояние: 0x1234 = 4660 км
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x31, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x31, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -405,7 +405,7 @@ void test_pid_31_dist_since_codes_cleared_valid_data() {
 void test_pid_31_dist_since_codes_cleared_zero() {
   g_mock_iso_tp.reset();
 
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x31, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x31, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -428,7 +428,7 @@ void test_pid_32_evap_sys_vap_pressure_valid_data() {
   g_mock_iso_tp.reset();
 
   // Давление: 0x1234 = 4660, формула: (A*256 + B) / 4 Па
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x32, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x32, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -448,7 +448,7 @@ void test_pid_32_evap_sys_vap_pressure_negative() {
   g_mock_iso_tp.reset();
 
   // Отрицательное давление: 0x8000 = 32768 (знаковое)
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x32, 0x80, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x32, 0x80, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -472,7 +472,7 @@ void test_pid_33_abs_baro_pressure_valid_data() {
   g_mock_iso_tp.reset();
 
   // Барометрическое давление: 0x65 = 101 кПа (нормальное атмосферное давление)
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x33, 0x65);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x33, 0x65);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -492,7 +492,7 @@ void test_pid_33_abs_baro_pressure_high() {
   g_mock_iso_tp.reset();
 
   // Высокое давление: 0xFF = 255 кПа
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, 0x33, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x33, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -515,7 +515,7 @@ void test_pid_3c_cat_temp_b1s1_valid_data() {
   g_mock_iso_tp.reset();
 
   // Температура: 0x1234 = 4660, формула: ((A*256 + B) / 10) - 40 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3C, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3C, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -535,7 +535,7 @@ void test_pid_3c_cat_temp_b1s1_low_temp() {
   g_mock_iso_tp.reset();
 
   // Низкая температура: 0x0190 = 400, формула: (400 / 10) - 40 = 0 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3C, 0x01, 0x90);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3C, 0x01, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -559,7 +559,7 @@ void test_pid_3d_cat_temp_b2s1_valid_data() {
   g_mock_iso_tp.reset();
 
   // Температура: 0x1234 = 4660, формула: ((A*256 + B) / 10) - 40 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3D, 0x12, 0x34);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3D, 0x12, 0x34);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -579,7 +579,7 @@ void test_pid_3d_cat_temp_b2s1_high_temp() {
   g_mock_iso_tp.reset();
 
   // Высокая температура: 0x2710 = 10000, формула: (10000 / 10) - 40 = 960 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3D, 0x27, 0x10);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3D, 0x27, 0x10);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -603,7 +603,7 @@ void test_pid_3e_cat_temp_b1s2_valid_data() {
   g_mock_iso_tp.reset();
 
   // Температура: 0x1388 = 5000, формула: ((A*256 + B) / 10) - 40 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3E, 0x13, 0x88);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3E, 0x13, 0x88);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -623,7 +623,7 @@ void test_pid_3e_cat_temp_b1s2_min_temp() {
   g_mock_iso_tp.reset();
 
   // Минимальная температура: 0x0000 = 0, формула: (0 / 10) - 40 = -40 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3E, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3E, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -647,7 +647,7 @@ void test_pid_3f_cat_temp_b2s2_valid_data() {
   g_mock_iso_tp.reset();
 
   // Температура: 0x1770 = 6000, формула: ((A*256 + B) / 10) - 40 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3F, 0x17, 0x70);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3F, 0x17, 0x70);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -667,7 +667,7 @@ void test_pid_3f_cat_temp_b2s2_max_temp() {
   g_mock_iso_tp.reset();
 
   // Максимальная температура: 0xFFFF = 65535, формула: (65535 / 10) - 40 = 6513.5 °C
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, 0x3F, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x3F, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 

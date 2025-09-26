@@ -50,8 +50,8 @@ void test_pid_00_supported_pids_1_20_valid_data() {
 
   // Создаем ответ с битовой маской 0xBE1FA813
   // Биты: 10111110 00011111 10101000 00010011
-  IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, OBD2::SERVICE_01, OBD2::SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
+  IIsoTp::Message response =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -72,8 +72,8 @@ void test_pid_00_supported_pids_bit_check() {
   g_mock_iso_tp.reset();
 
   // Маска 0xBE1FA813: PID 01, 04, 05, 0C, 0D, 0F, 10, 11, 13, 14 поддерживаются
-  IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, OBD2::SERVICE_01, OBD2::SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
+  IIsoTp::Message response =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -105,7 +105,7 @@ void test_pid_01_monitor_status_valid_data() {
 
   // Статус мониторинга: A7 80 00 00 (MIL включен, 7 DTC)
   IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, OBD2::SERVICE_01, OBD2::MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
+      0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -126,7 +126,7 @@ void test_pid_01_monitor_status_bit_fields() {
 
   // A7 = 10100111: MIL=1, DTC_count=7, готовность тестов
   IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, OBD2::SERVICE_01, OBD2::MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
+      0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -153,8 +153,7 @@ void test_pid_02_freeze_dtc_valid_data() {
   g_mock_iso_tp.reset();
 
   // Freeze DTC: P0301 (цилиндр 1 пропуски зажигания)
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::FREEZE_DTC, 0x03, 0x01);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0x03, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -174,8 +173,7 @@ void test_pid_02_freeze_dtc_boundary_values() {
   g_mock_iso_tp.reset();
 
   // Максимальное значение: 0xFFFF
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::FREEZE_DTC, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -199,7 +197,7 @@ void test_pid_03_fuel_system_status_normal() {
 
   // Статус: 02 00 (система 1 в замкнутом контуре, система 2 не используется)
   IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::FUEL_SYSTEM_STATUS, 0x02, 0x00);
+      create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x02, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -219,7 +217,7 @@ void test_pid_03_fuel_system_status_various() {
 
   // Статус: 01 08 (система 1 открытый контур, система 2 отключена)
   IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::FUEL_SYSTEM_STATUS, 0x01, 0x08);
+      create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x01, 0x08);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -247,8 +245,7 @@ void test_pid_04_engine_load_valid_data() {
 
   // Нагрузка: 0x80 (128) = 50.2%
   // Формула: A * 100 / 255
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_LOAD, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -268,8 +265,7 @@ void test_pid_04_engine_load_boundary_values() {
   g_mock_iso_tp.reset();
 
   // Минимальная нагрузка: 0x00 = 0%
-  IIsoTp::Message response1 =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_LOAD, 0x00);
+  IIsoTp::Message response1 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x00);
   g_mock_iso_tp.add_receive_message(response1);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -281,8 +277,7 @@ void test_pid_04_engine_load_boundary_values() {
 
   // Максимальная нагрузка: 0xFF = 100%
   g_mock_iso_tp.reset();
-  IIsoTp::Message response2 =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_LOAD, 0xFF);
+  IIsoTp::Message response2 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0xFF);
   g_mock_iso_tp.add_receive_message(response2);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -309,7 +304,7 @@ void test_pid_05_coolant_temp_normal() {
   // Температура: 0x5A (90) = 50°C
   // Формула: A - 40
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_COOLANT_TEMP, 0x5A);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x5A);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -330,7 +325,7 @@ void test_pid_05_coolant_temp_extreme() {
 
   // Минимальная температура: 0x00 = -40°C
   IIsoTp::Message response1 =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_COOLANT_TEMP, 0x00);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x00);
   g_mock_iso_tp.add_receive_message(response1);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -343,7 +338,7 @@ void test_pid_05_coolant_temp_extreme() {
   // Максимальная температура: 0xFF (255) = 215°C
   g_mock_iso_tp.reset();
   IIsoTp::Message response2 =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_COOLANT_TEMP, 0xFF);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0xFF);
   g_mock_iso_tp.add_receive_message(response2);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -370,7 +365,7 @@ void test_pid_06_short_term_fuel_trim_bank1() {
   // Коррекция: 0x80 (128) = 0%
   // Формула: (A * 100 / 128) - 100
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::SHORT_TERM_FUEL_TRIM_BANK_1, 0x80);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_1, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -391,7 +386,7 @@ void test_pid_07_long_term_fuel_trim_bank1_positive() {
 
   // Коррекция: 0x90 (144) = +12.5%
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::LONG_TERM_FUEL_TRIM_BANK_1, 0x90);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_1, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -412,7 +407,7 @@ void test_pid_08_short_term_fuel_trim_bank2_negative() {
 
   // Коррекция: 0x70 (112) = -12.5%
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::SHORT_TERM_FUEL_TRIM_BANK_2, 0x70);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_2, 0x70);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -433,7 +428,7 @@ void test_pid_09_long_term_fuel_trim_bank2_extreme() {
 
   // Минимальная коррекция: 0x00 = -100%
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::LONG_TERM_FUEL_TRIM_BANK_2, 0x00);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_2, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -461,8 +456,7 @@ void test_pid_0a_fuel_pressure_normal() {
 
   // Давление: 0x50 (80) = 240 kPa
   // Формула: A * 3
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::FUEL_PRESSURE, 0x50);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0x50);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -482,8 +476,7 @@ void test_pid_0a_fuel_pressure_maximum() {
   g_mock_iso_tp.reset();
 
   // Максимальное давление: 0xFF (255) = 765 kPa
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::FUEL_PRESSURE, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -508,7 +501,7 @@ void test_pid_0b_manifold_pressure_normal() {
 
   // Давление: 0x65 (101) = 101 kPa (атмосферное)
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::INTAKE_MANIFOLD_ABS_PRESSURE, 0x65);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x65);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -528,7 +521,7 @@ void test_pid_0b_manifold_pressure_vacuum() {
 
   // Вакуум: 0x30 (48) = 48 kPa
   IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::INTAKE_MANIFOLD_ABS_PRESSURE, 0x30);
+      create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x30);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -551,8 +544,7 @@ void test_pid_0c_rpm_idle() {
 
   // RPM: 0x0C 0x1C (3100) = 775 rpm
   // Формула: ((A * 256) + B) / 4
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_RPM, 0x0C, 0x1C);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x0C, 0x1C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -572,8 +564,7 @@ void test_pid_0c_rpm_high() {
   g_mock_iso_tp.reset();
 
   // RPM: 0x1A 0xF8 (6904) = 1726 rpm
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_RPM, 0x1A, 0xF8);
+  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x1A, 0xF8);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -597,8 +588,7 @@ void test_pid_0d_kph_city_speed() {
   g_mock_iso_tp.reset();
 
   // Скорость: 0x3C (60) = 60 km/h
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::VEHICLE_SPEED, 0x3C);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0x3C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -616,8 +606,7 @@ void test_pid_0d_kph_maximum() {
   g_mock_iso_tp.reset();
 
   // Максимальная скорость: 0xFF (255) = 255 km/h
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::VEHICLE_SPEED, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -640,8 +629,7 @@ void test_pid_0e_timing_advance_normal() {
 
   // Угол: 0x80 (128) = 0°
   // Формула: (A / 2) - 64
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::TIMING_ADVANCE, 0x80);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -661,8 +649,7 @@ void test_pid_0e_timing_advance_positive() {
   g_mock_iso_tp.reset();
 
   // Угол: 0x90 (144) = 8°
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::TIMING_ADVANCE, 0x90);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -687,8 +674,7 @@ void test_pid_0f_intake_air_temp_room() {
 
   // Температура: 0x3C (60) = 20°C
   // Формула: A - 40
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::INTAKE_AIR_TEMP, 0x3C);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x3C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -708,8 +694,7 @@ void test_pid_0f_intake_air_temp_hot() {
   g_mock_iso_tp.reset();
 
   // Горячий воздух: 0x78 (120) = 80°C
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::INTAKE_AIR_TEMP, 0x78);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x78);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -735,7 +720,7 @@ void test_pid_10_maf_rate_normal() {
   // MAF: 0x01 0x90 (400) = 4.0 g/s
   // Формула: ((A * 256) + B) / 100
   IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::MAF_FLOW_RATE, 0x01, 0x90);
+      create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x01, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -756,7 +741,7 @@ void test_pid_10_maf_rate_high() {
 
   // Высокий MAF: 0x0A 0x00 (2560) = 25.6 g/s
   IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::MAF_FLOW_RATE, 0x0A, 0x00);
+      create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x0A, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -781,8 +766,7 @@ void test_pid_11_throttle_closed() {
 
   // Заслонка: 0x00 (0) = 0%
   // Формула: A * 100 / 255
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::THROTTLE_POSITION, 0x00);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -801,8 +785,7 @@ void test_pid_11_throttle_wide_open() {
   g_mock_iso_tp.reset();
 
   // Заслонка: 0xFF (255) = 100%
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::THROTTLE_POSITION, 0xFF);
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -828,8 +811,8 @@ void test_pid_12_secondary_air_status_off() {
   g_mock_iso_tp.reset();
 
   // Статус: 0x00 = система выключена
-  IIsoTp::Message response = create_obd_response_1_byte(
-      0x7E8, OBD2::SERVICE_01, OBD2::COMMANDED_SECONDARY_AIR_STATUS, 0x00);
+  IIsoTp::Message response =
+      create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -848,8 +831,8 @@ void test_pid_12_secondary_air_status_on() {
   g_mock_iso_tp.reset();
 
   // Статус: 0x01 = система включена
-  IIsoTp::Message response = create_obd_response_1_byte(
-      0x7E8, OBD2::SERVICE_01, OBD2::COMMANDED_SECONDARY_AIR_STATUS, 0x01);
+  IIsoTp::Message response =
+      create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -872,8 +855,8 @@ void test_pid_13_oxygen_sensors_all_present() {
   g_mock_iso_tp.reset();
 
   // Датчики: 0xFF = все 8 датчиков присутствуют
-  IIsoTp::Message response = create_obd_response_1_byte(
-      0x7E8, OBD2::SERVICE_01, OBD2::OXYGEN_SENSORS_PRESENT_2_BANKS, 0xFF);
+  IIsoTp::Message response =
+      create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -892,8 +875,8 @@ void test_pid_13_oxygen_sensors_partial() {
   g_mock_iso_tp.reset();
 
   // Датчики: 0x0F = только банк 1 (датчики 1-4)
-  IIsoTp::Message response = create_obd_response_1_byte(
-      0x7E8, OBD2::SERVICE_01, OBD2::OXYGEN_SENSORS_PRESENT_2_BANKS, 0x0F);
+  IIsoTp::Message response =
+      create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0x0F);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -925,7 +908,7 @@ void test_pid_13_oxygen_sensors_partial() {
 void test_pid_14_oxygen_sensor_1_constant() {
   // Проверяем, что константа определена правильно
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      20, OBD2::OXYGEN_SENSOR_1_A, "OXYGEN_SENSOR_1_A должен иметь значение 20 (0x14)");
+      20, OXYGEN_SENSOR_1_A, "OXYGEN_SENSOR_1_A должен иметь значение 20 (0x14)");
 }
 
 // ============================================================================
@@ -938,8 +921,7 @@ void test_real_car_data_formulas() {
   g_mock_iso_tp.reset();
 
   // ENGINE_LOAD: 45% (0x73 = 115)
-  IIsoTp::Message load_msg =
-      create_obd_response_1_byte(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_LOAD, 0x73);
+  IIsoTp::Message load_msg = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x73);
   g_mock_iso_tp.add_receive_message(load_msg);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -959,8 +941,7 @@ void test_error_handling_and_zero_values() {
   g_mock_iso_tp.reset();
 
   // Тест с нулевыми значениями для RPM
-  IIsoTp::Message rpm_zero =
-      create_obd_response_2_bytes(0x7E8, OBD2::SERVICE_01, OBD2::ENGINE_RPM, 0x00, 0x00);
+  IIsoTp::Message rpm_zero = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(rpm_zero);
   g_mock_iso_tp.set_receive_result(false);
 
@@ -982,30 +963,27 @@ void test_comprehensive_pid_group_1_20() {
   OBD2 obd2(g_mock_iso_tp);
 
   // Проверяем, что все константы PID определены правильно
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, OBD2::SUPPORTED_PIDS_1_20, "PID 00 должен быть 0");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      1, OBD2::MONITOR_STATUS_SINCE_DTC_CLEARED, "PID 01 должен быть 1");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(2, OBD2::FREEZE_DTC, "PID 02 должен быть 2");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(3, OBD2::FUEL_SYSTEM_STATUS, "PID 03 должен быть 3");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, OBD2::ENGINE_LOAD, "PID 04 должен быть 4");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, OBD2::ENGINE_COOLANT_TEMP, "PID 05 должен быть 5");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(6, OBD2::SHORT_TERM_FUEL_TRIM_BANK_1, "PID 06 должен быть 6");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(7, OBD2::LONG_TERM_FUEL_TRIM_BANK_1, "PID 07 должен быть 7");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(8, OBD2::SHORT_TERM_FUEL_TRIM_BANK_2, "PID 08 должен быть 8");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(9, OBD2::LONG_TERM_FUEL_TRIM_BANK_2, "PID 09 должен быть 9");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(10, OBD2::FUEL_PRESSURE, "PID 0A должен быть 10");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(11, OBD2::INTAKE_MANIFOLD_ABS_PRESSURE, "PID 0B должен быть 11");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(12, OBD2::ENGINE_RPM, "PID 0C должен быть 12");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(13, OBD2::VEHICLE_SPEED, "PID 0D должен быть 13");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(14, OBD2::TIMING_ADVANCE, "PID 0E должен быть 14");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(15, OBD2::INTAKE_AIR_TEMP, "PID 0F должен быть 15");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(16, OBD2::MAF_FLOW_RATE, "PID 10 должен быть 16");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(17, OBD2::THROTTLE_POSITION, "PID 11 должен быть 17");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      18, OBD2::COMMANDED_SECONDARY_AIR_STATUS, "PID 12 должен быть 18");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      19, OBD2::OXYGEN_SENSORS_PRESENT_2_BANKS, "PID 13 должен быть 19");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(20, OBD2::OXYGEN_SENSOR_1_A, "PID 14 должен быть 20");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0, SUPPORTED_PIDS_1_20, "PID 00 должен быть 0");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(1, MONITOR_STATUS_SINCE_DTC_CLEARED, "PID 01 должен быть 1");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(2, FREEZE_DTC, "PID 02 должен быть 2");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(3, FUEL_SYSTEM_STATUS, "PID 03 должен быть 3");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(4, ENGINE_LOAD, "PID 04 должен быть 4");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(5, ENGINE_COOLANT_TEMP, "PID 05 должен быть 5");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(6, SHORT_TERM_FUEL_TRIM_BANK_1, "PID 06 должен быть 6");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(7, LONG_TERM_FUEL_TRIM_BANK_1, "PID 07 должен быть 7");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(8, SHORT_TERM_FUEL_TRIM_BANK_2, "PID 08 должен быть 8");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(9, LONG_TERM_FUEL_TRIM_BANK_2, "PID 09 должен быть 9");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(10, FUEL_PRESSURE, "PID 0A должен быть 10");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(11, INTAKE_MANIFOLD_ABS_PRESSURE, "PID 0B должен быть 11");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(12, ENGINE_RPM, "PID 0C должен быть 12");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(13, VEHICLE_SPEED, "PID 0D должен быть 13");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(14, TIMING_ADVANCE, "PID 0E должен быть 14");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(15, INTAKE_AIR_TEMP, "PID 0F должен быть 15");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(16, MAF_FLOW_RATE, "PID 10 должен быть 16");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(17, THROTTLE_POSITION, "PID 11 должен быть 17");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(18, COMMANDED_SECONDARY_AIR_STATUS, "PID 12 должен быть 18");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(19, OXYGEN_SENSORS_PRESENT_2_BANKS, "PID 13 должен быть 19");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(20, OXYGEN_SENSOR_1_A, "PID 14 должен быть 20");
 }
 
 // ============================================================================

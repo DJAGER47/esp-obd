@@ -58,7 +58,7 @@ void test_error_handling_buffer_overflow_send() {
   g_mock_iso_tp.set_receive_result(false);
 
   // Попытка обработки должна завершиться ошибкой
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Переполнение буфера должно возвращать ошибку");
 
@@ -87,7 +87,7 @@ void test_error_handling_buffer_overflow_receive() {
   g_mock_iso_tp.add_receive_message(large_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Большой payload должен обрабатываться с ошибкой");
 
@@ -109,7 +109,7 @@ void test_error_handling_zero_buffer_size() {
   g_mock_iso_tp.add_receive_message(zero_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Нулевой размер буфера должен возвращать ошибку");
 }
@@ -134,7 +134,7 @@ void test_error_handling_response_too_short() {
   g_mock_iso_tp.add_receive_message(short_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Слишком короткий ответ должен возвращать ошибку");
 
@@ -159,7 +159,7 @@ void test_error_handling_incomplete_multibyte_response() {
   g_mock_iso_tp.add_receive_message(incomplete_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Неполный ответ для многобайтового PID должен возвращать ошибку");
@@ -190,7 +190,7 @@ void test_error_handling_excessive_response_data() {
   g_mock_iso_tp.set_receive_result(false);
 
   // Должен обработать корректно, игнорируя лишние данные
-  double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+  double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
 
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
       0.1,
@@ -220,7 +220,7 @@ void test_error_handling_negative_message_length() {
   g_mock_iso_tp.add_receive_message(invalid_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Некорректная длина сообщения должна возвращать ошибку");
@@ -247,7 +247,7 @@ void test_error_handling_null_data_pointer() {
   g_mock_iso_tp.add_receive_message(null_data_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Нулевой указатель на данные должен возвращать ошибку");
@@ -267,7 +267,7 @@ void test_error_handling_null_pointer_nonzero_length() {
   g_mock_iso_tp.add_receive_message(inconsistent_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+  double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Несоответствие длины и указателя должно возвращать ошибку");
@@ -293,7 +293,7 @@ void test_error_handling_pointer_validation_chain() {
   g_mock_iso_tp.add_receive_message(partial_null_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   // Должен обработать как валидные нулевые данные (0 RPM)
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
@@ -389,7 +389,7 @@ void test_error_handling_isotp_send_failure() {
 
   OBD2 obd2(g_mock_iso_tp);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Ошибка отправки ISO-TP должна возвращать ошибку");
 
@@ -403,7 +403,7 @@ void test_error_handling_isotp_receive_failure() {
 
   OBD2 obd2(g_mock_iso_tp);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Ошибка получения ISO-TP должна возвращать ошибку");
@@ -417,7 +417,7 @@ void test_error_handling_isotp_receive_timeout() {
 
   OBD2 obd2(g_mock_iso_tp);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Таймаут получения должен возвращать ошибку");
 }
@@ -429,19 +429,19 @@ void test_error_handling_multiple_isotp_failures() {
 
   // Первая ошибка - отправка
   g_mock_iso_tp.set_send_result(false);
-  double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result1);
 
   // Вторая ошибка - получение
   g_mock_iso_tp.reset();
   g_mock_iso_tp.set_receive_result(true);
-  double result2 = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+  double result2 = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result2);
 
   // Третья ошибка - таймаут
   g_mock_iso_tp.reset();
   g_mock_iso_tp.set_receive_result(true);
-  double result3 = obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
+  double result3 = obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result3);
 
   TEST_ASSERT_MESSAGE(true, "Множественные ошибки ISO-TP обработаны корректно");
@@ -469,7 +469,7 @@ void test_error_handling_wrong_service_response() {
   g_mock_iso_tp.add_receive_message(wrong_service_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Неправильный service в ответе должен возвращать ошибку");
@@ -495,7 +495,7 @@ void test_error_handling_wrong_pid_response() {
   g_mock_iso_tp.add_receive_message(wrong_pid_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Неправильный PID в ответе должен возвращать ошибку");
@@ -513,7 +513,7 @@ void test_error_handling_negative_response() {
   g_mock_iso_tp.add_receive_message(negative_response);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Негативный ответ должен возвращать ошибку");
 
@@ -543,7 +543,7 @@ void test_error_handling_corrupted_data_middle() {
   g_mock_iso_tp.add_receive_message(corrupted_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   // Должен обработать как максимальные обороты
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
@@ -568,7 +568,7 @@ void test_error_handling_incomplete_message() {
   g_mock_iso_tp.add_receive_message(incomplete_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Неполное сообщение должно возвращать ошибку");
 
@@ -599,7 +599,7 @@ void test_error_handling_random_corrupted_data() {
   g_mock_iso_tp.add_receive_message(random_data_msg);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+  double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
 
   // Должен обработать первый байт данных (0xAB)
   double expected = 0xAB * (100.0 / 255.0);  // 171 * 0.392 = 67.06
@@ -621,7 +621,7 @@ void test_error_handling_unsupported_service() {
   // Используем несуществующий сервис
   uint8_t unsupported_service = 0x99;
 
-  double result = obd2.processPID(unsupported_service, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(unsupported_service, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
       -1.0, result, "Неподдерживаемый сервис должен возвращать ошибку");
@@ -632,7 +632,7 @@ void test_error_handling_zero_service() {
   g_mock_iso_tp.reset();
   OBD2 obd2(g_mock_iso_tp);
 
-  double result = obd2.processPID(0x00, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x00, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Нулевой сервис должен возвращать ошибку");
 }
@@ -651,7 +651,7 @@ void test_error_handling_short_timeout() {
   // Не добавляем ответ - имитируем таймаут
   g_mock_iso_tp.set_receive_result(true);
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Короткий таймаут должен возвращать ошибку");
 }
@@ -668,7 +668,7 @@ void test_error_handling_long_timeout_late_response() {
   g_mock_iso_tp.add_receive_message(late_response);
   g_mock_iso_tp.set_receive_result(true);  // Ошибка получения
 
-  double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(-1.0, result, "Поздний ответ должен возвращать ошибку");
 
@@ -695,7 +695,7 @@ void test_error_handling_error_chain_different_types() {
   g_mock_iso_tp.add_receive_message(oversized);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result1);
 
   // Ошибка 2: Неправильный заголовок
@@ -713,14 +713,14 @@ void test_error_handling_error_chain_different_types() {
   g_mock_iso_tp.add_receive_message(wrong_header);
   g_mock_iso_tp.set_receive_result(false);
 
-  double result2 = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+  double result2 = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result2);
 
   // Ошибка 3: ISO-TP ошибка
   g_mock_iso_tp.reset();
   g_mock_iso_tp.set_send_result(false);
 
-  double result3 = obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
+  double result3 = obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
   TEST_ASSERT_EQUAL_DOUBLE(-1.0, result3);
 
   TEST_ASSERT_MESSAGE(true, "Цепочка различных ошибок обработана корректно");
@@ -739,7 +739,7 @@ void test_error_handling_recovery_after_multiple_errors() {
     g_mock_iso_tp.reset();
     g_mock_iso_tp.set_send_result(false);
 
-    double error_result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    double error_result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     TEST_ASSERT_EQUAL_DOUBLE(-1.0, error_result);
   }
 
@@ -750,11 +750,11 @@ void test_error_handling_recovery_after_multiple_errors() {
   g_mock_iso_tp.set_receive_result(false);
 
   // Первый вызов - отправка
-  double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
   TEST_ASSERT_EQUAL_DOUBLE(0.0, result1);
 
   // Второй вызов - получение
-  double result2 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result2 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
       0.1, 1674.75, result2, "После серии ошибок система должна восстановиться");
 

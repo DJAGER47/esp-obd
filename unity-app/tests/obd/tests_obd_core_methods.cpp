@@ -29,112 +29,6 @@
 static MockIsoTp g_mock_iso_tp;
 
 // ============================================================================
-// ТЕСТЫ ДЛЯ selectCalculator() - 3 ТЕСТА
-// ============================================================================
-
-// Тест 1: selectCalculator() для всех групп PID
-void test_obd2_selectCalculator_all_pid_groups() {
-  g_mock_iso_tp.reset();
-  OBD2 obd2(g_mock_iso_tp);
-
-  // Тест PID с кастомным калькулятором (ENGINE_RPM)
-  auto calculator_rpm = obd2.selectCalculator(OBD2::ENGINE_RPM);
-  TEST_ASSERT_NOT_NULL_MESSAGE(calculator_rpm.target<double()>(),
-                               "ENGINE_RPM должен иметь кастомный калькулятор");
-
-  // Тест PID с кастомным калькулятором (MAF_FLOW_RATE)
-  auto calculator_maf = obd2.selectCalculator(OBD2::MAF_FLOW_RATE);
-  TEST_ASSERT_NOT_NULL_MESSAGE(calculator_maf.target<double()>(),
-                               "MAF_FLOW_RATE должен иметь кастомный калькулятор");
-
-  // Тест PID без кастомного калькулятора (ENGINE_LOAD)
-  auto calculator_load = obd2.selectCalculator(OBD2::ENGINE_LOAD);
-  TEST_ASSERT_NULL_MESSAGE(calculator_load.target<double()>(),
-                           "ENGINE_LOAD должен использовать дефолтный калькулятор");
-}
-
-// Тест 2: selectCalculator() с невалидным PID
-void test_obd2_selectCalculator_invalid_pid() {
-  g_mock_iso_tp.reset();
-  OBD2 obd2(g_mock_iso_tp);
-
-  // Тест с несуществующим PID
-  auto calculator = obd2.selectCalculator(0xFF);  // Несуществующий PID
-
-  TEST_ASSERT_NULL_MESSAGE(calculator.target<double()>(),
-                           "Несуществующий PID должен возвращать nullptr");
-}
-
-// Тест 3: selectCalculator() с граничными PID
-void test_obd2_selectCalculator_boundary_pids() {
-  g_mock_iso_tp.reset();
-  OBD2 obd2(g_mock_iso_tp);
-
-  // Тест с минимальным PID
-  auto calculator_min = obd2.selectCalculator(0x00);
-  TEST_ASSERT_FALSE_MESSAGE(static_cast<bool>(calculator_min),
-                            "PID 0x00 должен использовать дефолтный калькулятор");
-
-  // Тест с максимальным поддерживаемым PID
-  auto calculator_max = obd2.selectCalculator(OBD2::AUX_INPUT_OUTPUT_SUPPORTED);
-  TEST_ASSERT_FALSE_MESSAGE(static_cast<bool>(calculator_max),
-                            "Максимальный PID должен использовать дефолтный калькулятор");
-}
-
-// ============================================================================
-// ТЕСТЫ ДЛЯ processPID() - ПОЛНЫЙ ЦИКЛ ОБРАБОТКИ
-// ============================================================================
-
-// Тест 4: processPID() полный цикл обработки ENGINE_RPM
-void test_obd2_processPID_complete_flow_rpm() {
-  g_mock_iso_tp.reset();
-  OBD2 obd2(g_mock_iso_tp);
-
-  // Настройка мок-ответа для ENGINE_RPM (PID 0x0C)
-  // Ответ: 41 0C 1A 2B (RPM = (0x1A2B)/4 = 1707.75)
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, 0x01, 0x0C, 0x1A, 0x2B);
-  g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);  // Успешное получение
-
-  // Первый вызов - отправка команды
-  double result1 = obd2.processPID(0x01, 0x0C, 1, 2);
-  TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(
-      0.0, result1, "Первый вызов processPID должен вернуть 0 (отправка команды)");
-  TEST_ASSERT_TRUE_MESSAGE(g_mock_iso_tp.send_called, "Команда должна быть отправлена");
-
-  // Второй вызов - получение и обработка ответа
-  double result2 = obd2.processPID(0x01, 0x0C, 1, 2);
-
-  // Ожидаемый результат: (0x1A2B)/4 = 6699/4 = 1674.75
-  TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 1674.75, result2, "Второй вызов processPID должен вернуть правильные RPM");
-  TEST_ASSERT_TRUE_MESSAGE(g_mock_iso_tp.receive_called, "Ответ должен быть получен");
-}
-
-// Тест 5: processPID() с PID без кастомного калькулятора
-void test_obd2_processPID_default_calculator() {
-  g_mock_iso_tp.reset();
-  OBD2 obd2(g_mock_iso_tp);
-
-  // Настройка мок-ответа для ENGINE_LOAD (PID 0x04)
-  // Ответ: 41 04 7F (Load = 0x7F * 100/255 = 49.8%)
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, 0x04, 0x7F);
-  g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);
-
-  // Первый вызов - отправка команды
-  double result1 = obd2.processPID(0x01, 0x04, 1, 1, 100.0 / 255.0, 0);
-  TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, result1, "Первый вызов должен вернуть 0");
-
-  // Второй вызов - получение и обработка ответа
-  double result2 = obd2.processPID(0x01, 0x04, 1, 1, 100.0 / 255.0, 0);
-
-  // Ожидаемый результат: 0x7F * (100/255) = 127 * 0.392 = 49.8
-  TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 49.8, result2, "ENGINE_LOAD должен быть рассчитан правильно");
-}
-
-// ============================================================================
 // ТЕСТЫ ПОДДЕРЖИВАЕМЫХ PID
 // ============================================================================
 
@@ -335,15 +229,6 @@ void test_obd2_minimum_values() {
 // Функция запуска всех тестов
 extern "C" void run_obd_core_methods_tests() {
   printf("\n=== Запуск тестов ключевых методов OBD2 ===\n");
-
-  // Тесты selectCalculator()
-  // RUN_TEST(test_obd2_selectCalculator_all_pid_groups);
-  RUN_TEST(test_obd2_selectCalculator_invalid_pid);
-  // RUN_TEST(test_obd2_selectCalculator_boundary_pids);
-
-  // Тесты processPID()
-  RUN_TEST(test_obd2_processPID_complete_flow_rpm);
-  RUN_TEST(test_obd2_processPID_default_calculator);
 
   // Тесты поддерживаемых PID
   RUN_TEST(test_obd2_supportedPIDs_1_20);

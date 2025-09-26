@@ -73,9 +73,9 @@ void test_performance_100_sequential_rpm_requests() {
 
   int successful_requests = 0;
   for (int i = 0; i < 100; i++) {
-    double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (result1 == 0.0) {
-      double result2 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+      double result2 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
       if (result2 > 0) {
         successful_requests++;
       }
@@ -111,9 +111,9 @@ void test_performance_mixed_pid_sequence() {
   for (int i = 0; i < total_requests; i++) {
     IIsoTp::Message response;
     if (i % 2 == 0) {
-      response = create_obd_response_2_bytes(0x7E8, 0x01, OBD2::ENGINE_RPM, 0x1A, 0x1B);
+      response = create_obd_response_2_bytes(0x7E8, 0x01, ENGINE_RPM, 0x1A, 0x1B);
     } else {
-      response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x80);
+      response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x80);
     }
     g_mock_iso_tp.add_receive_message(response);
   }
@@ -125,16 +125,16 @@ void test_performance_mixed_pid_sequence() {
   int successful_requests = 0;
   for (int i = 0; i < total_requests; i++) {
     if (i % 2 == 0) {
-      double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+      double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
       if (result1 == 0.0) {
-        double result2 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+        double result2 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
         if (result2 >= 0)
           successful_requests++;
       }
     } else {
-      double result1 = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+      double result1 = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
       if (result1 == 0.0) {
-        double result2 = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+        double result2 = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
         if (result2 >= 0)
           successful_requests++;
       }
@@ -164,9 +164,8 @@ void test_performance_multiple_ecu_sequence() {
 
   // Подготавливаем ответы от разных ECU
   for (int i = 0; i < total_requests; i++) {
-    uint32_t ecu_id = 0x7E8 + (i % 4);
-    IIsoTp::Message response =
-        create_obd_response_2_bytes(ecu_id, 0x01, OBD2::ENGINE_RPM, 0x10, 0x20);
+    uint32_t ecu_id          = 0x7E8 + (i % 4);
+    IIsoTp::Message response = create_obd_response_2_bytes(ecu_id, 0x01, ENGINE_RPM, 0x10, 0x20);
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -176,9 +175,9 @@ void test_performance_multiple_ecu_sequence() {
 
   int successful_requests = 0;
   for (int i = 0; i < total_requests; i++) {
-    double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (result1 == 0.0) {
-      double result2 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+      double result2 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
       if (result2 > 0)
         successful_requests++;
     }
@@ -210,7 +209,7 @@ void test_performance_minimal_delay_cycles() {
   int num_cycles = 30;
 
   for (int i = 0; i < num_cycles; i++) {
-    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x70 + i);
+    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x70 + i);
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -220,8 +219,8 @@ void test_performance_minimal_delay_cycles() {
 
   int successful_cycles = 0;
   for (int i = 0; i < num_cycles; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (result >= 0)
       successful_cycles++;
   }
@@ -253,8 +252,8 @@ void test_performance_high_frequency_requests() {
   int frequency_test_count = 50;
 
   for (int i = 0; i < frequency_test_count; i++) {
-    IIsoTp::Message response = create_obd_response_2_bytes(
-        0x7E8, 0x01, OBD2::ENGINE_RPM, 0x10 + (i % 16), 0x20 + (i % 32));
+    IIsoTp::Message response =
+        create_obd_response_2_bytes(0x7E8, 0x01, ENGINE_RPM, 0x10 + (i % 16), 0x20 + (i % 32));
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -264,8 +263,8 @@ void test_performance_high_frequency_requests() {
 
   int valid_rpms = 0;
   for (int i = 0; i < frequency_test_count; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
-    double rpm = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    obd2.processPID(0x01, ENGINE_RPM, 1, 2);
+    double rpm = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (rpm > 0)
       valid_rpms++;
   }
@@ -317,10 +316,10 @@ void test_performance_maximum_payload_size() {
   PerformanceTimer timer;
   timer.start();
 
-  double result1 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result1 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
   TEST_ASSERT_EQUAL_DOUBLE(0.0, result1);
 
-  double result2 = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+  double result2 = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
 
   double elapsed_ms = timer.stop_ms();
 
@@ -351,7 +350,7 @@ void test_performance_multiple_large_responses() {
     large_response.data  = new uint8_t[response_size];
 
     large_response.data[0] = 0x41;
-    large_response.data[1] = OBD2::ENGINE_LOAD;
+    large_response.data[1] = ENGINE_LOAD;
     large_response.data[2] = 0x80 + i;
 
     for (int j = 3; j < response_size; j++) {
@@ -367,8 +366,8 @@ void test_performance_multiple_large_responses() {
 
   int successful_requests = 0;
   for (int i = 0; i < num_large_responses; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (result >= 0)
       successful_requests++;
   }
@@ -404,7 +403,7 @@ void test_performance_buffer_accumulation() {
     response.data  = new uint8_t[size];
 
     response.data[0] = 0x41;
-    response.data[1] = OBD2::VEHICLE_SPEED;
+    response.data[1] = VEHICLE_SPEED;
     response.data[2] = 0x40 + (i % 50);
 
     for (int j = 3; j < size; j++) {
@@ -420,8 +419,8 @@ void test_performance_buffer_accumulation() {
 
   int valid_speeds = 0;
   for (int i = 0; i < num_accumulations; i++) {
-    obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
-    double speed = obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
+    obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
+    double speed = obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
     if (speed >= 0 && speed <= 255)
       valid_speeds++;
   }
@@ -452,15 +451,15 @@ void test_performance_memory_leak_check() {
   int memory_test_cycles = 100;
 
   for (int i = 0; i < memory_test_cycles; i++) {
-    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x80);
+    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x80);
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
 
   int successful_requests = 0;
   for (int i = 0; i < memory_test_cycles; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (result >= 0)
       successful_requests++;
   }
@@ -494,7 +493,7 @@ void test_performance_large_data_memory_management() {
     large_response.data  = new uint8_t[large_size];
 
     large_response.data[0] = 0x41;
-    large_response.data[1] = OBD2::ENGINE_RPM;
+    large_response.data[1] = ENGINE_RPM;
     large_response.data[2] = 0x1A;
     large_response.data[3] = 0x1B;
 
@@ -508,8 +507,8 @@ void test_performance_large_data_memory_management() {
 
   int successful_large_requests = 0;
   for (int i = 0; i < large_data_cycles; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    obd2.processPID(0x01, ENGINE_RPM, 1, 2);
+    double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (result > 0)
       successful_large_requests++;
   }
@@ -544,7 +543,7 @@ void test_performance_memory_stress_various_sizes() {
     stress_response.data  = new uint8_t[size];
 
     stress_response.data[0] = 0x41;
-    stress_response.data[1] = OBD2::VEHICLE_SPEED;
+    stress_response.data[1] = VEHICLE_SPEED;
     stress_response.data[2] = 0x50 + (i % 50);
 
     for (int j = 3; j < size; j++) {
@@ -557,8 +556,8 @@ void test_performance_memory_stress_various_sizes() {
 
   int successful_stress_requests = 0;
   for (int i = 0; i < stress_cycles; i++) {
-    obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
-    double result = obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
+    obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
+    double result = obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
     if (result >= 0)
       successful_stress_requests++;
   }
@@ -588,12 +587,10 @@ void test_performance_sustained_load() {
   int sustained_requests = 200;
 
   for (int i = 0; i < sustained_requests; i++) {
-    uint8_t pid = (i % 3 == 0)   ? OBD2::ENGINE_RPM
-                  : (i % 3 == 1) ? OBD2::ENGINE_LOAD
-                                 : OBD2::VEHICLE_SPEED;
+    uint8_t pid = (i % 3 == 0) ? ENGINE_RPM : (i % 3 == 1) ? ENGINE_LOAD : VEHICLE_SPEED;
 
     IIsoTp::Message response;
-    if (pid == OBD2::ENGINE_RPM) {
+    if (pid == ENGINE_RPM) {
       response = create_obd_response_2_bytes(0x7E8, 0x01, pid, 0x10 + (i % 16), 0x20 + (i % 32));
     } else {
       response = create_obd_response_1_byte(0x7E8, 0x01, pid, 0x40 + (i % 64));
@@ -608,11 +605,9 @@ void test_performance_sustained_load() {
 
   int successful_sustained = 0;
   for (int i = 0; i < sustained_requests; i++) {
-    uint8_t pid            = (i % 3 == 0)   ? OBD2::ENGINE_RPM
-                             : (i % 3 == 1) ? OBD2::ENGINE_LOAD
-                                            : OBD2::VEHICLE_SPEED;
-    uint8_t expected_bytes = (pid == OBD2::ENGINE_RPM) ? 2 : 1;
-    double scale_factor    = (pid == OBD2::ENGINE_LOAD) ? 100.0 / 255.0 : 1.0;
+    uint8_t pid            = (i % 3 == 0) ? ENGINE_RPM : (i % 3 == 1) ? ENGINE_LOAD : VEHICLE_SPEED;
+    uint8_t expected_bytes = (pid == ENGINE_RPM) ? 2 : 1;
+    double scale_factor    = (pid == ENGINE_LOAD) ? 100.0 / 255.0 : 1.0;
 
     obd2.processPID(0x01, pid, 1, expected_bytes, scale_factor, 0);
     double result = obd2.processPID(0x01, pid, 1, expected_bytes, scale_factor, 0);
@@ -649,8 +644,8 @@ void test_performance_peak_load() {
   int peak_burst_size = 100;
 
   for (int i = 0; i < peak_burst_size; i++) {
-    IIsoTp::Message response = create_obd_response_2_bytes(
-        0x7E8, 0x01, OBD2::ENGINE_RPM, 0x20 + (i % 16), 0x30 + (i % 32));
+    IIsoTp::Message response =
+        create_obd_response_2_bytes(0x7E8, 0x01, ENGINE_RPM, 0x20 + (i % 16), 0x30 + (i % 32));
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -660,8 +655,8 @@ void test_performance_peak_load() {
 
   int successful_peak = 0;
   for (int i = 0; i < peak_burst_size; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    obd2.processPID(0x01, ENGINE_RPM, 1, 2);
+    double result = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (result > 0)
       successful_peak++;
   }
@@ -697,15 +692,15 @@ void test_performance_mixed_load_patterns() {
   for (int i = 0; i < total_requests; i++) {
     uint8_t pid;
     if (i % 3 == 0) {
-      pid = OBD2::ENGINE_RPM;
+      pid = ENGINE_RPM;
     } else if (i % 3 == 1) {
-      pid = OBD2::ENGINE_LOAD;
+      pid = ENGINE_LOAD;
     } else {
-      pid = OBD2::VEHICLE_SPEED;
+      pid = VEHICLE_SPEED;
     }
 
     IIsoTp::Message response;
-    if (pid == OBD2::ENGINE_RPM) {
+    if (pid == ENGINE_RPM) {
       response = create_obd_response_2_bytes(0x7E8, 0x01, pid, 0x15, 0x25);
     } else {
       response = create_obd_response_1_byte(0x7E8, 0x01, pid, 0x60 + (i % 50));
@@ -725,14 +720,14 @@ void test_performance_mixed_load_patterns() {
     double scale_factor = 1.0;
 
     if (i % 3 == 0) {
-      pid            = OBD2::ENGINE_RPM;
+      pid            = ENGINE_RPM;
       expected_bytes = 2;
     } else if (i % 3 == 1) {
-      pid            = OBD2::ENGINE_LOAD;
+      pid            = ENGINE_LOAD;
       expected_bytes = 1;
       scale_factor   = 100.0 / 255.0;
     } else {
-      pid            = OBD2::VEHICLE_SPEED;
+      pid            = VEHICLE_SPEED;
       expected_bytes = 1;
     }
 
@@ -768,9 +763,8 @@ void test_performance_long_term_stability() {
   int stability_duration = 300;
 
   for (int i = 0; i < stability_duration; i++) {
-    uint8_t data_variation = static_cast<uint8_t>(50 + (i % 100));
-    IIsoTp::Message response =
-        create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, data_variation);
+    uint8_t data_variation   = static_cast<uint8_t>(50 + (i % 100));
+    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, data_variation);
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -780,8 +774,8 @@ void test_performance_long_term_stability() {
 
   int total_successful = 0;
   for (int i = 0; i < stability_duration; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (result >= 0)
       total_successful++;
   }
@@ -812,10 +806,10 @@ void test_performance_variable_load_stability() {
 
   for (int phase = 0; phase < variable_phases; phase++) {
     for (int req = 0; req < requests_per_phase; req++) {
-      uint8_t pid = (phase % 2 == 0) ? OBD2::ENGINE_RPM : OBD2::ENGINE_LOAD;
+      uint8_t pid = (phase % 2 == 0) ? ENGINE_RPM : ENGINE_LOAD;
 
       IIsoTp::Message response;
-      if (pid == OBD2::ENGINE_RPM) {
+      if (pid == ENGINE_RPM) {
         response = create_obd_response_2_bytes(0x7E8, 0x01, pid, 0x18 + phase, 0x28 + req);
       } else {
         response = create_obd_response_1_byte(0x7E8, 0x01, pid, 0x70 + phase * 10 + req);
@@ -831,9 +825,9 @@ void test_performance_variable_load_stability() {
 
   int total_variable_successful = 0;
   for (int phase = 0; phase < variable_phases; phase++) {
-    uint8_t pid            = (phase % 2 == 0) ? OBD2::ENGINE_RPM : OBD2::ENGINE_LOAD;
-    uint8_t expected_bytes = (pid == OBD2::ENGINE_RPM) ? 2 : 1;
-    double scale_factor    = (pid == OBD2::ENGINE_LOAD) ? 100.0 / 255.0 : 1.0;
+    uint8_t pid            = (phase % 2 == 0) ? ENGINE_RPM : ENGINE_LOAD;
+    uint8_t expected_bytes = (pid == ENGINE_RPM) ? 2 : 1;
+    double scale_factor    = (pid == ENGINE_LOAD) ? 100.0 / 255.0 : 1.0;
 
     for (int req = 0; req < requests_per_phase; req++) {
       obd2.processPID(0x01, pid, 1, expected_bytes, scale_factor, 0);
@@ -876,11 +870,11 @@ void test_performance_pid_type_benchmark() {
     double bias;
   };
 
-  PidBenchmark benchmarks[] = {{OBD2::ENGINE_RPM, "ENGINE_RPM", 2, 1.0, 0},
-                               {OBD2::ENGINE_LOAD, "ENGINE_LOAD", 1, 100.0 / 255.0, 0},
-                               {OBD2::ENGINE_COOLANT_TEMP, "COOLANT_TEMP", 1, 1.0, -40},
-                               {OBD2::VEHICLE_SPEED, "VEHICLE_SPEED", 1, 1.0, 0},
-                               {OBD2::THROTTLE_POSITION, "THROTTLE_POS", 1, 100.0 / 255.0, 0}};
+  PidBenchmark benchmarks[] = {{ENGINE_RPM, "ENGINE_RPM", 2, 1.0, 0},
+                               {ENGINE_LOAD, "ENGINE_LOAD", 1, 100.0 / 255.0, 0},
+                               {ENGINE_COOLANT_TEMP, "COOLANT_TEMP", 1, 1.0, -40},
+                               {VEHICLE_SPEED, "VEHICLE_SPEED", 1, 1.0, 0},
+                               {THROTTLE_POSITION, "THROTTLE_POS", 1, 100.0 / 255.0, 0}};
 
   int num_benchmarks           = sizeof(benchmarks) / sizeof(benchmarks[0]);
   int iterations_per_benchmark = 20;
@@ -958,16 +952,16 @@ void test_performance_overall_system_benchmark() {
 
     switch (pid_type) {
       case 0:
-        response = create_obd_response_2_bytes(0x7E8, 0x01, OBD2::ENGINE_RPM, 0x1A, 0x1B);
+        response = create_obd_response_2_bytes(0x7E8, 0x01, ENGINE_RPM, 0x1A, 0x1B);
         break;
       case 1:
-        response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x80);
+        response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x80);
         break;
       case 2:
-        response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::VEHICLE_SPEED, 0x50);
+        response = create_obd_response_1_byte(0x7E8, 0x01, VEHICLE_SPEED, 0x50);
         break;
       case 3:
-        response = create_obd_response_2_bytes(0x7E8, 0x01, OBD2::MAF_FLOW_RATE, 0x12, 0x34);
+        response = create_obd_response_2_bytes(0x7E8, 0x01, MAF_FLOW_RATE, 0x12, 0x34);
         break;
     }
 
@@ -990,20 +984,20 @@ void test_performance_overall_system_benchmark() {
 
     switch (pid_type) {
       case 0:
-        pid            = OBD2::ENGINE_RPM;
+        pid            = ENGINE_RPM;
         expected_bytes = 2;
         break;
       case 1:
-        pid            = OBD2::ENGINE_LOAD;
+        pid            = ENGINE_LOAD;
         expected_bytes = 1;
         scale_factor   = 100.0 / 255.0;
         break;
       case 2:
-        pid            = OBD2::VEHICLE_SPEED;
+        pid            = VEHICLE_SPEED;
         expected_bytes = 1;
         break;
       case 3:
-        pid            = OBD2::MAF_FLOW_RATE;
+        pid            = MAF_FLOW_RATE;
         expected_bytes = 2;
         break;
     }
@@ -1052,7 +1046,7 @@ void test_performance_simulated_parallel_requests() {
   int parallel_requests = 60;
 
   for (int i = 0; i < parallel_requests; i++) {
-    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x80 + i);
+    IIsoTp::Message response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x80 + i);
     g_mock_iso_tp.add_receive_message(response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -1062,8 +1056,8 @@ void test_performance_simulated_parallel_requests() {
 
   int successful_parallel = 0;
   for (int i = 0; i < parallel_requests; i++) {
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double result = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double result = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (result >= 0)
       successful_parallel++;
   }
@@ -1094,18 +1088,15 @@ void test_performance_interleaved_request_types() {
 
   for (int i = 0; i < interleaved_cycles; i++) {
     // RPM ответ
-    IIsoTp::Message rpm_response =
-        create_obd_response_2_bytes(0x7E8, 0x01, OBD2::ENGINE_RPM, 0x1A, 0x1B);
+    IIsoTp::Message rpm_response = create_obd_response_2_bytes(0x7E8, 0x01, ENGINE_RPM, 0x1A, 0x1B);
     g_mock_iso_tp.add_receive_message(rpm_response);
 
     // LOAD ответ
-    IIsoTp::Message load_response =
-        create_obd_response_1_byte(0x7E8, 0x01, OBD2::ENGINE_LOAD, 0x80);
+    IIsoTp::Message load_response = create_obd_response_1_byte(0x7E8, 0x01, ENGINE_LOAD, 0x80);
     g_mock_iso_tp.add_receive_message(load_response);
 
     // SPEED ответ
-    IIsoTp::Message speed_response =
-        create_obd_response_1_byte(0x7E8, 0x01, OBD2::VEHICLE_SPEED, 0x50);
+    IIsoTp::Message speed_response = create_obd_response_1_byte(0x7E8, 0x01, VEHICLE_SPEED, 0x50);
     g_mock_iso_tp.add_receive_message(speed_response);
   }
   g_mock_iso_tp.set_receive_result(false);
@@ -1116,20 +1107,20 @@ void test_performance_interleaved_request_types() {
   int successful_interleaved = 0;
   for (int i = 0; i < interleaved_cycles; i++) {
     // RPM запрос
-    obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
-    double rpm = obd2.processPID(0x01, OBD2::ENGINE_RPM, 1, 2);
+    obd2.processPID(0x01, ENGINE_RPM, 1, 2);
+    double rpm = obd2.processPID(0x01, ENGINE_RPM, 1, 2);
     if (rpm > 0)
       successful_interleaved++;
 
     // LOAD запрос
-    obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
-    double load = obd2.processPID(0x01, OBD2::ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
+    double load = obd2.processPID(0x01, ENGINE_LOAD, 1, 1, 100.0 / 255.0, 0);
     if (load >= 0)
       successful_interleaved++;
 
     // SPEED запрос
-    obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
-    double speed = obd2.processPID(0x01, OBD2::VEHICLE_SPEED, 1, 1);
+    obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
+    double speed = obd2.processPID(0x01, VEHICLE_SPEED, 1, 1);
     if (speed >= 0)
       successful_interleaved++;
   }
