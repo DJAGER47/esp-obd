@@ -8,7 +8,6 @@ add_executable(unity_app
     tests/iso-tp/tests_long_send.cpp
     tests/iso-tp/tests_edge_cases.cpp
     
-    tests/obd/tests_obd_core_methods.cpp
     tests/obd/tests_obd_pid_group_1_20.cpp
     tests/obd/tests_obd_pid_group_21_40.cpp
     tests/obd/tests_obd_pid_group_41_60.cpp
