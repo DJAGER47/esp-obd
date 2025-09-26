@@ -9,11 +9,14 @@
 
 #include "obd2.h"
 
-/* Monitor status since DTCs cleared (Includes malfunction indicator
-  lamp (MIL) status and number of DTCs). See
- https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_01 for more info
-
-  * std::optional<uint32_t> - Bit encoded status*/
+/**
+ * @brief Получает статус мониторинга с момента последнего сброса DTC
+ *
+ * Включает статус индикатора неисправности (MIL) и количество DTC.
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_01
+ *
+ * @return std::optional<uint32_t> Статус в битовом формате
+ */
 std::optional<uint32_t> OBD2::monitorStatus() {
   ResponseType response;
   if (processPID(SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, response)) {
@@ -22,10 +25,14 @@ std::optional<uint32_t> OBD2::monitorStatus() {
   return {};
 }
 
-/* Freeze DTC - see https://www.samarins.com/diagnose/freeze-frame.html for
- more info
-
-  * std::optional<uint16_t> - Various vehicle information*/
+/**
+ * @brief Получает данные "замороженного" кадра DTC
+ *
+ * Содержит информацию о состоянии автомобиля в момент возникновения ошибки.
+ * @see https://www.samarins.com/diagnose/freeze-frame.html
+ *
+ * @return std::optional<uint16_t> Различные параметры автомобиля
+ */
 std::optional<uint16_t> OBD2::freezeDTC() {
   ResponseType response;
   if (processPID(SERVICE_01, FREEZE_DTC, response)) {
@@ -34,10 +41,13 @@ std::optional<uint16_t> OBD2::freezeDTC() {
   return {};
 }
 
-/* Freeze DTC - see
-https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_03 for more info
-
-  * std::optional<uint16_t> - Bit encoded status*/
+/**
+ * @brief Получает статус топливной системы
+ *
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_03
+ *
+ * @return std::optional<uint16_t> Статус в битовом формате
+ */
 std::optional<uint16_t> OBD2::fuelSystemStatus() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_SYSTEM_STATUS, response)) {
@@ -46,8 +56,11 @@ std::optional<uint16_t> OBD2::fuelSystemStatus() {
   return {};
 }
 
-/* Find the current engine load in %
- * std::optional<float> - Engine load %*/
+/**
+ * @brief Получает текущую нагрузку двигателя
+ *
+ * @return std::optional<float> Нагрузка двигателя в процентах [0-100%]
+ */
 std::optional<float> OBD2::engineLoad() {
   ResponseType response;
   if (processPID(SERVICE_01, ENGINE_LOAD, response)) {
@@ -56,8 +69,11 @@ std::optional<float> OBD2::engineLoad() {
   return {};
 }
 
-/* Find the current engine coolant temp in C
- * std::optional<float> - Engine load %*/
+/**
+ * @brief Получает температуру охлаждающей жидкости двигателя
+ *
+ * @return std::optional<int16_t> Температура в градусах Цельсия
+ */
 std::optional<int16_t> OBD2::engineCoolantTemp() {
   ResponseType response;
   if (processPID(SERVICE_01, ENGINE_COOLANT_TEMP, response)) {
@@ -66,8 +82,11 @@ std::optional<int16_t> OBD2::engineCoolantTemp() {
   return {};
 }
 
-/* Find fuel trim %
- * std::optional<float> - Fuel trim %*/
+/**
+ * @brief Получает краткосрочную коррекцию топливоподачи для банка 1
+ *
+ * @return std::optional<float> Коррекция топливоподачи в процентах [-100..99.2%]
+ */
 std::optional<float> OBD2::shortTermFuelTrimBank_1() {
   ResponseType response;
   if (processPID(SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_1, response)) {
@@ -76,8 +95,11 @@ std::optional<float> OBD2::shortTermFuelTrimBank_1() {
   return {};
 }
 
-/* Find fuel trim %
- * std::optional<float> - Fuel trim %*/
+/**
+ * @brief Получает долгосрочную коррекцию топливоподачи для банка 1
+ *
+ * @return std::optional<float> Коррекция топливоподачи в процентах [-100..99.2%]
+ */
 std::optional<float> OBD2::longTermFuelTrimBank_1() {
   ResponseType response;
   if (processPID(SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_1, response)) {
@@ -86,8 +108,11 @@ std::optional<float> OBD2::longTermFuelTrimBank_1() {
   return {};
 }
 
-/* Find fuel trim %
- * std::optional<float> - Fuel trim %*/
+/**
+ * @brief Получает краткосрочную коррекцию топливоподачи для банка 2
+ *
+ * @return std::optional<float> Коррекция топливоподачи в процентах [-100..99.2%]
+ */
 std::optional<float> OBD2::shortTermFuelTrimBank_2() {
   ResponseType response;
   if (processPID(SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_2, response)) {
@@ -96,8 +121,11 @@ std::optional<float> OBD2::shortTermFuelTrimBank_2() {
   return {};
 }
 
-/* Find fuel trim %
- * std::optional<float> - Fuel trim %*/
+/**
+ * @brief Получает долгосрочную коррекцию топливоподачи для банка 2
+ *
+ * @return std::optional<float> Коррекция топливоподачи в процентах [-100..99.2%]
+ */
 std::optional<float> OBD2::longTermFuelTrimBank_2() {
   ResponseType response;
   if (processPID(SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_2, response)) {
@@ -106,8 +134,10 @@ std::optional<float> OBD2::longTermFuelTrimBank_2() {
   return {};
 }
 
-/* Find fuel pressure in kPa
- * std::optional<float> - Fuel pressure in kPa
+/**
+ * @brief Получает давление топлива
+ *
+ * @return std::optional<uint16_t> Давление топлива в кПа
  */
 std::optional<uint16_t> OBD2::fuelPressure() {
   ResponseType response;
@@ -117,8 +147,10 @@ std::optional<uint16_t> OBD2::fuelPressure() {
   return {};
 }
 
-/* Find intake manifold absolute pressure in kPa
- * std::optional<uint8_t> - Intake manifold absolute pressure in kPa
+/**
+ * @brief Получает абсолютное давление во впускном коллекторе
+ *
+ * @return std::optional<uint8_t> Давление в кПа
  */
 std::optional<uint8_t> OBD2::manifoldPressure() {
   ResponseType response;
@@ -128,8 +160,10 @@ std::optional<uint8_t> OBD2::manifoldPressure() {
   return {};
 }
 
-/* Queries and parses received message for/returns vehicle RMP data
- * std::optional<float> - Vehicle RPM
+/**
+ * @brief Получает обороты двигателя
+ *
+ * @return std::optional<float> Обороты двигателя в об/мин
  */
 std::optional<float> OBD2::rpm() {
   ResponseType response;
@@ -139,8 +173,10 @@ std::optional<float> OBD2::rpm() {
   return {};
 }
 
-/*  Queries and parses received message for/returns vehicle speed data (kph)
- * int32_t - Vehicle speed in kph
+/**
+ * @brief Получает скорость автомобиля
+ *
+ * @return std::optional<uint8_t> Скорость в км/ч
  */
 std::optional<uint8_t> OBD2::kph() {
   ResponseType response;
@@ -150,10 +186,11 @@ std::optional<uint8_t> OBD2::kph() {
   return {};
 }
 
-/*
- std::optional<float> OBD2::timingAdvance() *  Find timing advance in degrees before Top Dead
-Center (TDC)
-  * std::optional<float> - Timing advance in degrees before Top Dead Center (TDC)*/
+/**
+ * @brief Получает угол опережения зажигания
+ *
+ * @return std::optional<float> Угол опережения в градусах до ВМТ
+ */
 std::optional<float> OBD2::timingAdvance() {
   ResponseType response;
   if (processPID(SERVICE_01, TIMING_ADVANCE, response)) {
@@ -162,8 +199,10 @@ std::optional<float> OBD2::timingAdvance() {
   return {};
 }
 
-/*  Find intake air temperature in C
- * std::optional<float> - Intake air temperature in C
+/**
+ * @brief Получает температуру всасываемого воздуха
+ *
+ * @return std::optional<int16_t> Температура в градусах Цельсия
  */
 std::optional<int16_t> OBD2::intakeAirTemp() {
   ResponseType response;
@@ -173,8 +212,10 @@ std::optional<int16_t> OBD2::intakeAirTemp() {
   return {};
 }
 
-/*  Find mass air flow sensor (MAF) air flow rate rate in g/s
- * std::optional<float> - Mass air flow sensor (MAF) air flow rate rate in g/s
+/**
+ * @brief Получает расход воздуха по датчику MAF
+ *
+ * @return std::optional<float> Расход воздуха в г/с
  */
 std::optional<float> OBD2::mafRate() {
   ResponseType response;
@@ -184,10 +225,11 @@ std::optional<float> OBD2::mafRate() {
   return {};
 }
 
-/*  Find throttle position in %
-Return:
- -------
-  * std::optional<float> - Throttle position in %*/
+/**
+ * @brief Получает положение дроссельной заслонки
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::throttle() {
   ResponseType response;
   if (processPID(SERVICE_01, THROTTLE_POSITION, response)) {
@@ -196,10 +238,13 @@ std::optional<float> OBD2::throttle() {
   return {};
 }
 
-/*  Find commanded secondary air status
-
-  * std::optional<uint8_t> - Bit encoded status
- (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_12)*/
+/**
+ * @brief Получает статус системы вторичного воздуха
+ *
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_12
+ *
+ * @return std::optional<uint8_t> Статус в битовом формате
+ */
 std::optional<uint8_t> OBD2::commandedSecAirStatus() {
   ResponseType response;
   if (processPID(SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, response)) {
@@ -208,11 +253,13 @@ std::optional<uint8_t> OBD2::commandedSecAirStatus() {
   return {};
 }
 
-/*  Find which oxygen sensors are
-present ([A0..A3] == Bank 1, Sensors 1-4. [A4..A7] == Bank 2...) Return:
- -------
-  * std::optional<uint8_t> - Bit encoded
-*/
+/**
+ * @brief Проверяет наличие кислородных датчиков (2 банка)
+ *
+ * Битовая маска: [A0..A3] - Банк 1, датчики 1-4; [A4..A7] - Банк 2...
+ *
+ * @return std::optional<uint8_t> Битовая маска присутствующих датчиков
+ */
 std::optional<uint8_t> OBD2::oxygenSensorsPresent_2banks() {
   ResponseType response;
   if (processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, response)) {
@@ -235,9 +282,13 @@ constexpr std::optional<uint8_t> OXYGEN_SENSOR_7_A              = 26;  // 0x1A -
 constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_A              = 27;  // 0x1B - V %
 */
 
-/*  Find the OBD standards this vehicle conforms to
- (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_1C)
-  * std::optional<uint8_t> - Bit encoded*/
+/**
+ * @brief Получает стандарт OBD, которому соответствует автомобиль
+ *
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_1C
+ *
+ * @return std::optional<uint8_t> Код стандарта OBD
+ */
 std::optional<uint8_t> OBD2::obdStandards() {
   ResponseType response;
   if (processPID(SERVICE_01, OBD_STANDARDS, response)) {
@@ -246,12 +297,13 @@ std::optional<uint8_t> OBD2::obdStandards() {
   return {};
 }
 
-/*  Find which oxygen sensors are
-present (Similar to PID 13, but [A0..A7] == [B1S1, B1S2, B2S1, B2S2, B3S1,
-B3S2, B4S1, B4S2]) Return:
- -------
-  * std::optional<uint8_t> - Bit encoded
-*/
+/**
+ * @brief Проверяет наличие кислородных датчиков (4 банка)
+ *
+ * Битовая маска: [A0..A7] == [B1S1, B1S2, B2S1, B2S2, B3S1, B3S2, B4S1, B4S2]
+ *
+ * @return std::optional<uint8_t> Битовая маска присутствующих датчиков
+ */
 std::optional<uint8_t> OBD2::oxygenSensorsPresent_4banks() {
   ResponseType response;
   if (processPID(SERVICE_01, OXYGEN_SENSORS_PRESENT_4_BANKS, response)) {
@@ -260,8 +312,10 @@ std::optional<uint8_t> OBD2::oxygenSensorsPresent_4banks() {
   return {};
 }
 
-/*  Find Power Take Off (PTO) status
- * bool - Power Take Off (PTO) status
+/**
+ * @brief Проверяет статус Power Take Off (PTO)
+ *
+ * @return std::optional<bool> Статус PTO
  */
 std::optional<bool> OBD2::auxInputStatus() {
   ResponseType response;
@@ -271,8 +325,10 @@ std::optional<bool> OBD2::auxInputStatus() {
   return {};
 }
 
-/*  Find run time since engine start in s
- * std::optional<uint16_t> - Run time since engine start in s
+/**
+ * @brief Получает время работы двигателя с момента запуска
+ *
+ * @return std::optional<uint16_t> Время в секундах
  */
 std::optional<uint16_t> OBD2::runTime() {
   ResponseType response;

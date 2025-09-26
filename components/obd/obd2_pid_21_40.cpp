@@ -9,12 +9,11 @@
 
 #include "obd2.h"
 
-/*  Find distance traveled with malfunction
-indicator lamp (MIL) on in km Return:
- -------
-  * std::optional<uint16_t> - Distance traveled with malfunction indicator lamp (MIL) on in
-km
-*/
+/**
+ * @brief Получает расстояние, пройденное с горящей лампой неисправности (MIL)
+ *
+ * @return std::optional<uint16_t> Расстояние в километрах
+ */
 std::optional<uint16_t> OBD2::distTravelWithMIL() {
   ResponseType response;
   if (processPID(SERVICE_01, DISTANCE_TRAVELED_WITH_MIL_ON, response)) {
@@ -23,11 +22,11 @@ std::optional<uint16_t> OBD2::distTravelWithMIL() {
   return {};
 }
 
-/*  Find fuel Rail Pressure (relative to manifold
-vacuum) in kPa Return:
- -------
-  * std::optional<float> - Fuel Rail Pressure (relative to manifold vacuum) in kPa
-*/
+/**
+ * @brief Получает давление в топливной рампе (относительно вакуума в коллекторе)
+ *
+ * @return std::optional<float> Давление в кПа
+ */
 std::optional<float> OBD2::fuelRailPressure() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_RAIL_PRESSURE, response)) {
@@ -36,11 +35,11 @@ std::optional<float> OBD2::fuelRailPressure() {
   return {};
 }
 
-/*  Find fuel Rail Gauge Pressure (diesel,
-or gasoline direct injection) in kPa Return:
- -------  * std::optional<float> - Fuel Rail Gauge Pressure (diesel, or gasoline direct injection)
-in kPa
-*/
+/**
+ * @brief Получает давление в топливной рампе (дизель или непосредственный впрыск)
+ *
+ * @return std::optional<uint32_t> Давление в кПа
+ */
 std::optional<uint32_t> OBD2::fuelRailGuagePressure() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_RAIL_GUAGE_PRESSURE, response)) {
@@ -63,10 +62,11 @@ constexpr std::optional<uint8_t> OXYGEN_SENSOR_7_B             = 42;  // 0x2A - 
 constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_B             = 43;  // 0x2B - ratio V
 */
 
-/*  Find commanded Exhaust Gas Recirculation (EGR) in
-% Return:
- -------
-  * std::optional<float> - Commanded Exhaust Gas Recirculation (EGR) in %*/
+/**
+ * @brief Получает заданный процент рециркуляции выхлопных газов (EGR)
+ *
+ * @return std::optional<float> Процент EGR [0-100%]
+ */
 std::optional<float> OBD2::commandedEGR() {
   ResponseType response;
   if (processPID(SERVICE_01, COMMANDED_EGR, response)) {
@@ -75,10 +75,11 @@ std::optional<float> OBD2::commandedEGR() {
   return {};
 }
 
-/*  Find Exhaust Gas Recirculation (EGR) error in %
-Return:
- -------
-  * std::optional<float> - Exhaust Gas Recirculation (EGR) error in %*/
+/**
+ * @brief Получает ошибку системы рециркуляции выхлопных газов (EGR)
+ *
+ * @return std::optional<float> Ошибка в процентах [-100..99.2%]
+ */
 std::optional<float> OBD2::egrError() {
   ResponseType response;
   if (processPID(SERVICE_01, EGR_ERROR, response)) {
@@ -87,10 +88,11 @@ std::optional<float> OBD2::egrError() {
   return {};
 }
 
-/*  Find commanded evaporative purge in %
-Return:
- -------
-  * std::optional<float> - Commanded evaporative purge in %*/
+/**
+ * @brief Получает заданный процент продувки испарительной системы
+ *
+ * @return std::optional<float> Процент продувки [0-100%]
+ */
 std::optional<float> OBD2::commandedEvapPurge() {
   ResponseType response;
   if (processPID(SERVICE_01, COMMANDED_EVAPORATIVE_PURGE, response)) {
@@ -99,10 +101,11 @@ std::optional<float> OBD2::commandedEvapPurge() {
   return {};
 }
 
-/*  Find fuel tank level input in %
-Return:
- -------
-  * std::optional<float> - Fuel tank level input in %*/
+/**
+ * @brief Получает уровень топлива в баке
+ *
+ * @return std::optional<float> Уровень в процентах [0-100%]
+ */
 std::optional<float> OBD2::fuelLevel() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_TANK_LEVEL_INPUT, response)) {
@@ -111,11 +114,11 @@ std::optional<float> OBD2::fuelLevel() {
   return {};
 }
 
-/*  Find num warm-ups since codes
-cleared Return:
- -------
-  * std::optional<uint8_t> - Num warm-ups since codes cleared
-*/
+/**
+ * @brief Получает количество прогреваний двигателя после сброса ошибок
+ *
+ * @return std::optional<uint8_t> Количество прогреваний
+ */
 std::optional<uint8_t> OBD2::warmUpsSinceCodesCleared() {
   ResponseType response;
   if (processPID(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, response)) {
@@ -124,11 +127,11 @@ std::optional<uint8_t> OBD2::warmUpsSinceCodesCleared() {
   return {};
 }
 
-/*  Find distance traveled since codes
-cleared in km Return:
- -------
-  * std::optional<uint16_t> - Distance traveled since codes cleared in km
-*/
+/**
+ * @brief Получает расстояние, пройденное после сброса ошибок
+ *
+ * @return std::optional<uint16_t> Расстояние в километрах
+ */
 std::optional<uint16_t> OBD2::distSinceCodesCleared() {
   ResponseType response;
   if (processPID(SERVICE_01, DIST_TRAV_SINCE_CODES_CLEARED, response)) {
@@ -137,11 +140,11 @@ std::optional<uint16_t> OBD2::distSinceCodesCleared() {
   return {};
 }
 
-/*  Find evap. system vapor pressure in Pa
-Return:
- -------
-  * std::optional<float> - Evap. system vapor pressure in Pa
-*/
+/**
+ * @brief Получает давление паров в системе улавливания паров топлива
+ *
+ * @return std::optional<float> Давление в Па
+ */
 std::optional<float> OBD2::evapSysVapPressure() {
   ResponseType response;
   if (processPID(SERVICE_01, EVAP_SYSTEM_VAPOR_PRESSURE, response)) {
@@ -150,11 +153,11 @@ std::optional<float> OBD2::evapSysVapPressure() {
   return {};
 }
 
-/*  Find absolute barometric pressure in kPa
-Return:
- -------
-  * std::optional<uint8_t> - Absolute barometric pressure in kPa
-*/
+/**
+ * @brief Получает абсолютное атмосферное давление
+ *
+ * @return std::optional<uint8_t> Давление в кПа
+ */
 std::optional<uint8_t> OBD2::absBaroPressure() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_BAROMETRIC_PRESSURE, response)) {
@@ -177,7 +180,11 @@ constexpr std::optional<uint8_t> OXYGEN_SENSOR_7_C             = 58;  // 0x3A - 
 constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_C             = 59;  // 0x3B - ratio mA
 */
 
-//  Find catalyst temperature in C
+/**
+ * @brief Получает температуру катализатора (банк 1, датчик 1)
+ *
+ * @return std::optional<float> Температура в градусах Цельсия
+ */
 std::optional<float> OBD2::catTempB1S1() {
   ResponseType response;
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_1, response)) {
@@ -186,7 +193,11 @@ std::optional<float> OBD2::catTempB1S1() {
   return {};
 }
 
-//  Find catalyst temperature in C
+/**
+ * @brief Получает температуру катализатора (банк 2, датчик 1)
+ *
+ * @return std::optional<float> Температура в градусах Цельсия
+ */
 std::optional<float> OBD2::catTempB2S1() {
   ResponseType response;
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, response)) {
@@ -195,7 +206,11 @@ std::optional<float> OBD2::catTempB2S1() {
   return {};
 }
 
-//  Find catalyst temperature in C
+/**
+ * @brief Получает температуру катализатора (банк 1, датчик 2)
+ *
+ * @return std::optional<float> Температура в градусах Цельсия
+ */
 std::optional<float> OBD2::catTempB1S2() {
   ResponseType response;
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, response)) {
@@ -204,7 +219,11 @@ std::optional<float> OBD2::catTempB1S2() {
   return {};
 }
 
-//  Find catalyst temperature in C
+/**
+ * @brief Получает температуру катализатора (банк 2, датчик 2)
+ *
+ * @return std::optional<float> Температура в градусах Цельсия
+ */
 std::optional<float> OBD2::catTempB2S2() {
   ResponseType response;
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, response)) {

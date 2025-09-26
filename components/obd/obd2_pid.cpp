@@ -8,8 +8,11 @@
 
 #include "obd2.h"
 
-// Determine which of PIDs 0x1 through 0x20 are supported (bit encoded)
-// std::optional<uint32_t> - Bit encoded booleans of supported PIDs 0x1-0x20
+/**
+ * @brief Определяет, какие PIDs в диапазоне 0x1-0x20 поддерживаются
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PIDs
+ */
 std::optional<uint32_t> OBD2::supportedPIDs_1_20() {
   ResponseType response;
   if (processPID(SERVICE_01, SUPPORTED_PIDS_1_20, response)) {
@@ -18,8 +21,11 @@ std::optional<uint32_t> OBD2::supportedPIDs_1_20() {
   return {};
 }
 
-// Determine which of PIDs 0x1 through 0x20 are supported (bit encoded)
-// std::optional<uint32_t> - Bit encoded booleans of supported PIDs 0x21-0x20
+/**
+ * @brief Определяет, какие PIDs в диапазоне 0x21-0x40 поддерживаются
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PIDs
+ */
 std::optional<uint32_t> OBD2::supportedPIDs_21_40() {
   ResponseType response;
   if (processPID(SERVICE_01, SUPPORTED_PIDS_21_40, response)) {
@@ -28,8 +34,11 @@ std::optional<uint32_t> OBD2::supportedPIDs_21_40() {
   return {};
 }
 
-// Determine which of PIDs 0x41 through 0x60 are supported (bit encoded)
-// std::optional<uint32_t> - Bit encoded booleans of supported PIDs 0x41-0x60
+/**
+ * @brief Определяет, какие PIDs в диапазоне 0x41-0x60 поддерживаются
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PIDs
+ */
 std::optional<uint32_t> OBD2::supportedPIDs_41_60() {
   ResponseType response;
   if (processPID(SERVICE_01, SUPPORTED_PIDS_41_60, response)) {
@@ -38,8 +47,11 @@ std::optional<uint32_t> OBD2::supportedPIDs_41_60() {
   return {};
 }
 
-// Determine which of PIDs 0x61 through 0x80 are supported (bit encoded)
-// std::optional<uint32_t> - Bit encoded booleans of supported PIDs 0x61-0x80
+/**
+ * @brief Определяет, какие PIDs в диапазоне 0x61-0x80 поддерживаются
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PIDs
+ */
 std::optional<uint32_t> OBD2::supportedPIDs_61_80() {
   ResponseType response;
   if (processPID(SERVICE_01, SUPPORTED_PIDS_61_80, response)) {
@@ -48,20 +60,15 @@ std::optional<uint32_t> OBD2::supportedPIDs_61_80() {
   return {};
 }
 
-/* Checks if a particular PID is
-   supported by the connected ECU.
-
-    * This is a convenience method that selects the correct
-   supportedPIDS_xx_xx() query and parses the bit-encoded result, returning a
-   simple Boolean value indicating PID support from the ECU.
-
-   Inputs:
-   -------
-    * uint8_t pid - the PID to check for support.
-
-   Return:
-   -------
-    * bool - Whether or not the queried PID is supported by the ECU.*/
+/**
+ * @brief Проверяет, поддерживается ли указанный PID ECU
+ *
+ * Вспомогательный метод, который выбирает соответствующий запрос supportedPIDS_xx_xx()
+ * и анализирует битовую маску результата.
+ *
+ * @param pid PID для проверки поддержки
+ * @return bool True если PID поддерживается, иначе False
+ */
 bool OBD2::isPidSupported(uint8_t pid) {
   const uint8_t pidInterval = (pid / PID_INTERVAL_OFFSET) * PID_INTERVAL_OFFSET;
   std::optional<uint32_t> supportedPids;

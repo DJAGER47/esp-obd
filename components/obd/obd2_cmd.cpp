@@ -15,6 +15,12 @@
 
 static const char* TAG = "OBD2";
 
+/**
+ * @brief Выводит отладочную информацию в лог (если включен режим отладки)
+ *
+ * @param format Форматная строка для вывода
+ * @param ... Аргументы для форматной строки
+ */
 void OBD2::log_print(const char* format, ...) {
   if (OBD_DEBUG) {
     va_list args;
@@ -24,6 +30,13 @@ void OBD2::log_print(const char* format, ...) {
   }
 }
 
+/**
+ * @brief Выводит содержимое буфера в лог (если включен режим отладки)
+ *
+ * @param id Идентификатор буфера
+ * @param buffer Указатель на буфер данных
+ * @param len Длина буфера в байтах
+ */
 void OBD2::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
   if (OBD_DEBUG) {
     char log_buffer[256];
@@ -40,14 +53,23 @@ void OBD2::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
   }
 }
 
+/**
+ * @brief Конструктор класса OBD2
+ *
+ * @param driver Ссылка на драйвер ISO-TP
+ * @param tx_id CAN ID для передачи
+ * @param rx_id CAN ID для приема
+ */
 OBD2::OBD2(IIsoTp& driver, uint16_t tx_id, uint16_t rx_id) :
     tx_id_(tx_id),
     rx_id_(rx_id),
     iso_tp_(driver) {}
 
-/* Create a PID query command string and send the command
- * uint8_t service       - The diagnostic service ID. 01 is "Show current data"
- * uint8_t pid          - The Parameter ID (PID) from the service
+/**
+ * @brief Формирует и отправляет запрос PID
+ *
+ * @param service ID диагностического сервиса (01 - "Показать текущие данные")
+ * @param pid Parameter ID (PID) из сервиса
  */
 void OBD2::queryPID(uint8_t service, uint8_t pid) {
   log_print("Service: %d PID: %d", service, pid);
@@ -58,22 +80,14 @@ void OBD2::queryPID(uint8_t service, uint8_t pid) {
   iso_tp_.send(msg);
 }
 
-/* Queries OBD2 for a specific type of vehicle telemetry data
-
- Inputs:
- -------
-  * uint8_t service          - The diagnostic service ID. 01 is "Show current
- data"
-  * uint16_t pid             - The Parameter ID (PID) from the service
-  * uint8_t numExpectedBytes - Number of valid bytes from the response to
- process
-  * double scaleFactor        - Amount to scale the response by
-  * double bias               - Amount to bias the response by
-
- Return:
- -------
-  * double - The PID value if successfully received, else 0.0
-*/
+/**
+ * @brief Запрашивает и обрабатывает данные телеметрии автомобиля
+ *
+ * @param service ID диагностического сервиса
+ * @param pid Parameter ID (PID)
+ * @param[out] response Буфер для записи ответа
+ * @return bool True если данные успешно получены и обработаны, иначе False
+ */
 bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
   queryPID(service, pid);
 
@@ -97,10 +111,3 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
   // else if (payload[1] == ERROR) {
   // }
 }
-
-// std::function<double(void)> calculator = selectCalculator(pid);
-// if (!calculator) {
-//   return conditionResponse(numExpectedBytes, scaleFactor, bias);
-// } else {
-//   return calculator();
-// }

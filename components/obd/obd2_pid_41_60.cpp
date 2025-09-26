@@ -8,12 +8,12 @@
 
 #include "obd2.h"
 
-/*  Find status this drive cycle
- (https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_41)
-Return:
- -------
-  * std::optional<uint32_t> - Bit encoded status
-*/
+/**
+ * @brief Получает статус текущего цикла движения
+ *
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_41
+ * @return std::optional<uint32_t> Статус в битовом формате
+ */
 std::optional<uint32_t> OBD2::monitorDriveCycleStatus() {
   ResponseType response;
   if (processPID(SERVICE_01, MONITOR_STATUS_THIS_DRIVE_CYCLE, response)) {
@@ -22,11 +22,11 @@ std::optional<uint32_t> OBD2::monitorDriveCycleStatus() {
   return {};
 }
 
-/*  Find control module voltage in V
-Return:
- -------
-  * std::optional<float> - Control module voltage in V
-*/
+/**
+ * @brief Получает напряжение питания блока управления
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
 std::optional<float> OBD2::ctrlModVoltage() {
   ResponseType response;
   if (processPID(SERVICE_01, CONTROL_MODULE_VOLTAGE, response)) {
@@ -35,10 +35,11 @@ std::optional<float> OBD2::ctrlModVoltage() {
   return {};
 }
 
-/*  Find absolute load value in %
-Return:
- -------
-  * std::optional<float> - Absolute load value in %*/
+/**
+ * @brief Получает абсолютное значение нагрузки двигателя
+ *
+ * @return std::optional<float> Нагрузка в процентах [0-100%]
+ */
 std::optional<float> OBD2::absLoad() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_LOAD_VALUE, response)) {
@@ -47,11 +48,11 @@ std::optional<float> OBD2::absLoad() {
   return {};
 }
 
-/*  Find commanded air-fuel equivalence
-ratio Return:
- -------
-  * std::optional<float> - Commanded air-fuel equivalence ratio
-*/
+/**
+ * @brief Получает заданное соотношение воздух/топливо
+ *
+ * @return std::optional<float> Коэффициент эквивалентности
+ */
 std::optional<float> OBD2::commandedAirFuelRatio() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_AIR_COMMANDED_EQUIV_RATIO, response)) {
@@ -60,10 +61,11 @@ std::optional<float> OBD2::commandedAirFuelRatio() {
   return {};
 }
 
-/*  Find relative throttle position in %
-Return:
- -------
-  * std::optional<float> - Relative throttle position in %*/
+/**
+ * @brief Получает относительное положение дроссельной заслонки
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::relativeThrottle() {
   ResponseType response;
   if (processPID(SERVICE_01, RELATIVE_THROTTLE_POSITION, response)) {
@@ -72,11 +74,11 @@ std::optional<float> OBD2::relativeThrottle() {
   return {};
 }
 
-/*  Find ambient air temperature in C
-Return:
- -------
-  * std::optional<float> - Ambient air temperature in C
-*/
+/**
+ * @brief Получает температуру окружающего воздуха
+ *
+ * @return std::optional<int16_t> Температура в градусах Цельсия
+ */
 std::optional<int16_t> OBD2::ambientAirTemp() {
   ResponseType response;
   if (processPID(SERVICE_01, AMBIENT_AIR_TEMP, response)) {
@@ -85,10 +87,11 @@ std::optional<int16_t> OBD2::ambientAirTemp() {
   return {};
 }
 
-/*  Find absolute throttle position B in %
-Return:
- -------
-  * std::optional<float> - Absolute throttle position B in %*/
+/**
+ * @brief Получает абсолютное положение дроссельной заслонки B
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::absThrottlePosB() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_THROTTLE_POSITION_B, response)) {
@@ -97,10 +100,11 @@ std::optional<float> OBD2::absThrottlePosB() {
   return {};
 }
 
-/*  Find absolute throttle position C in %
-Return:
- -------
-  * std::optional<float> - Absolute throttle position C in %*/
+/**
+ * @brief Получает абсолютное положение дроссельной заслонки C
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::absThrottlePosC() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_THROTTLE_POSITION_C, response)) {
@@ -109,10 +113,11 @@ std::optional<float> OBD2::absThrottlePosC() {
   return {};
 }
 
-/*  Find absolute throttle position D in %
-Return:
- -------
-  * std::optional<float> - Absolute throttle position D in %*/
+/**
+ * @brief Получает абсолютное положение дроссельной заслонки D
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::absThrottlePosD() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_THROTTLE_POSITION_D, response)) {
@@ -121,10 +126,11 @@ std::optional<float> OBD2::absThrottlePosD() {
   return {};
 }
 
-/*  Find absolute throttle position E in %
-Return:
- -------
-  * std::optional<float> - Absolute throttle position E in %*/
+/**
+ * @brief Получает абсолютное положение дроссельной заслонки E
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::absThrottlePosE() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_THROTTLE_POSITION_E, response)) {
@@ -133,10 +139,11 @@ std::optional<float> OBD2::absThrottlePosE() {
   return {};
 }
 
-/*  Find absolute throttle position F in %
-Return:
- -------
-  * std::optional<float> - Absolute throttle position F in %*/
+/**
+ * @brief Получает абсолютное положение дроссельной заслонки F
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::absThrottlePosF() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_THROTTLE_POSITION_F, response)) {
@@ -145,10 +152,11 @@ std::optional<float> OBD2::absThrottlePosF() {
   return {};
 }
 
-/*  Find commanded throttle actuator in
-% Return:
- -------
-  * std::optional<float> - Commanded throttle actuator in %*/
+/**
+ * @brief Получает заданное положение исполнительного механизма дросселя
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::commandedThrottleActuator() {
   ResponseType response;
   if (processPID(SERVICE_01, COMMANDED_THROTTLE_ACTUATOR, response)) {
@@ -157,11 +165,11 @@ std::optional<float> OBD2::commandedThrottleActuator() {
   return {};
 }
 
-/*  Find time run with MIL on in min
-Return:
- -------
-  * std::optional<uint16_t> - Time run with MIL on in min
-*/
+/**
+ * @brief Получает время работы с горящей лампой неисправности (MIL)
+ *
+ * @return std::optional<uint16_t> Время в минутах
+ */
 std::optional<uint16_t> OBD2::timeRunWithMIL() {
   ResponseType response;
   if (processPID(SERVICE_01, TIME_RUN_WITH_MIL_ON, response)) {
@@ -170,11 +178,11 @@ std::optional<uint16_t> OBD2::timeRunWithMIL() {
   return {};
 }
 
-/*  Find time since trouble codes cleared
-in min Return:
- -------
-  * std::optional<uint16_t> - Time since trouble codes cleared in min
-*/
+/**
+ * @brief Получает время с момента сброса ошибок
+ *
+ * @return std::optional<uint16_t> Время в минутах
+ */
 std::optional<uint16_t> OBD2::timeSinceCodesCleared() {
   ResponseType response;
   if (processPID(SERVICE_01, TIME_SINCE_CODES_CLEARED, response)) {
@@ -190,11 +198,11 @@ constexpr std::optional<uint8_t> MAX_VALUES_EQUIV_V_I_PRESSURE = 79;  // 0x4F - 
       };
 */
 
-/*  Find maximum value for air flow rate from mass air
-flow sensor in g/s Return:
- -------
-  * std::optional<float> - Maximum value for air flow rate from mass air flow sensor in g/s
-*/
+/**
+ * @brief Получает максимальное значение расхода воздуха по датчику MAF
+ *
+ * @return std::optional<uint16_t> Расход воздуха в г/с
+ */
 std::optional<uint16_t> OBD2::maxMafRate() {
   ResponseType response;
   if (processPID(SERVICE_01, MAX_MAF_RATE, response)) {
@@ -203,10 +211,12 @@ std::optional<uint16_t> OBD2::maxMafRate() {
   return {};
 }
 
-/*  Find fuel type
-(https://en.wikipedia.org/wiki/OBD-II_PIDs#Fuel_Type_Coding) Return:
- -------
-  * std::optional<uint8_t> - Bit encoded*/
+/**
+ * @brief Получает тип топлива
+ *
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Fuel_Type_Coding
+ * @return std::optional<uint8_t> Код типа топлива
+ */
 std::optional<uint8_t> OBD2::fuelType() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_TYPE, response)) {
@@ -215,10 +225,11 @@ std::optional<uint8_t> OBD2::fuelType() {
   return {};
 }
 
-/*  Find ethanol fuel in %
-Return:
- -------
-  * std::optional<float> - Ethanol fuel in %*/
+/**
+ * @brief Получает процент содержания этанола в топливе
+ *
+ * @return std::optional<float> Процент этанола [0-100%]
+ */
 std::optional<float> OBD2::ethanolPercent() {
   ResponseType response;
   if (processPID(SERVICE_01, ETHANOL_FUEL_PERCENT, response)) {
@@ -227,11 +238,11 @@ std::optional<float> OBD2::ethanolPercent() {
   return {};
 }
 
-/*  Find absolute evap. system vapor
-pressure in kPa Return:
- -------
-  * std::optional<float> - Absolute evap. system vapor pressure in kPa
-*/
+/**
+ * @brief Получает абсолютное давление паров в системе улавливания
+ *
+ * @return std::optional<float> Давление в кПа
+ */
 std::optional<float> OBD2::absEvapSysVapPressure() {
   ResponseType response;
   if (processPID(SERVICE_01, ABS_EVAP_SYS_VAPOR_PRESSURE, response)) {
@@ -240,11 +251,11 @@ std::optional<float> OBD2::absEvapSysVapPressure() {
   return {};
 }
 
-/*  Find evap. system vapor pressure in Pa
-Return:
- -------
-  * std::optional<float> - Evap. system vapor pressure in Pa
-*/
+/**
+ * @brief Получает давление паров в системе улавливания (альтернативный метод)
+ *
+ * @return std::optional<int32_t> Давление в Па
+ */
 std::optional<int32_t> OBD2::evapSysVapPressure2() {
   ResponseType response;
   if (processPID(SERVICE_01, EVAP_SYS_VAPOR_PRESSURE, response)) {
@@ -264,11 +275,11 @@ constexpr std::optional<uint8_t> SHORT_TERM_SEC_OXY_SENS_TRIM_2_4 = 87;  // 0x57
 constexpr std::optional<uint8_t> LONG_TERM_SEC_OXY_SENS_TRIM_2_4  = 88;  // 0x58 - %
 */
 
-/*  Find absolute fuel rail pressure in kPa
-Return:
- -------
-  * std::optional<float> - absolute fuel rail pressure in kPa
-*/
+/**
+ * @brief Получает абсолютное давление в топливной рампе
+ *
+ * @return std::optional<uint32_t> Давление в кПа
+ */
 std::optional<uint32_t> OBD2::absFuelRailPressure() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_RAIL_ABS_PRESSURE, response)) {
@@ -277,10 +288,11 @@ std::optional<uint32_t> OBD2::absFuelRailPressure() {
   return {};
 }
 
-/*  Find relative accelerator pedal position in %
-Return:
- -------
-  * std::optional<float> - Relative accelerator pedal position in %*/
+/**
+ * @brief Получает относительное положение педали акселератора
+ *
+ * @return std::optional<float> Положение в процентах [0-100%]
+ */
 std::optional<float> OBD2::relativePedalPos() {
   ResponseType response;
   if (processPID(SERVICE_01, RELATIVE_ACCELERATOR_PEDAL_POS, response)) {
@@ -289,10 +301,11 @@ std::optional<float> OBD2::relativePedalPos() {
   return {};
 }
 
-/*  Find hybrid battery pack remaining life in %
-Return:
- -------
-  * std::optional<float> - Hybrid battery pack remaining life in %*/
+/**
+ * @brief Получает оставшийся ресурс гибридной батареи
+ *
+ * @return std::optional<float> Остаток ресурса в процентах [0-100%]
+ */
 std::optional<float> OBD2::hybridBatLife() {
   ResponseType response;
   if (processPID(SERVICE_01, HYBRID_BATTERY_REMAINING_LIFE, response)) {
@@ -301,11 +314,11 @@ std::optional<float> OBD2::hybridBatLife() {
   return {};
 }
 
-/*  Find engine oil temperature in C
-Return:
- -------
-  * Engine oil temperature in C
-*/
+/**
+ * @brief Получает температуру моторного масла
+ *
+ * @return std::optional<int16_t> Температура в градусах Цельсия
+ */
 std::optional<int16_t> OBD2::oilTemp() {
   ResponseType response;
   if (processPID(SERVICE_01, ENGINE_OIL_TEMP, response)) {
@@ -314,11 +327,11 @@ std::optional<int16_t> OBD2::oilTemp() {
   return {};
 }
 
-/*  Find fuel injection timing in degrees
-Return:
- -------
-  * std::optional<float> - Fuel injection timing in degrees
-*/
+/**
+ * @brief Получает угол опережения впрыска топлива
+ *
+ * @return std::optional<float> Угол в градусах
+ */
 std::optional<float> OBD2::fuelInjectTiming() {
   ResponseType response;
   if (processPID(SERVICE_01, FUEL_INJECTION_TIMING, response)) {
@@ -327,11 +340,11 @@ std::optional<float> OBD2::fuelInjectTiming() {
   return {};
 }
 
-/*  Find engine fuel rate in L/h
-Return:
- -------
-  * std::optional<float> - Engine fuel rate in L/h
-*/
+/**
+ * @brief Получает расход топлива двигателем
+ *
+ * @return std::optional<float> Расход в литрах в час
+ */
 std::optional<float> OBD2::fuelRate() {
   ResponseType response;
   if (processPID(SERVICE_01, ENGINE_FUEL_RATE, response)) {
@@ -340,10 +353,11 @@ std::optional<float> OBD2::fuelRate() {
   return {};
 }
 
-/*  Find emission requirements to which vehicle is
-designed Return:
- -------
-  * std::optional<uint8_t> - Bit encoded (?)*/
+/**
+ * @brief Получает стандарты выбросов, для которых спроектирован автомобиль
+ *
+ * @return std::optional<uint8_t> Код стандарта выбросов
+ */
 std::optional<uint8_t> OBD2::emissionRqmts() {
   ResponseType response;
   if (processPID(SERVICE_01, EMISSION_REQUIREMENTS, response)) {
