@@ -80,6 +80,10 @@ class OBD2 final {
   std::optional<float> ethanolPercent();
   std::optional<float> absEvapSysVapPressure();
   std::optional<int32_t> evapSysVapPressure2();
+  std::optional<float> shortTermSecOxyTrim13();
+  std::optional<float> longTermSecOxyTrim13();
+  std::optional<float> shortTermSecOxyTrim24();
+  std::optional<float> longTermSecOxyTrim24();
   std::optional<uint32_t> absFuelRailPressure();
   std::optional<float> relativePedalPos();
   std::optional<float> hybridBatLife();

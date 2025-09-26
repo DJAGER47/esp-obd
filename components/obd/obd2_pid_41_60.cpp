@@ -264,16 +264,57 @@ std::optional<int32_t> OBD2::evapSysVapPressure2() {
   return {};
 }
 
-/*
-[this]() -> std::optional<float> {
-        return (response[A] * (100.0 / 128.0)) - 100.0;
-      };
+/**
+ * @brief Получает краткосрочную коррекцию вторичного кислородного датчика (банки 1 и 3)
+ *
+ * @return std::optional<float> Коррекция в процентах [-100.0 до +99.2%]
+ */
+std::optional<float> OBD2::shortTermSecOxyTrim13() {
+  ResponseType response;
+  if (processPID(SERVICE_01, SHORT_TERM_SEC_OXY_SENS_TRIM_1_3, response)) {
+    return {(response[A] * (100.0 / 128.0)) - 100.0};
+  }
+  return {};
+}
 
-constexpr std::optional<uint8_t> SHORT_TERM_SEC_OXY_SENS_TRIM_1_3 = 85;  // 0x55 - %
-constexpr std::optional<uint8_t> LONG_TERM_SEC_OXY_SENS_TRIM_1_3  = 86;  // 0x56 - %
-constexpr std::optional<uint8_t> SHORT_TERM_SEC_OXY_SENS_TRIM_2_4 = 87;  // 0x57 - %
-constexpr std::optional<uint8_t> LONG_TERM_SEC_OXY_SENS_TRIM_2_4  = 88;  // 0x58 - %
-*/
+/**
+ * @brief Получает долгосрочную коррекцию вторичного кислородного датчика (банки 1 и 3)
+ *
+ * @return std::optional<float> Коррекция в процентах [-100.0 до +99.2%]
+ */
+std::optional<float> OBD2::longTermSecOxyTrim13() {
+  ResponseType response;
+  if (processPID(SERVICE_01, LONG_TERM_SEC_OXY_SENS_TRIM_1_3, response)) {
+    return {(response[A] * (100.0 / 128.0)) - 100.0};
+  }
+  return {};
+}
+
+/**
+ * @brief Получает краткосрочную коррекцию вторичного кислородного датчика (банки 2 и 4)
+ *
+ * @return std::optional<float> Коррекция в процентах [-100.0 до +99.2%]
+ */
+std::optional<float> OBD2::shortTermSecOxyTrim24() {
+  ResponseType response;
+  if (processPID(SERVICE_01, SHORT_TERM_SEC_OXY_SENS_TRIM_2_4, response)) {
+    return {(response[A] * (100.0 / 128.0)) - 100.0};
+  }
+  return {};
+}
+
+/**
+ * @brief Получает долгосрочную коррекцию вторичного кислородного датчика (банки 2 и 4)
+ *
+ * @return std::optional<float> Коррекция в процентах [-100.0 до +99.2%]
+ */
+std::optional<float> OBD2::longTermSecOxyTrim24() {
+  ResponseType response;
+  if (processPID(SERVICE_01, LONG_TERM_SEC_OXY_SENS_TRIM_2_4, response)) {
+    return {(response[A] * (100.0 / 128.0)) - 100.0};
+  }
+  return {};
+}
 
 /**
  * @brief Получает абсолютное давление в топливной рампе

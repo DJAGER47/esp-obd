@@ -31,10 +31,10 @@
  * ✅ PID 52 - ethanolPercent() - процент этанола в топливе
  * ✅ PID 53 - absEvapSysVapPressure() - абсолютное давление паров системы улавливания
  * ✅ PID 54 - evapSysVapPressure2() - давление паров системы улавливания (альтернативное)
- * ❌ PID 55 - shortTermSecOxyTrimB1() - краткосрочная коррекция вторичного кислорода банк 1
- * ❌ PID 56 - longTermSecOxyTrimB1() - долгосрочная коррекция вторичного кислорода банк 1
- * ❌ PID 57 - shortTermSecOxyTrimB2() - краткосрочная коррекция вторичного кислорода банк 2
- * ❌ PID 58 - longTermSecOxyTrimB2() - долгосрочная коррекция вторичного кислорода банк 2
+ * ✅ PID 55 - shortTermSecOxyTrim13() - краткосрочная коррекция вторичного кислорода банки 1,3
+ * ✅ PID 56 - longTermSecOxyTrim13() - долгосрочная коррекция вторичного кислорода банки 1,3
+ * ✅ PID 57 - shortTermSecOxyTrim24() - краткосрочная коррекция вторичного кислорода банки 2,4
+ * ✅ PID 58 - longTermSecOxyTrim24() - долгосрочная коррекция вторичного кислорода банки 2,4
  * ✅ PID 59 - absFuelRailPressure() - абсолютное давление топливной рампы
  * ✅ PID 5A - relativePedalPos() - относительное положение педали акселератора
  * ✅ PID 5B - hybridBatLife() - оставшийся ресурс гибридной батареи
@@ -43,7 +43,7 @@
  * ✅ PID 5E - fuelRate() - расход топлива двигателем
  * ✅ PID 5F - emissionRqmts() - требования к выбросам
  *
- * ВСЕГО ТЕСТОВ: 34 (по 1-2 теста на каждый PID)
+ * ВСЕГО ТЕСТОВ: 42 (по 1-2 теста на каждый PID)
  */
 
 // Глобальные объекты для тестов
@@ -822,6 +822,197 @@ void test_pid_5f_emission_rqmts_valid_data() {
   if (response.data)
     delete[] response.data;
 }
+// ============================================================================
+// PID 55 - SHORT TERM SECONDARY OXYGEN SENSOR TRIM BANKS 1,3 ТЕСТЫ
+// ============================================================================
+
+// Тест 33: shortTermSecOxyTrim13 - валидные данные
+void test_pid_55_short_term_sec_oxy_trim_13_valid_data() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0x80 = 128, формула: (A * 100/128) - 100 = 0%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x55, 0x80);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.shortTermSecOxyTrim13();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermSecOxyTrim13 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   0.0,
+                                   static_cast<double>(trim.value()),
+                                   "shortTermSecOxyTrim13 должен вернуть правильную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 34: shortTermSecOxyTrim13 - положительная коррекция
+void test_pid_55_short_term_sec_oxy_trim_13_positive() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0xFF = 255, формула: (255 * 100/128) - 100 = 99.2%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x55, 0xFF);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.shortTermSecOxyTrim13();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermSecOxyTrim13 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   99.2,
+                                   static_cast<double>(trim.value()),
+                                   "shortTermSecOxyTrim13 должен вернуть максимальную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 56 - LONG TERM SECONDARY OXYGEN SENSOR TRIM BANKS 1,3 ТЕСТЫ
+// ============================================================================
+
+// Тест 35: longTermSecOxyTrim13 - валидные данные
+void test_pid_56_long_term_sec_oxy_trim_13_valid_data() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0x60 = 96, формула: (96 * 100/128) - 100 = -25%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x56, 0x60);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.longTermSecOxyTrim13();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermSecOxyTrim13 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -25.0,
+                                   static_cast<double>(trim.value()),
+                                   "longTermSecOxyTrim13 должен вернуть правильную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 36: longTermSecOxyTrim13 - отрицательная коррекция
+void test_pid_56_long_term_sec_oxy_trim_13_negative() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0x00 = 0, формула: (0 * 100/128) - 100 = -100%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x56, 0x00);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.longTermSecOxyTrim13();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermSecOxyTrim13 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -100.0,
+                                   static_cast<double>(trim.value()),
+                                   "longTermSecOxyTrim13 должен вернуть минимальную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 57 - SHORT TERM SECONDARY OXYGEN SENSOR TRIM BANKS 2,4 ТЕСТЫ
+// ============================================================================
+
+// Тест 37: shortTermSecOxyTrim24 - валидные данные
+void test_pid_57_short_term_sec_oxy_trim_24_valid_data() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0xA0 = 160, формула: (160 * 100/128) - 100 = 25%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x57, 0xA0);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.shortTermSecOxyTrim24();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermSecOxyTrim24 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   25.0,
+                                   static_cast<double>(trim.value()),
+                                   "shortTermSecOxyTrim24 должен вернуть правильную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 38: shortTermSecOxyTrim24 - нулевая коррекция
+void test_pid_57_short_term_sec_oxy_trim_24_zero() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0x80 = 128, формула: (128 * 100/128) - 100 = 0%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x57, 0x80);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.shortTermSecOxyTrim24();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermSecOxyTrim24 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   0.0,
+                                   static_cast<double>(trim.value()),
+                                   "shortTermSecOxyTrim24 должен вернуть нулевую коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 58 - LONG TERM SECONDARY OXYGEN SENSOR TRIM BANKS 2,4 ТЕСТЫ
+// ============================================================================
+
+// Тест 39: longTermSecOxyTrim24 - валидные данные
+void test_pid_58_long_term_sec_oxy_trim_24_valid_data() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0xC0 = 192, формула: (192 * 100/128) - 100 = 50%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x58, 0xC0);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.longTermSecOxyTrim24();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermSecOxyTrim24 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   50.0,
+                                   static_cast<double>(trim.value()),
+                                   "longTermSecOxyTrim24 должен вернуть правильную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 40: longTermSecOxyTrim24 - граничные значения
+void test_pid_58_long_term_sec_oxy_trim_24_boundary() {
+  g_mock_iso_tp.reset();
+
+  // Коррекция: 0x40 = 64, формула: (64 * 100/128) - 100 = -50%
+  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x58, 0x40);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto trim = obd2.longTermSecOxyTrim24();
+  TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermSecOxyTrim24 должен вернуть значение");
+
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
+                                   -50.0,
+                                   static_cast<double>(trim.value()),
+                                   "longTermSecOxyTrim24 должен вернуть граничную коррекцию");
+
+  if (response.data)
+    delete[] response.data;
+}
 
 // ============================================================================
 // ДОПОЛНИТЕЛЬНЫЕ ТЕСТЫ ДЛЯ ГРАНИЧНЫХ СЛУЧАЕВ
@@ -936,6 +1127,22 @@ extern "C" void run_obd_pid_group_41_60_tests() {
 
   // PID 54 - Evap system vapor pressure (alternative)
   RUN_TEST(test_pid_54_evap_sys_vap_pressure2_valid_data);
+
+  // PID 55 - Short term secondary oxygen sensor trim banks 1,3
+  RUN_TEST(test_pid_55_short_term_sec_oxy_trim_13_valid_data);
+  RUN_TEST(test_pid_55_short_term_sec_oxy_trim_13_positive);
+
+  // PID 56 - Long term secondary oxygen sensor trim banks 1,3
+  RUN_TEST(test_pid_56_long_term_sec_oxy_trim_13_valid_data);
+  RUN_TEST(test_pid_56_long_term_sec_oxy_trim_13_negative);
+
+  // PID 57 - Short term secondary oxygen sensor trim banks 2,4
+  RUN_TEST(test_pid_57_short_term_sec_oxy_trim_24_valid_data);
+  RUN_TEST(test_pid_57_short_term_sec_oxy_trim_24_zero);
+
+  // PID 58 - Long term secondary oxygen sensor trim banks 2,4
+  RUN_TEST(test_pid_58_long_term_sec_oxy_trim_24_valid_data);
+  RUN_TEST(test_pid_58_long_term_sec_oxy_trim_24_boundary);
 
   // PID 59 - Absolute fuel rail pressure
   RUN_TEST(test_pid_59_abs_fuel_rail_pressure_valid_data);
