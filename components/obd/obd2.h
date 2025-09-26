@@ -12,10 +12,6 @@ class OBD2 final {
   OBD2(IIsoTp& driver, uint16_t tx_id = 0x7DF, uint16_t rx_id = 0x7E8);
 
   // pid
-  std::optional<uint32_t> supportedPIDs_1_20();
-  std::optional<uint32_t> supportedPIDs_21_40();
-  std::optional<uint32_t> supportedPIDs_41_60();
-  std::optional<uint32_t> supportedPIDs_61_80();
   bool isPidSupported(uint8_t pid);
 
   // 1 - 20
@@ -98,15 +94,13 @@ class OBD2 final {
   std::optional<uint16_t> referenceTorque();
   std::optional<uint16_t> auxSupported();
 
-  // 81 - 100, 101 - 120, 121 - 140
-  std::optional<uint32_t> supportedPIDs81_100();
-  std::optional<uint32_t> supportedPIDs101_120();
-  std::optional<uint32_t> supportedPIDs121_140();
-
  private:
   using ResponseType = std::array<uint8_t, 8>;
 
   static const bool OBD_DEBUG = true;
+
+  // Вспомогательный метод для получения поддерживаемых PID
+  std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
 
   static constexpr size_t A = 0;
   static constexpr size_t B = 1;
