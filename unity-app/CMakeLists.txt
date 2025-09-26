@@ -16,13 +16,11 @@ add_executable(unity_app
     
     ../components/iso-tp/iso_tp.cpp
     ../components/obd/obd2_cmd.cpp
-    # ../components/obd/obd2_dtc.cpp
     ../components/obd/obd2_pid_1_20.cpp
     ../components/obd/obd2_pid_21_40.cpp
     ../components/obd/obd2_pid_41_60.cpp
     ../components/obd/obd2_pid_61_80.cpp
     ../components/obd/obd2_pid.cpp
-    # ../components/obd/obd2_vin.cpp
 
     Unity-2.6.1/src/unity.c
 )
