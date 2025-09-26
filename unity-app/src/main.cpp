@@ -7,7 +7,6 @@ extern "C" void run_iso_tp_tests();
 extern "C" void run_iso_tp_extended_tests();
 extern "C" void run_iso_tp_edge_case_tests();
 
-extern "C" void run_obd_integration_tests();
 extern "C" void run_obd_core_methods_tests();
 extern "C" void run_obd_pid_group_1_20_tests();
 extern "C" void run_obd_pid_group_21_40_tests();
@@ -39,13 +38,12 @@ int main() {
 
   printf("\n=== Запуск тестов OBD2 ===\n");
   run_obd_core_methods_tests();
-  // run_obd_integration_tests();
-  // run_obd_pid_group_1_20_tests();
-  // run_obd_pid_group_21_40_tests();
-  // run_obd_pid_group_41_60_tests();
-  // run_obd_pid_group_61_80_tests();
-  // run_obd_error_handling_tests();
-  // run_obd_performance_tests();
+  run_obd_pid_group_1_20_tests();
+  run_obd_pid_group_21_40_tests();
+  run_obd_pid_group_41_60_tests();
+  run_obd_pid_group_61_80_tests();
+  run_obd_error_handling_tests();
+  run_obd_performance_tests();
 
   // Завершение Unity и получение результата
   int failures = UNITY_END();

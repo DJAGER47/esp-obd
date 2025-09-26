@@ -43,11 +43,12 @@ void test_obd2_supportedPIDs_1_20() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  uint32_t result = obd2.supportedPIDs_1_20();
+  auto result = obd2.supportedPIDs_1_20();
+  TEST_ASSERT_TRUE_MESSAGE(result.has_value(), "supportedPIDs_1_20 должен вернуть значение");
 
   // Ожидаемый результат: 0xBE1FA813
   TEST_ASSERT_EQUAL_HEX32_MESSAGE(
-      0xBE1FA813, result, "supportedPIDs_1_20 должен вернуть правильную битовую маску");
+      0xBE1FA813, result.value(), "supportedPIDs_1_20 должен вернуть правильную битовую маску");
 }
 
 // Тест 7: isPidSupported() проверка поддержки PID
@@ -91,11 +92,12 @@ void test_obd2_rpm_method() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double rpm_result = obd2.rpm();
+  auto rpm_result = obd2.rpm();
+  TEST_ASSERT_TRUE_MESSAGE(rpm_result.has_value(), "rpm() должен вернуть значение");
 
   // Ожидаемый результат: (0x1A2B)/4 = 6699/4 = 1674.75
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 1674.75, rpm_result, "rpm() должен вернуть правильное значение оборотов");
+      0.1, 1674.75, rpm_result.value(), "rpm() должен вернуть правильное значение оборотов");
 }
 
 // Тест 9: engineLoad() метод для получения нагрузки двигателя
@@ -109,11 +111,12 @@ void test_obd2_engineLoad_method() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double load_result = obd2.engineLoad();
+  auto load_result = obd2.engineLoad();
+  TEST_ASSERT_TRUE_MESSAGE(load_result.has_value(), "engineLoad() должен вернуть значение");
 
   // Ожидаемый результат: 0x7F * (100/255) = 127 * 0.392 = 49.8
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 49.8, load_result, "engineLoad() должен вернуть правильное значение нагрузки");
+      0.1, 49.8, load_result.value(), "engineLoad() должен вернуть правильное значение нагрузки");
 }
 
 // Тест 10: kph() метод для получения скорости
@@ -127,11 +130,12 @@ void test_obd2_kph_method() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  int32_t speed_result = obd2.kph();
+  auto speed_result = obd2.kph();
+  TEST_ASSERT_TRUE_MESSAGE(speed_result.has_value(), "kph() должен вернуть значение");
 
   // Ожидаемый результат: 0x50 = 80
   TEST_ASSERT_EQUAL_INT32_MESSAGE(
-      80, speed_result, "kph() должен вернуть правильное значение скорости");
+      80, speed_result.value(), "kph() должен вернуть правильное значение скорости");
 }
 
 // ============================================================================
@@ -146,10 +150,8 @@ void test_obd2_core_methods_timeout_handling() {
   // Не добавляем ответ в мок - симулируем таймаут
   g_mock_iso_tp.set_receive_result(false);  // Неуспешное получение
 
-  double result = obd2.rpm();
-
-  // При таймауте должен вернуться 0
-  TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, result, "При таймауте должен возвращаться 0");
+  auto result = obd2.rpm();
+  TEST_ASSERT_FALSE_MESSAGE(result.has_value(), "При таймауте должен возвращаться std::nullopt");
 }
 
 // Тест 12: Обработка некорректного ответа
@@ -163,10 +165,9 @@ void test_obd2_invalid_response_handling() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double result = obd2.rpm();
-
-  // При некорректном ответе должен вернуться 0
-  TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, result, "При некорректном ответе должен возвращаться 0");
+  auto result = obd2.rpm();
+  TEST_ASSERT_FALSE_MESSAGE(result.has_value(),
+                            "При некорректном ответе должен возвращаться std::nullopt");
 }
 
 // Тест 13: Обработка ошибки OBD2 (негативный ответ)
@@ -180,10 +181,8 @@ void test_obd2_core_methods_negative_response_handling() {
   g_mock_iso_tp.add_receive_message(error_response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double result = obd2.rpm();
-
-  // При ошибке OBD2 должен вернуться 0
-  TEST_ASSERT_EQUAL_DOUBLE_MESSAGE(0.0, result, "При ошибке OBD2 должен возвращаться 0");
+  auto result = obd2.rpm();
+  TEST_ASSERT_FALSE_MESSAGE(result.has_value(), "При ошибке OBD2 должен возвращаться std::nullopt");
 }
 
 // ============================================================================
@@ -201,11 +200,14 @@ void test_obd2_maximum_values() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double rpm_result = obd2.rpm();
+  auto rpm_result = obd2.rpm();
+  TEST_ASSERT_TRUE_MESSAGE(rpm_result.has_value(), "rpm() должен вернуть значение");
 
   // Ожидаемый результат: (0xFFFF)/4 = 65535/4 = 16383.75
-  TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 16383.75, rpm_result, "rpm() должен корректно обрабатывать максимальные значения");
+  TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(0.1,
+                                    16383.75,
+                                    rpm_result.value(),
+                                    "rpm() должен корректно обрабатывать максимальные значения");
 }
 
 // Тест 15: Тест с минимальными значениями данных
@@ -219,11 +221,15 @@ void test_obd2_minimum_values() {
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
-  double load_result = obd2.engineLoad();
+  auto load_result = obd2.engineLoad();
+  TEST_ASSERT_TRUE_MESSAGE(load_result.has_value(), "engineLoad() должен вернуть значение");
 
   // Ожидаемый результат: 0x00 * (100/255) = 0
   TEST_ASSERT_DOUBLE_WITHIN_MESSAGE(
-      0.1, 0.0, load_result, "engineLoad() должен корректно обрабатывать минимальные значения");
+      0.1,
+      0.0,
+      load_result.value(),
+      "engineLoad() должен корректно обрабатывать минимальные значения");
 }
 
 // Функция запуска всех тестов
