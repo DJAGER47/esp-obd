@@ -1,22 +1,130 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
-#include <functional>
+#include <optional>
 
 #include "esp_err.h"
 #include "iso_tp.h"
 
 class OBD2 final {
  public:
-  // Static constants
-  static const bool OBD_DEBUG = false;
+  OBD2(IIsoTp& driver, uint16_t tx_id = 0x7DF, uint16_t rx_id = 0x7E8);
+
+  // pid
+  std::optional<uint32_t> supportedPIDs_1_20();
+  std::optional<uint32_t> supportedPIDs_21_40();
+  std::optional<uint32_t> supportedPIDs_41_60();
+  std::optional<uint32_t> supportedPIDs_61_80();
+  bool isPidSupported(uint8_t pid);
+
+  // 1 - 20
+  std::optional<uint32_t> monitorStatus();
+  std::optional<uint16_t> freezeDTC();
+  std::optional<uint16_t> fuelSystemStatus();
+  std::optional<float> engineLoad();
+  std::optional<int16_t> engineCoolantTemp();
+  std::optional<float> shortTermFuelTrimBank_1();
+  std::optional<float> longTermFuelTrimBank_1();
+  std::optional<float> shortTermFuelTrimBank_2();
+  std::optional<float> longTermFuelTrimBank_2();
+  std::optional<uint16_t> fuelPressure();
+  std::optional<uint8_t> manifoldPressure();
+  std::optional<float> rpm();
+  std::optional<uint8_t> kph();
+  std::optional<float> timingAdvance();
+  std::optional<int16_t> intakeAirTemp();
+  std::optional<float> mafRate();
+  std::optional<float> throttle();
+  std::optional<uint8_t> commandedSecAirStatus();
+  std::optional<uint8_t> oxygenSensorsPresent_2banks();
+  std::optional<uint8_t> obdStandards();
+  std::optional<uint8_t> oxygenSensorsPresent_4banks();
+  std::optional<bool> auxInputStatus();
+  std::optional<uint16_t> runTime();
+
+  // 21 - 40
+  std::optional<uint16_t> distTravelWithMIL();
+  std::optional<float> fuelRailPressure();
+  std::optional<uint32_t> fuelRailGuagePressure();
+  std::optional<float> commandedEGR();
+  std::optional<float> egrError();
+  std::optional<float> commandedEvapPurge();
+  std::optional<float> fuelLevel();
+  std::optional<uint8_t> warmUpsSinceCodesCleared();
+  std::optional<uint16_t> distSinceCodesCleared();
+  std::optional<float> evapSysVapPressure();
+  std::optional<uint8_t> absBaroPressure();
+  std::optional<float> catTempB1S1();
+  std::optional<float> catTempB2S1();
+  std::optional<float> catTempB1S2();
+  std::optional<float> catTempB2S2();
+
+  // 41 - 60
+  std::optional<uint32_t> monitorDriveCycleStatus();
+  std::optional<float> ctrlModVoltage();
+  std::optional<float> absLoad();
+  std::optional<float> commandedAirFuelRatio();
+  std::optional<float> relativeThrottle();
+  std::optional<int16_t> ambientAirTemp();
+  std::optional<float> absThrottlePosB();
+  std::optional<float> absThrottlePosC();
+  std::optional<float> absThrottlePosD();
+  std::optional<float> absThrottlePosE();
+  std::optional<float> absThrottlePosF();
+  std::optional<float> commandedThrottleActuator();
+  std::optional<uint16_t> timeRunWithMIL();
+  std::optional<uint16_t> timeSinceCodesCleared();
+  std::optional<uint16_t> maxMafRate();
+  std::optional<uint8_t> fuelType();
+  std::optional<float> ethanolPercent();
+  std::optional<float> absEvapSysVapPressure();
+  std::optional<int32_t> evapSysVapPressure2();
+  std::optional<uint32_t> absFuelRailPressure();
+  std::optional<float> relativePedalPos();
+  std::optional<float> hybridBatLife();
+  std::optional<int16_t> oilTemp();
+  std::optional<float> fuelInjectTiming();
+  std::optional<float> fuelRate();
+  std::optional<uint8_t> emissionRqmts();
+
+  // 61 - 80
+  std::optional<int16_t> demandedTorque();
+  std::optional<int16_t> torque();
+  std::optional<uint16_t> referenceTorque();
+  std::optional<uint16_t> auxSupported();
+
+ private:
+  using ResponseType = std::array<uint8_t, 8>;
+
+  static const bool OBD_DEBUG = true;
+
+  static constexpr size_t A = 0;
+  static constexpr size_t B = 1;
+  static constexpr size_t C = 2;
+  static constexpr size_t D = 3;
+  static constexpr size_t E = 4;
+  static constexpr size_t F = 5;
+  static constexpr size_t G = 6;
+  static constexpr size_t H = 7;
 
   //-------------------------------------------------------------------------------------//
   // PIDs (https://en.wikipedia.org/wiki/OBD-II_PIDs)
   //-------------------------------------------------------------------------------------//
-  static const uint8_t SERVICE_01          = 1;
-  static const uint8_t SERVICE_02          = 2;
-  static const uint8_t SERVICE_03          = 3;
+  static const uint8_t SERVICE_01 = 1;  // Show current data
+  static const uint8_t SERVICE_02 = 2;  // Show freeze frame data
+  static const uint8_t SERVICE_03 = 3;  // Show stored Diagnostic Trouble Codes
+  // 04	Clear Diagnostic Trouble Codes and stored values
+  // 05	Test results, oxygen sensor monitoring (non CAN only)
+  // 06	Test results, other component/system monitoring (Test results, oxygen sensor monitoring for
+  // CAN only)
+  // 07	Show pending Diagnostic Trouble Codes (detected during current or last driving cycle)
+  // 08	Control operation of on-board component/system
+  // 09	Request vehicle information
+  // 0A	Permanent Diagnostic Trouble Codes (DTCs) (Cleared DTCs)
+
+  // UDS >= 0x10
+
   static const uint8_t PID_INTERVAL_OFFSET = 0x20;
 
   static const uint8_t SUPPORTED_PIDS_1_20              = 0;   // 0x00 - bit encoded
@@ -125,183 +233,13 @@ class OBD2 final {
   static const uint8_t ENGINE_PERCENT_TORQUE_DATA     = 100;  // 0x64 - %
   static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED     = 101;  // 0x65 - bit encoded
 
-  //-------------------------------------------------------------------------------------//
-  // Class constants
-  //-------------------------------------------------------------------------------------//
-  static const int8_t QUERY_LEN = 9;
+  void queryPID(uint8_t service, uint8_t pid);
+  bool processPID(uint8_t service, uint16_t pid, ResponseType& response);
 
-  static const int8_t OBD_GENERAL_ERROR     = -1;
-  static const int8_t OBD_SUCCESS           = 0;
-  static const int8_t OBD_NO_RESPONSE       = 1;
-  static const int8_t OBD_BUFFER_OVERFLOW   = 2;
-  static const int8_t OBD_GARBAGE           = 3;
-  static const int8_t OBD_UNABLE_TO_CONNECT = 4;
-  static const int8_t OBD_NO_DATA           = 5;
-  static const int8_t OBD_STOPPED           = 6;
-  static const int8_t OBD_TIMEOUT           = 7;
-  static const int8_t OBD_GETTING_MSG       = 8;
-  static const int8_t OBD_MSG_RXD           = 9;
-
-  static const uint8_t DTC_CODE_LEN  = 6;
-  static const uint8_t DTC_MAX_CODES = 16;
-
-  const char* const RESPONSE_OK                = "OK";
-  const char* const RESPONSE_UNABLE_TO_CONNECT = "UNABLETOCONNECT";
-  const char* const RESPONSE_NO_DATA           = "NODATA";
-  const char* const RESPONSE_STOPPED           = "STOPPED";
-  const char* const RESPONSE_ERROR             = "ERROR";
-
-  // Non-blocking (NB) command states
-  typedef enum {
-    SEND_COMMAND,
-    WAITING_RESP,
-    RESPONSE_RECEIVED,
-    DECODED_OK,
-    ERROR
-  } obd_cmd_states;
-
-  // Pointers to existing response uint8_ts, to be used for new calculators
-  // without breaking backward compatability with code that may use the above
-  // response uint8_ts.
-
-  OBD2(IIsoTp& driver, uint16_t timeout = 1000);
-
-  uint64_t findResponse();
-  void queryPID(uint8_t service, uint16_t pid, uint8_t num_responses = 1);
-  double processPID(uint8_t service,
-                    uint16_t pid,
-                    uint8_t num_responses,
-                    uint8_t numExpecteduint8_ts,
-                    double scaleFactor = 1,
-                    double bias        = 0);
-  double conditionResponse(uint8_t numExpecteduint8_ts, double scaleFactor = 1, double bias = 0);
-  int8_t get_response();
-
-  // pid
-  uint32_t supportedPIDs_1_20();
-  uint32_t supportedPIDs_21_40();
-  uint32_t supportedPIDs_41_60();
-  uint32_t supportedPIDs_61_80();
-  bool isPidSupported(uint8_t pid);
-  std::function<double()> selectCalculator(uint16_t pid);
-
-  // 1 - 20
-  uint32_t monitorStatus();
-  uint16_t freezeDTC();
-  uint16_t fuelSystemStatus();
-  double engineLoad();
-  double engineCoolantTemp();
-  double shortTermFuelTrimBank_1();
-  double longTermFuelTrimBank_1();
-  double shortTermFuelTrimBank_2();
-  double longTermFuelTrimBank_2();
-  double fuelPressure();
-  uint8_t manifoldPressure();
-  double rpm();
-  int32_t kph();
-  double mph();
-  double timingAdvance();
-  double intakeAirTemp();
-  double mafRate();
-  double throttle();
-  uint8_t commandedSecAirStatus();
-  uint8_t oxygenSensorsPresent_2banks();
-  uint8_t obdStandards();
-  uint8_t oxygenSensorsPresent_4banks();
-  bool auxInputStatus();
-  uint16_t runTime();
-
-  // 21 - 40
-  uint16_t distTravelWithMIL();
-  double fuelRailPressure();
-  double fuelRailGuagePressure();
-  double commandedEGR();
-  double egrError();
-  double commandedEvapPurge();
-  double fuelLevel();
-  uint8_t warmUpsSinceCodesCleared();
-  uint16_t distSinceCodesCleared();
-  double evapSysVapPressure();
-  uint8_t absBaroPressure();
-  double catTempB1S1();
-  double catTempB2S1();
-  double catTempB1S2();
-  double catTempB2S2();
-
-  // 41 - 60
-  uint32_t monitorDriveCycleStatus();
-  double ctrlModVoltage();
-  double absLoad();
-  double commandedAirFuelRatio();
-  double relativeThrottle();
-  double ambientAirTemp();
-  double absThrottlePosB();
-  double absThrottlePosC();
-  double absThrottlePosD();
-  double absThrottlePosE();
-  double absThrottlePosF();
-  double commandedThrottleActuator();
-  uint16_t timeRunWithMIL();
-  uint16_t timeSinceCodesCleared();
-  double maxMafRate();
-  uint8_t fuelType();
-  double ethanolPercent();
-  double absEvapSysVapPressure();
-  double evapSysVapPressure2();
-  double absFuelRailPressure();
-  double relativePedalPos();
-  double hybridBatLife();
-  double oilTemp();
-  double fuelInjectTiming();
-  double fuelRate();
-  uint8_t emissionRqmts();
-
-  // 61 - 80
-  double demandedTorque();
-  double torque();
-  uint16_t referenceTorque();
-  uint16_t auxSupported();
-
- private:
-  struct dtcResponse {
-    uint8_t codesFound = 0;
-    char codes[DTC_MAX_CODES][DTC_CODE_LEN];
-  } DTC_Response;
-
-  void sendCommand(IsoTp::Message& cmd);
-  void formatQueryArray(uint8_t service, uint16_t pid, uint8_t num_responses);
-
-  uint8_t ctoi(uint8_t value);
-  int8_t nextIndex(char const* str, char const* target, uint8_t numOccur = 1);
-  void removeChar(char* from, const char* remove);
-
-  void printError();
   void log_print(const char* format, ...);
   void log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len);
-  bool timeout();
 
+  const uint16_t tx_id_;
+  const uint16_t rx_id_;
   IIsoTp& iso_tp_;
-
-  char payload[128];  // Буфер для приема данных
-  int8_t nb_rx_state = OBD_GETTING_MSG;
-  uint64_t response  = 0;
-  uint16_t recuint8_ts;
-  uint8_t numPayChars;
-  uint16_t timeout_ms;
-
-  uint8_t response_A;
-  uint8_t response_B;
-  uint8_t response_C;
-  uint8_t response_D;
-  uint8_t response_E;
-  uint8_t response_F;
-  uint8_t response_G;
-  uint8_t response_H;
-
-  char query[QUERY_LEN] = {'\0'};
-  bool longQuery        = false;
-  bool isMode0x22Query  = false;
-  uint32_t currentTime;
-  uint32_t previousTime;
-  obd_cmd_states nb_query_state = SEND_COMMAND;  // Non-blocking query state
 };

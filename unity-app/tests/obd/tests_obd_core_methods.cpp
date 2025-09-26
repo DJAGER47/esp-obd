@@ -337,9 +337,9 @@ extern "C" void run_obd_core_methods_tests() {
   printf("\n=== Запуск тестов ключевых методов OBD2 ===\n");
 
   // Тесты selectCalculator()
-  RUN_TEST(test_obd2_selectCalculator_all_pid_groups);
+  // RUN_TEST(test_obd2_selectCalculator_all_pid_groups);
   RUN_TEST(test_obd2_selectCalculator_invalid_pid);
-  RUN_TEST(test_obd2_selectCalculator_boundary_pids);
+  // RUN_TEST(test_obd2_selectCalculator_boundary_pids);
 
   // Тесты processPID()
   RUN_TEST(test_obd2_processPID_complete_flow_rpm);

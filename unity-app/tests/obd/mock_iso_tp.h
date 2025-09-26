@@ -91,13 +91,16 @@ inline IIsoTp::Message create_obd_response_2_bytes(
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
-  msg.len     = 5;
-  msg.data    = new uint8_t[5];
-  msg.data[0] = service + 0x40;
-  msg.data[1] = pid;
-  msg.data[2] = data_a;
-  msg.data[3] = data_b;
-  msg.data[4] = 0x00;
+  msg.len     = 8;
+  msg.data    = new uint8_t[8];
+  msg.data[0] = 4;
+  msg.data[1] = service + 0x40;
+  msg.data[2] = pid;
+  msg.data[3] = data_a;
+  msg.data[4] = data_b;
+  msg.data[5] = 0x00;
+  msg.data[6] = 0x00;
+  msg.data[7] = 0x00;
   return msg;
 }
 
