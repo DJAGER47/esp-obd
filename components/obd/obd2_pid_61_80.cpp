@@ -18,7 +18,7 @@ std::optional<int16_t> OBD2::demandedTorque() {
   if (processPID(SERVICE_01, DEMANDED_ENGINE_PERCENT_TORQUE, response)) {
     return {static_cast<int16_t>(response[A]) - 125.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -31,7 +31,7 @@ std::optional<int16_t> OBD2::torque() {
   if (processPID(SERVICE_01, ACTUAL_ENGINE_TORQUE, response)) {
     return {static_cast<int16_t>(response[A]) - 125.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -44,7 +44,7 @@ std::optional<uint16_t> OBD2::referenceTorque() {
   if (processPID(SERVICE_01, ENGINE_REFERENCE_TORQUE, response)) {
     return {(response[A] << 8) | response[B]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /*
@@ -61,5 +61,5 @@ std::optional<uint16_t> OBD2::auxSupported() {
   if (processPID(SERVICE_01, AUX_INPUT_OUTPUT_SUPPORTED, response)) {
     return {(response[A] << 8) | response[B]};
   }
-  return {};
+  return std::nullopt;
 }

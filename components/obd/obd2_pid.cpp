@@ -19,7 +19,7 @@ std::optional<uint32_t> OBD2::getSupportedPIDs(uint8_t pid) {
   if (processPID(SERVICE_01, pid, response)) {
     return {(response[A] << 24) | (response[B] << 16) | (response[C] << 8) | response[D]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**

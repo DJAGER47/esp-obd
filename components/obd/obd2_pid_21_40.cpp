@@ -19,7 +19,7 @@ std::optional<uint16_t> OBD2::distTravelWithMIL() {
   if (processPID(SERVICE_01, DISTANCE_TRAVELED_WITH_MIL_ON, response)) {
     return {(response[A] << 8) | response[B]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -32,7 +32,7 @@ std::optional<float> OBD2::fuelRailPressure() {
   if (processPID(SERVICE_01, FUEL_RAIL_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) * 0.079};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -45,7 +45,7 @@ std::optional<uint32_t> OBD2::fuelRailGuagePressure() {
   if (processPID(SERVICE_01, FUEL_RAIL_GUAGE_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) * 10};
   }
-  return {};
+  return std::nullopt;
 }
 
 /*
@@ -72,7 +72,7 @@ std::optional<float> OBD2::commandedEGR() {
   if (processPID(SERVICE_01, COMMANDED_EGR, response)) {
     return {response[A] * 100.0 / 255.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -85,7 +85,7 @@ std::optional<float> OBD2::egrError() {
   if (processPID(SERVICE_01, EGR_ERROR, response)) {
     return {(response[A] * 100.0 / 128.0) - 100.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -98,7 +98,7 @@ std::optional<float> OBD2::commandedEvapPurge() {
   if (processPID(SERVICE_01, COMMANDED_EVAPORATIVE_PURGE, response)) {
     return {response[A] * 100.0 / 255.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -111,7 +111,7 @@ std::optional<float> OBD2::fuelLevel() {
   if (processPID(SERVICE_01, FUEL_TANK_LEVEL_INPUT, response)) {
     return {response[A] * 100.0 / 255.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -124,7 +124,7 @@ std::optional<uint8_t> OBD2::warmUpsSinceCodesCleared() {
   if (processPID(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, response)) {
     return {response[A]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -137,7 +137,7 @@ std::optional<uint16_t> OBD2::distSinceCodesCleared() {
   if (processPID(SERVICE_01, DIST_TRAV_SINCE_CODES_CLEARED, response)) {
     return {(response[A] << 8) | response[B]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -150,7 +150,7 @@ std::optional<float> OBD2::evapSysVapPressure() {
   if (processPID(SERVICE_01, EVAP_SYSTEM_VAPOR_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) / 4.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -163,7 +163,7 @@ std::optional<uint8_t> OBD2::absBaroPressure() {
   if (processPID(SERVICE_01, ABS_BAROMETRIC_PRESSURE, response)) {
     return {response[A]};
   }
-  return {};
+  return std::nullopt;
 }
 
 /*
@@ -190,7 +190,7 @@ std::optional<float> OBD2::catTempB1S1() {
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_1, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -203,7 +203,7 @@ std::optional<float> OBD2::catTempB2S1() {
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -216,7 +216,7 @@ std::optional<float> OBD2::catTempB1S2() {
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
-  return {};
+  return std::nullopt;
 }
 
 /**
@@ -229,5 +229,5 @@ std::optional<float> OBD2::catTempB2S2() {
   if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
-  return {};
+  return std::nullopt;
 }
