@@ -32,7 +32,7 @@ extern "C" void app_main() {
   ESP_LOGI("APP", "Starting application");
 
   // Инициализация CAN драйвера
-  const auto err = can_driver.install_and_start();
+  const auto err = can_driver.InstallStart();
   if (err != IPhyInterface::TwaiError::OK) {
     ESP_LOGE(TAG, "Failed to install and start TWAI driver: %d", static_cast<int>(err));
     return;

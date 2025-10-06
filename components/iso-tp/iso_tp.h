@@ -81,7 +81,7 @@ class IsoTp : public IIsoTp {
   bool rcv_fc(Message_t &msg);
 
   IPhyInterface &_bus;
-  IPhyInterface::TwaiFrame rxFrame;
+  TwaiFrame rxFrame;
 
   uint8_t fc_wait_frames = 0;
   uint32_t wait_cf       = 0;

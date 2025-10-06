@@ -1,9 +1,11 @@
 #include "twai_driver.h"
 
+#include <string.h>
+
 #include "esp_log.h"
 #include "esp_twai_onchip.h"
 #include "portmacro.h"
-#include "string.h"
+#include "time.h"
 
 static const char* TAG = "TwaiDriver";
 
@@ -12,16 +14,16 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps
     rx_pin_(rx_pin),
     speed_kbps_(speed_kbps),
     node_handle_(nullptr),
-    tx_queue_(nullptr),
-    rx_queue_(nullptr) {}
+    tx_queue_(nullptr) {
+  subscribers_.fill(nullptr);
+}
 
-IPhyInterface::TwaiError TwaiDriver::install_and_start() {
+IPhyInterface::TwaiError TwaiDriver::InstallStart() {
   if (node_handle_ != nullptr) {
     ESP_LOGE(TAG, "Driver already installed");
     return IPhyInterface::TwaiError::ALREADY_INITIALIZED;
   }
 
-  // Создание конфигурации узла TWAI
   twai_onchip_node_config_t node_config = {
       .io_cfg =
           {
@@ -71,19 +73,9 @@ IPhyInterface::TwaiError TwaiDriver::install_and_start() {
   }
 
   // Создание очередей FreeRTOS
-  tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(IPhyInterface::TwaiFrame));
+  tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(TwaiFrame));
   if (tx_queue_ == nullptr) {
     ESP_LOGE(TAG, "Failed to create TX queue");
-    twai_node_delete(node_handle_);
-    node_handle_ = nullptr;
-    return IPhyInterface::TwaiError::GENERAL_FAILURE;
-  }
-
-  rx_queue_ = xQueueCreate(kRxQueueDepth, sizeof(IPhyInterface::TwaiFrame));
-  if (rx_queue_ == nullptr) {
-    ESP_LOGE(TAG, "Failed to create RX queue");
-    vQueueDelete(tx_queue_);
-    tx_queue_ = nullptr;
     twai_node_delete(node_handle_);
     node_handle_ = nullptr;
     return IPhyInterface::TwaiError::GENERAL_FAILURE;
@@ -93,8 +85,6 @@ IPhyInterface::TwaiError TwaiDriver::install_and_start() {
   err = twai_node_enable(node_handle_);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Failed to enable TWAI node: %s", esp_err_to_name(err));
-    vQueueDelete(rx_queue_);
-    rx_queue_ = nullptr;
     vQueueDelete(tx_queue_);
     tx_queue_ = nullptr;
     twai_node_delete(node_handle_);
@@ -123,46 +113,31 @@ bool TwaiDriver::RxCallback(twai_node_handle_t handle,
   if (driver && driver->node_handle_ == handle) {
     // Получение принятого фрейма
     twai_frame_t frame = {};
-    frame.buffer = static_cast<uint8_t*>(malloc(64));  // Выделяем буфер для данных
-    if (frame.buffer == nullptr) {
-      ESP_LOGE(TAG, "Failed to allocate buffer for received frame");
-      return false;
-    }
+    uint8_t data[64];
+    frame.buffer     = data;
     frame.buffer_len = 64;
 
     esp_err_t err = twai_node_receive_from_isr(handle, &frame);
     if (err == ESP_OK) {
-      // Преобразование в TwaiFrame
-      IPhyInterface::TwaiFrame received_frame = {};
-      received_frame.id                       = frame.header.id;
-      received_frame.is_extended              = frame.header.ide;
-      received_frame.is_rtr                   = frame.header.rtr;
-      received_frame.is_fd                    = frame.header.fdf;
-      received_frame.brs                      = frame.header.brs;
-      received_frame.data_length              = frame.header.dlc;
+      TwaiFrame received_frame   = {};
+      received_frame.id          = frame.header.id;
+      received_frame.is_extended = frame.header.ide;
+      received_frame.is_rtr      = frame.header.rtr;
+      received_frame.is_fd       = frame.header.fdf;
+      received_frame.brs         = frame.header.brs;
+      received_frame.data_length = frame.header.dlc;
       if (frame.header.dlc <= 64) {
         memcpy(received_frame.data, frame.buffer, frame.header.dlc);
       }
 
-      // Помещение фрейма в очередь приема
-      BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-      if (xQueueSendFromISR(driver->rx_queue_, &received_frame, &xHigherPriorityTaskWoken) !=
-          pdTRUE) {
-        ESP_LOGW(TAG, "RX queue is full, dropping frame");
-      }
-
-      free(frame.buffer);
-      return xHigherPriorityTaskWoken == pdTRUE;
-    } else {
-      ESP_LOGE(TAG, "Failed to receive frame from ISR: %s", esp_err_to_name(err));
-      free(frame.buffer);
+      driver->DispatchMessage(received_frame);
+      return true;
     }
   }
   return false;  // Не требуется переключение контекста
 }
 
-IPhyInterface::TwaiError TwaiDriver::transmit(const IPhyInterface::TwaiFrame& message,
-                                              TickType_t ticks_to_wait) {
+IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms timeout_ms) {
   if (node_handle_ == nullptr) {
     ESP_LOGE(TAG, "Driver not initialized");
     return IPhyInterface::TwaiError::NOT_INITIALIZED;
@@ -179,10 +154,6 @@ IPhyInterface::TwaiError TwaiDriver::transmit(const IPhyInterface::TwaiFrame& me
   frame.buffer = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
   frame.buffer_len = message.data_length;
 
-  // Преобразование ticks_to_wait в миллисекунды
-  int timeout_ms =
-      (ticks_to_wait == portMAX_DELAY) ? -1 : (int)(ticks_to_wait * portTICK_PERIOD_MS);
-
   esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
   if (err != ESP_OK) {
     ESP_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
@@ -195,17 +166,33 @@ IPhyInterface::TwaiError TwaiDriver::transmit(const IPhyInterface::TwaiFrame& me
   return IPhyInterface::TwaiError::OK;
 }
 
-IPhyInterface::TwaiError TwaiDriver::receive(IPhyInterface::TwaiFrame& message,
-                                             TickType_t ticks_to_wait) {
-  if (node_handle_ == nullptr) {
-    ESP_LOGE(TAG, "Driver not initialized");
-    return IPhyInterface::TwaiError::NOT_INITIALIZED;
+IPhyInterface::TwaiError TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
+  bool has_free_slot = false;
+  for (size_t i = 0; i < subscribers_.size(); ++i) {
+    if (subscribers_[i] == nullptr) {
+      subscribers_[i] = &subscriber;
+      has_free_slot   = true;
+      break;
+    }
   }
 
-  // Получение фрейма из очереди приема
-  if (xQueueReceive(rx_queue_, &message, ticks_to_wait) != pdTRUE) {
-    return IPhyInterface::TwaiError::TIMEOUT;
+  if (!has_free_slot) {
+    ESP_LOGE(TAG, "Failed to register subscriber: maximum number of subscribers (max) reached");
+    return IPhyInterface::TwaiError::NO_MEM;
   }
-
   return IPhyInterface::TwaiError::OK;
+}
+
+void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
+  for (size_t i = 0; i < subscribers_.size() && subscribers_[i] != nullptr; ++i) {
+    ITwaiSubscriber* subscriber = subscribers_[i];
+    if (subscriber != nullptr) {
+      if (subscriber->isInterested(message)) {
+        bool handled = subscriber->onTwaiMessage(message);
+        if (!handled) {
+          ESP_LOGW(TAG, "Subscriber failed to handle message");
+        }
+      }
+    }
+  }
 }

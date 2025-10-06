@@ -54,13 +54,11 @@ class MockTwaiInterface : public IPhyInterface {
 // Вспомогательные функции для создания различных типов кадров
 
 // Создание одиночного кадра (Single Frame)
-inline IPhyInterface::TwaiFrame create_single_frame(uint32_t id,
-                                                    uint8_t length,
-                                                    const uint8_t* data) {
-  IPhyInterface::TwaiFrame frame = {};
-  frame.id                       = id;
-  frame.data_length              = 8;
-  frame.data[0]                  = length;  // SF PCI
+inline TwaiFrame create_single_frame(uint32_t id, uint8_t length, const uint8_t* data) {
+  TwaiFrame frame   = {};
+  frame.id          = id;
+  frame.data_length = 8;
+  frame.data[0]     = length;  // SF PCI
   if (data && length <= 7) {
     memcpy(&frame.data[1], data, length);
   }
@@ -68,14 +66,12 @@ inline IPhyInterface::TwaiFrame create_single_frame(uint32_t id,
 }
 
 // Создание первого кадра (First Frame)
-inline IPhyInterface::TwaiFrame create_first_frame(uint32_t id,
-                                                   uint16_t total_length,
-                                                   const uint8_t* data) {
-  IPhyInterface::TwaiFrame frame = {};
-  frame.id                       = id;
-  frame.data_length              = 8;
-  frame.data[0]                  = 0x10 | ((total_length >> 8) & 0x0F);  // FF PCI
-  frame.data[1]                  = total_length & 0xFF;
+inline TwaiFrame create_first_frame(uint32_t id, uint16_t total_length, const uint8_t* data) {
+  TwaiFrame frame   = {};
+  frame.id          = id;
+  frame.data_length = 8;
+  frame.data[0]     = 0x10 | ((total_length >> 8) & 0x0F);  // FF PCI
+  frame.data[1]     = total_length & 0xFF;
   if (data) {
     memcpy(&frame.data[2], data, 6);  // Первые 6 байт данных
   }
@@ -83,14 +79,14 @@ inline IPhyInterface::TwaiFrame create_first_frame(uint32_t id,
 }
 
 // Создание последовательного кадра (Consecutive Frame)
-inline IPhyInterface::TwaiFrame create_consecutive_frame(uint32_t id,
-                                                         uint8_t seq_num,
-                                                         const uint8_t* data,
-                                                         uint8_t length) {
-  IPhyInterface::TwaiFrame frame = {};
-  frame.id                       = id;
-  frame.data_length              = 8;
-  frame.data[0]                  = 0x20 | (seq_num & 0x0F);  // CF PCI
+inline TwaiFrame create_consecutive_frame(uint32_t id,
+                                          uint8_t seq_num,
+                                          const uint8_t* data,
+                                          uint8_t length) {
+  TwaiFrame frame   = {};
+  frame.id          = id;
+  frame.data_length = 8;
+  frame.data[0]     = 0x20 | (seq_num & 0x0F);  // CF PCI
   if (data && length <= 7) {
     memcpy(&frame.data[1], data, length);
   }
@@ -98,15 +94,15 @@ inline IPhyInterface::TwaiFrame create_consecutive_frame(uint32_t id,
 }
 
 // Создание кадра управления потоком (Flow Control)
-inline IPhyInterface::TwaiFrame create_flow_control_frame(uint32_t id,
-                                                          uint8_t flow_status,
-                                                          uint8_t block_size,
-                                                          uint8_t sep_time) {
-  IPhyInterface::TwaiFrame frame = {};
-  frame.id                       = id;
-  frame.data_length              = 8;
-  frame.data[0]                  = 0x30 | (flow_status & 0x0F);  // FC PCI
-  frame.data[1]                  = block_size;
-  frame.data[2]                  = sep_time;
+inline TwaiFrame create_flow_control_frame(uint32_t id,
+                                           uint8_t flow_status,
+                                           uint8_t block_size,
+                                           uint8_t sep_time) {
+  TwaiFrame frame   = {};
+  frame.id          = id;
+  frame.data_length = 8;
+  frame.data[0]     = 0x30 | (flow_status & 0x0F);  // FC PCI
+  frame.data[1]     = block_size;
+  frame.data[2]     = sep_time;
   return frame;
 }

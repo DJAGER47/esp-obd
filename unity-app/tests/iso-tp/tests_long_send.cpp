@@ -43,7 +43,7 @@ void test_iso_tp_send_multi_frame_8_bytes() {
   msg.data  = test_data;
 
   // Настраиваем Flow Control CTS
-  IPhyInterface::TwaiFrame fc_frame = create_flow_control_frame(0x7E8, 0, 0, 0);
+  TwaiFrame fc_frame = create_flow_control_frame(0x7E8, 0, 0, 0);
   mock_can.add_receive_frame(fc_frame);
 
   bool result = iso_tp.send(msg);
@@ -84,7 +84,7 @@ void test_iso_tp_send_multi_frame_15_bytes() {
   msg.data  = test_data;
 
   // Настраиваем Flow Control CTS
-  IPhyInterface::TwaiFrame fc_frame = create_flow_control_frame(0x456, 0, 0, 0);
+  TwaiFrame fc_frame = create_flow_control_frame(0x456, 0, 0, 0);
   mock_can.add_receive_frame(fc_frame);
 
   bool result = iso_tp.send(msg);
@@ -120,8 +120,8 @@ void test_iso_tp_send_flow_control_wait() {
   msg.data  = test_data;
 
   // Сначала WAIT, потом CTS
-  IPhyInterface::TwaiFrame fc_wait = create_flow_control_frame(0x7E8, 1, 0, 0);  // WAIT
-  IPhyInterface::TwaiFrame fc_cts  = create_flow_control_frame(0x7E8, 0, 0, 0);  // CTS
+  TwaiFrame fc_wait = create_flow_control_frame(0x7E8, 1, 0, 0);  // WAIT
+  TwaiFrame fc_cts  = create_flow_control_frame(0x7E8, 0, 0, 0);  // CTS
   mock_can.add_receive_frame(fc_wait);
   mock_can.add_receive_frame(fc_cts);
 
@@ -145,7 +145,7 @@ void test_iso_tp_send_flow_control_overflow() {
   msg.data  = test_data;
 
   // Отправляем OVERFLOW
-  IPhyInterface::TwaiFrame fc_overflow = create_flow_control_frame(0x7E8, 2, 0, 0);  // OVERFLOW
+  TwaiFrame fc_overflow = create_flow_control_frame(0x7E8, 2, 0, 0);  // OVERFLOW
   mock_can.add_receive_frame(fc_overflow);
 
   bool result = iso_tp.send(msg);
@@ -172,7 +172,7 @@ void test_iso_tp_send_block_size_2() {
   msg.data  = test_data;
 
   // FC с блочным размером 2 (второй FC не нужен, так как все данные передаются в первом блоке)
-  IPhyInterface::TwaiFrame fc1 = create_flow_control_frame(0x200, 0, 2, 0);  // Block size = 2
+  TwaiFrame fc1 = create_flow_control_frame(0x200, 0, 2, 0);  // Block size = 2
   mock_can.add_receive_frame(fc1);
 
   bool result = iso_tp.send(msg);
@@ -192,10 +192,10 @@ void test_iso_tp_receive_multi_frame() {
       0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC};
 
   // Создаем First Frame
-  IPhyInterface::TwaiFrame ff_frame = create_first_frame(0x7E8, 12, expected_data);
+  TwaiFrame ff_frame = create_first_frame(0x7E8, 12, expected_data);
 
   // Создаем Consecutive Frames
-  IPhyInterface::TwaiFrame cf1_frame = create_consecutive_frame(0x7E8, 1, &expected_data[6], 6);
+  TwaiFrame cf1_frame = create_consecutive_frame(0x7E8, 1, &expected_data[6], 6);
 
   mock_can.add_receive_frame(ff_frame);
   mock_can.add_receive_frame(cf1_frame);
@@ -235,10 +235,10 @@ void test_iso_tp_receive_wrong_sequence() {
   }
 
   // Создаем First Frame
-  IPhyInterface::TwaiFrame ff_frame = create_first_frame(0x7E8, 15, test_data);
+  TwaiFrame ff_frame = create_first_frame(0x7E8, 15, test_data);
 
   // Создаем CF с неправильной последовательностью (3 вместо 1)
-  IPhyInterface::TwaiFrame cf_wrong = create_consecutive_frame(0x7E8, 3, &test_data[6], 7);
+  TwaiFrame cf_wrong = create_consecutive_frame(0x7E8, 3, &test_data[6], 7);
 
   mock_can.add_receive_frame(ff_frame);
   mock_can.add_receive_frame(cf_wrong);
@@ -275,7 +275,7 @@ void test_iso_tp_send_max_length() {
 
   // Добавляем много FC кадров для поддержки длинной передачи
   for (int i = 0; i < 600; i++) {
-    IPhyInterface::TwaiFrame fc_frame = create_flow_control_frame(0x456, 0, 0, 0);
+    TwaiFrame fc_frame = create_flow_control_frame(0x456, 0, 0, 0);
     mock_can.add_receive_frame(fc_frame);
   }
 
@@ -309,7 +309,7 @@ void test_iso_tp_send_with_separation_time() {
   msg.data  = test_data;
 
   // FC с временем разделения 10ms
-  IPhyInterface::TwaiFrame fc_frame = create_flow_control_frame(0x7E8, 0, 0, 10);
+  TwaiFrame fc_frame = create_flow_control_frame(0x7E8, 0, 0, 10);
   mock_can.add_receive_frame(fc_frame);
 
   bool result = iso_tp.send(msg);
@@ -337,7 +337,7 @@ void test_iso_tp_multi_frame_pci_validation() {
 
   // Добавляем FC кадры
   for (int i = 0; i < 10; i++) {
-    IPhyInterface::TwaiFrame fc_frame = create_flow_control_frame(0x200, 0, 0, 0);
+    TwaiFrame fc_frame = create_flow_control_frame(0x200, 0, 0, 0);
     mock_can.add_receive_frame(fc_frame);
   }
 

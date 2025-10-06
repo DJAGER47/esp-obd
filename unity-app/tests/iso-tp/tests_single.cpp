@@ -159,8 +159,8 @@ void test_iso_tp_receive_single_frame() {
   mock_can.reset();
   IsoTp iso_tp(mock_can);
 
-  uint8_t expected_data[]           = {0xAA, 0xBB, 0xCC, 0xDD};
-  IPhyInterface::TwaiFrame sf_frame = create_single_frame(0x7E8, 4, expected_data);
+  uint8_t expected_data[] = {0xAA, 0xBB, 0xCC, 0xDD};
+  TwaiFrame sf_frame      = create_single_frame(0x7E8, 4, expected_data);
   mock_can.add_receive_frame(sf_frame);
 
   uint8_t receive_buffer[128];
@@ -183,8 +183,8 @@ void test_iso_tp_receive_single_frame_max() {
   mock_can.reset();
   IsoTp iso_tp(mock_can);
 
-  uint8_t expected_data[]           = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
-  IPhyInterface::TwaiFrame sf_frame = create_single_frame(0x456, 7, expected_data);
+  uint8_t expected_data[] = {0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77};
+  TwaiFrame sf_frame      = create_single_frame(0x456, 7, expected_data);
   mock_can.add_receive_frame(sf_frame);
 
   uint8_t receive_buffer[128];
@@ -207,7 +207,7 @@ void test_iso_tp_receive_empty_frame() {
   mock_can.reset();
   IsoTp iso_tp(mock_can);
 
-  IPhyInterface::TwaiFrame sf_frame = create_single_frame(0x789, 0, nullptr);
+  TwaiFrame sf_frame = create_single_frame(0x789, 0, nullptr);
   mock_can.add_receive_frame(sf_frame);
 
   uint8_t receive_buffer[128];

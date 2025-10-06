@@ -84,7 +84,7 @@ IsoTp::IsoTp(IPhyInterface& bus) :
 
 void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print_buffer(id, data, len);
-  IPhyInterface::TwaiFrame message;
+  TwaiFrame message;
   message.id          = id;
   message.is_extended = false;  // Standard frame
   message.is_rtr      = false;
@@ -94,7 +94,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   if (len <= 8) {  // Проверка на максимальный размер данных для классического CAN
     memcpy(message.data, data, len);
   }
-  _bus.transmit(message, 0);
+  _bus.Transmit(message, 0);
 }
 
 bool IsoTp::can_receive() {
