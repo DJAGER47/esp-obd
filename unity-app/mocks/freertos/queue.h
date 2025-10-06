@@ -8,11 +8,6 @@
 #include "phy_interface.h"
 #include "task.h"
 
-// Типы данных FreeRTOS
-using BaseType_t    = int32_t;
-using UBaseType_t   = uint32_t;
-using QueueHandle_t = void*;
-
 // Структура для хранения элемента очереди
 struct QueueItem {
   uint8_t data[64];  // Буфер для данных
