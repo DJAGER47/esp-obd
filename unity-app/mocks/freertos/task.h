@@ -7,6 +7,11 @@
 // Заменяем TickType_t на uint32_t
 typedef uint32_t TickType_t;
 
+// Константы FreeRTOS
+constexpr BaseType_t pdTRUE        = 1;
+constexpr BaseType_t pdFALSE       = 0;
+constexpr TickType_t portMAX_DELAY = 0xFFFFFFFF;
+
 // Заменяем portTICK_PERIOD_MS на 1 (1 тик = 1 мс)
 #define portTICK_PERIOD_MS 1
 

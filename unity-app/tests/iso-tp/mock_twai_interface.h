@@ -8,24 +8,18 @@
 // Мок-класс для IPhyInterface для тестирования ISO-TP протокола
 class MockTwaiInterface : public IPhyInterface {
  public:
-  TwaiError install_and_start() override {
+  TwaiError InstallStart() override {
     return TwaiError::OK;
   }
 
-  TwaiError transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
+  TwaiError Transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
     transmitted_frames.push_back(message);
     transmit_called = true;
     return transmit_result;
   }
 
-  TwaiError receive(TwaiFrame& message, uint32_t ticks_to_wait) override {
-    receive_called = true;
-    if (!receive_frames.empty()) {
-      message = receive_frames.front();
-      receive_frames.pop();
-      return TwaiError::OK;
-    }
-    return TwaiError::TIMEOUT;
+  TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber) override {
+    return TwaiError::OK;
   }
 
   // Методы для управления состоянием мока

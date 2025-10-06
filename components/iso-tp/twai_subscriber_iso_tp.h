@@ -25,5 +25,5 @@ class TwaiSubscriberIsoTp final : public ITwaiSubscriber {
   bool Receive(TwaiFrame& frame, TickType_t timeout_ms);
 
  private:
-  QueueHandle_t xQueue_;  ///< Очередь сообщений
+  QueueHandle_t xQueue_;
 };
