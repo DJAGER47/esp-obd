@@ -5,6 +5,7 @@
 
 #include "iso_tp_interface.h"
 #include "phy_interface.h"
+#include "twai_subscriber_iso_tp.h"
 
 class IsoTp : public IIsoTp {
   // Single Frame       = SF
@@ -81,6 +82,7 @@ class IsoTp : public IIsoTp {
   bool rcv_fc(Message_t &msg);
 
   IPhyInterface &_bus;
+  TwaiSubscriberIsoTp _subscriber;
   TwaiFrame rxFrame;
 
   uint8_t fc_wait_frames = 0;

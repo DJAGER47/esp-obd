@@ -7,6 +7,7 @@
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "twai_subscriber_iso_tp.h"
 
 static uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
@@ -80,7 +81,9 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
 }
 
 IsoTp::IsoTp(IPhyInterface& bus) :
-    _bus(bus) {}
+    _bus(bus) {
+  bus.RegisterSubscriber(_subscriber);
+}
 
 void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print_buffer(id, data, len);
@@ -98,7 +101,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
 }
 
 bool IsoTp::can_receive() {
-  if (_bus.receive(rxFrame, 0) == IPhyInterface::TwaiError::OK) {
+  if (_subscriber.Receive(rxFrame, 0)) {
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
     return true;
   }

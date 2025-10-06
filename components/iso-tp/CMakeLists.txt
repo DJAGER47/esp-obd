@@ -1,5 +1,6 @@
 idf_component_register(SRCS "iso_tp.cpp"
-                       REQUIRES phy_interface 
+                            "twai_subscriber_iso_tp.cpp"
+                       REQUIRES phy_interface
                                 freertos
                                 driver
                        INCLUDE_DIRS ".")
