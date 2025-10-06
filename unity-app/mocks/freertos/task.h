@@ -1,11 +1,14 @@
 #pragma once
 
 #include <chrono>
-#include <cstring>
+#include <cstdint>
 #include <thread>
 
-// Заменяем TickType_t на uint32_t
-typedef uint32_t TickType_t;
+// Типы данных FreeRTOS
+using TickType_t    = uint32_t;
+using BaseType_t    = int32_t;
+using UBaseType_t   = uint32_t;
+using QueueHandle_t = void*;
 
 // Константы FreeRTOS
 constexpr BaseType_t pdTRUE        = 1;
