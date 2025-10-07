@@ -19,27 +19,31 @@ class MockTwaiInterface : public IPhyInterface {
   }
 
   TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber) override {
+    subscribers.push_back(&subscriber);
     return TwaiError::OK;
   }
 
   // Методы для управления состоянием мока
   void reset() {
     transmitted_frames.clear();
-    while (!receive_frames.empty()) {
-      receive_frames.pop();
-    }
+    subscribers.clear();
     transmit_called = false;
     receive_called  = false;
     transmit_result = TwaiError::OK;
   }
 
   void add_receive_frame(const TwaiFrame& frame) {
-    receive_frames.push(frame);
+    // Передаем фрейм всем подписчикам
+    for (auto subscriber : subscribers) {
+      if (subscriber->isInterested(frame)) {
+        subscriber->onTwaiMessage(frame);
+      }
+    }
   }
 
   // Публичные поля для проверки в тестах
   std::vector<TwaiFrame> transmitted_frames;
-  std::queue<TwaiFrame> receive_frames;
+  std::vector<ITwaiSubscriber*> subscribers;
   bool transmit_called      = false;
   bool receive_called       = false;
   TwaiError transmit_result = TwaiError::OK;

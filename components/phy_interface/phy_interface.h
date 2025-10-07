@@ -48,14 +48,10 @@ class IPhyInterface {
  public:
   enum class TwaiError : uint32_t {
     OK = 0,
-    GENERAL_FAILURE,
     INVALID_STATE,
     NOT_INITIALIZED,
-    ALREADY_INITIALIZED,
     TRANSMIT_FAILED,
     RECEIVE_FAILED,
-    DRIVER_INSTALL_FAILED,
-    DRIVER_START_FAILED,
     DRIVER_STOP_FAILED,
     DRIVER_UNINSTALL_FAILED,
     INVALID_MESSAGE,
@@ -65,9 +61,8 @@ class IPhyInterface {
 
   /**
    * @brief Установка и запуск TWAI драйвера
-   * @return TwaiError::OK при успешном выполнении
    */
-  virtual TwaiError InstallStart() = 0;
+  virtual void InstallStart() = 0;
 
   /**
    * @brief Передача CAN сообщения

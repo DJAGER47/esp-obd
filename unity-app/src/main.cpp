@@ -32,10 +32,9 @@ int main() {
 
   // run_iso_tp_tests();
   // run_iso_tp_extended_tests();
-  // run_iso_tp_edge_case_tests();
+  run_iso_tp_edge_case_tests();
 
-  printf("\n=== Запуск тестов TwaiSubscriberIsoTp ===\n");
-  run_twai_subscriber_iso_tp_tests();
+  // run_twai_subscriber_iso_tp_tests();
 
   // Отключаем тесты OBD2, так как они не работают с текущей версией кода
   // printf("\n=== Запуск тестов OBD2 ===\n");

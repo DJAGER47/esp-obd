@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "esp_log.h"
+#include "esp_rom_sys.h"
+#include "esp_system.h"
 #include "esp_twai_onchip.h"
 #include "portmacro.h"
 #include "time.h"
@@ -14,16 +16,12 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps
     rx_pin_(rx_pin),
     speed_kbps_(speed_kbps),
     node_handle_(nullptr),
-    tx_queue_(nullptr) {
+    tx_queue_(nullptr),
+    is_transmitting_(false) {
   subscribers_.fill(nullptr);
 }
 
-IPhyInterface::TwaiError TwaiDriver::InstallStart() {
-  if (node_handle_ != nullptr) {
-    ESP_LOGE(TAG, "Driver already installed");
-    return IPhyInterface::TwaiError::ALREADY_INITIALIZED;
-  }
-
+void TwaiDriver::InstallStart() {
   twai_onchip_node_config_t node_config = {
       .io_cfg =
           {
@@ -53,8 +51,9 @@ IPhyInterface::TwaiError TwaiDriver::InstallStart() {
   // Создание узла TWAI
   esp_err_t err = twai_new_node_onchip(&node_config, &node_handle_);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to create TWAI node: %s", esp_err_to_name(err));
-    return IPhyInterface::TwaiError::DRIVER_INSTALL_FAILED;
+    ESP_LOGI(TAG, "TWAI initialization failed. Restarting in 5 seconds...");
+    esp_rom_delay_us(5000000);
+    esp_restart();
   }
 
   // Регистрация обратных вызовов
@@ -66,43 +65,70 @@ IPhyInterface::TwaiError TwaiDriver::InstallStart() {
   };
   err = twai_node_register_event_callbacks(node_handle_, &callbacks, this);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to register callbacks: %s", esp_err_to_name(err));
-    twai_node_delete(node_handle_);
-    node_handle_ = nullptr;
-    return IPhyInterface::TwaiError::GENERAL_FAILURE;
+    ESP_LOGI(TAG, "TWAI callback registration failed. Restarting in 5 seconds...");
+    esp_rom_delay_us(5000000);
+    esp_restart();
   }
 
   // Создание очередей FreeRTOS
   tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(TwaiFrame));
   if (tx_queue_ == nullptr) {
-    ESP_LOGE(TAG, "Failed to create TX queue");
-    twai_node_delete(node_handle_);
-    node_handle_ = nullptr;
-    return IPhyInterface::TwaiError::GENERAL_FAILURE;
+    ESP_LOGI(TAG, "Failed to create TX queue. Restarting in 5 seconds...");
+    esp_rom_delay_us(5000000);
+    esp_restart();
   }
 
   // Включение узла
   err = twai_node_enable(node_handle_);
   if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to enable TWAI node: %s", esp_err_to_name(err));
-    vQueueDelete(tx_queue_);
-    tx_queue_ = nullptr;
-    twai_node_delete(node_handle_);
-    node_handle_ = nullptr;
-    return IPhyInterface::TwaiError::DRIVER_START_FAILED;
+    ESP_LOGI(TAG, "Failed to enable TWAI node. Restarting in 5 seconds...");
+    esp_rom_delay_us(5000000);
+    esp_restart();
   }
 
   ESP_LOGI(TAG, "TWAI driver installed and started successfully");
-  return IPhyInterface::TwaiError::OK;
 }
 
 // Статическая функция обратного вызова для передачи
 bool TwaiDriver::TxCallback(twai_node_handle_t handle,
                             const twai_tx_done_event_data_t* edata,
                             void* user_ctx) {
-  // В этой реализации мы не делаем ничего специфического при завершении передачи.
-  // Освобождение ресурсов и управление очередью происходит в основном коде.
-  return false;  // Не требуется переключение контекста
+  TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
+  if (driver && driver->node_handle_ == handle) {
+    // Проверяем, есть ли сообщения в очереди
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    TwaiFrame next_frame;
+
+    if (xQueueReceiveFromISR(driver->tx_queue_, &next_frame, &xHigherPriorityTaskWoken) == pdTRUE) {
+      // Есть сообщение в очереди, отправляем его
+      twai_frame_t frame = {};
+      frame.header.id    = next_frame.id;
+      frame.header.ide   = next_frame.is_extended;
+      frame.header.rtr   = next_frame.is_rtr;
+      frame.header.fdf   = next_frame.is_fd;
+      frame.header.brs   = next_frame.brs;
+      frame.header.dlc   = next_frame.data_length;
+      frame.buffer       = const_cast<uint8_t*>(next_frame.data);
+      frame.buffer_len   = next_frame.data_length;
+
+      // Используем нулевой таймаут, чтобы не блокироваться в прерывании
+      esp_err_t err = twai_node_transmit(handle, &frame, 0);
+      if (err != ESP_OK) {
+        // Ошибка при отправке, возвращаем сообщение в начало очереди
+        xQueueSendToFrontFromISR(driver->tx_queue_, &next_frame, &xHigherPriorityTaskWoken);
+        // Сбрасываем флаг передачи
+        driver->is_transmitting_ = false;
+      }
+      // Если отправка успешна, флаг is_transmitting_ остается true
+    } else {
+      // Очередь пуста, сбрасываем флаг передачи
+      driver->is_transmitting_ = false;
+    }
+
+    // Возвращаем true, если нужно переключение контекста
+    return xHigherPriorityTaskWoken == pdTRUE;
+  }
+  return false;
 }
 
 // Статическая функция обратного вызова для приема
@@ -143,24 +169,72 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
     return IPhyInterface::TwaiError::NOT_INITIALIZED;
   }
 
-  // Преобразование в twai_frame_t
-  twai_frame_t frame = {};
-  frame.header.id    = message.id;
-  frame.header.ide   = message.is_extended;
-  frame.header.rtr   = message.is_rtr;
-  frame.header.fdf   = message.is_fd;
-  frame.header.brs   = message.brs;
-  frame.header.dlc   = message.data_length;
-  frame.buffer = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
-  frame.buffer_len = message.data_length;
+  // Проверяем, идет ли передача и пуста ли очередь
+  UBaseType_t messages_waiting = uxQueueMessagesWaiting(tx_queue_);
 
-  esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
-  if (err != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
-    if (err == ESP_ERR_TIMEOUT) {
+  if (!is_transmitting_ && messages_waiting == 0) {
+    // Передача не идет и очередь пуста, отправляем пакет напрямую
+
+    // Преобразование в twai_frame_t
+    twai_frame_t frame = {};
+    frame.header.id    = message.id;
+    frame.header.ide   = message.is_extended;
+    frame.header.rtr   = message.is_rtr;
+    frame.header.fdf   = message.is_fd;
+    frame.header.brs   = message.brs;
+    frame.header.dlc   = message.data_length;
+    frame.buffer = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
+    frame.buffer_len = message.data_length;
+
+    esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
+    if (err != ESP_OK) {
+      ESP_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
+      if (err == ESP_ERR_TIMEOUT) {
+        return IPhyInterface::TwaiError::TIMEOUT;
+      }
+      return IPhyInterface::TwaiError::TRANSMIT_FAILED;
+    }
+
+    // Устанавливаем флаг, что передача идет
+    is_transmitting_ = true;
+  } else {
+    // Передача идет или очередь не пуста, добавляем пакет в очередь
+    if (xQueueSend(tx_queue_, &message, pdMS_TO_TICKS(timeout_ms)) != pdTRUE) {
+      ESP_LOGE(TAG, "Failed to add frame to TX queue: queue full or timeout");
       return IPhyInterface::TwaiError::TIMEOUT;
     }
-    return IPhyInterface::TwaiError::TRANSMIT_FAILED;
+
+    // Если передача не идет, но в очереди есть сообщения (первое сообщение в очереди),
+    // запускаем передачу
+    if (!is_transmitting_ && messages_waiting > 0) {
+      TwaiFrame next_frame;
+      if (xQueueReceive(tx_queue_, &next_frame, 0) == pdTRUE) {
+        // Преобразование в twai_frame_t
+        twai_frame_t frame = {};
+        frame.header.id    = next_frame.id;
+        frame.header.ide   = next_frame.is_extended;
+        frame.header.rtr   = next_frame.is_rtr;
+        frame.header.fdf   = next_frame.is_fd;
+        frame.header.brs   = next_frame.brs;
+        frame.header.dlc   = next_frame.data_length;
+        frame.buffer       = const_cast<uint8_t*>(next_frame.data);
+        frame.buffer_len   = next_frame.data_length;
+
+        esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
+        if (err != ESP_OK) {
+          ESP_LOGE(TAG, "Failed to transmit frame from queue: %s", esp_err_to_name(err));
+          // Возвращаем сообщение в начало очереди
+          xQueueSendToFront(tx_queue_, &next_frame, 0);
+          if (err == ESP_ERR_TIMEOUT) {
+            return IPhyInterface::TwaiError::TIMEOUT;
+          }
+          return IPhyInterface::TwaiError::TRANSMIT_FAILED;
+        }
+
+        // Устанавливаем флаг, что передача идет
+        is_transmitting_ = true;
+      }
+    }
   }
 
   return IPhyInterface::TwaiError::OK;

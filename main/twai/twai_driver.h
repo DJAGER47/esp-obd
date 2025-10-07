@@ -12,7 +12,7 @@
 class TwaiDriver final : public IPhyInterface {
  public:
   TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps);
-  TwaiError InstallStart() override;
+  void InstallStart() override;
   TwaiError Transmit(const TwaiFrame& message, Time_ms timeout_ms) override;
   TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber);
 
@@ -35,4 +35,5 @@ class TwaiDriver final : public IPhyInterface {
   twai_node_handle_t node_handle_;
   QueueHandle_t tx_queue_;
   std::array<ITwaiSubscriber*, kMaxSubscribers> subscribers_;
+  volatile bool is_transmitting_;  // Флаг, указывающий, идет ли передача в данный момент
 };

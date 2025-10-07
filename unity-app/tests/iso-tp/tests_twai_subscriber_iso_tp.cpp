@@ -118,6 +118,7 @@ void test_twai_subscriber_iso_tp_queue_overflow() {
 
 // Функция запуска всех тестов
 extern "C" void run_twai_subscriber_iso_tp_tests() {
+  printf("\n=== Запуск тестов TwaiSubscriberIsoTp ===\n");
   RUN_TEST(test_twai_subscriber_iso_tp_is_interested);
   RUN_TEST(test_twai_subscriber_iso_tp_on_twai_message);
   RUN_TEST(test_twai_subscriber_iso_tp_receive_timeout);

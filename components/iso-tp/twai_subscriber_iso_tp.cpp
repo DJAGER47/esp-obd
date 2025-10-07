@@ -9,8 +9,6 @@ TwaiSubscriberIsoTp::TwaiSubscriberIsoTp(uint32_t queue_size) {
   xQueue_ = xQueueCreate(queue_size, sizeof(TwaiFrame));
   if (xQueue_ == nullptr) {
     ESP_LOGE(TAG, "Failed to create queue");
-  } else {
-    ESP_LOGI(TAG, "Queue created with size %u", queue_size);
   }
 }
 
