@@ -2,7 +2,7 @@
   "C_Cpp.intelliSenseEngine": "default",
   "idf.espIdfPath": "/home/plavrovskiy/esp/v5.5.1/esp-idf",
   "idf.toolsPath": "/home/plavrovskiy/.espressif",
-  "idf.pythonInstallPath": "/usr/bin/python",
+  "idf.pythonInstallPath": "/usr/bin/python3",
   "idf.openOcdConfigs": [
     "board/esp32c3-builtin.cfg"
   ],

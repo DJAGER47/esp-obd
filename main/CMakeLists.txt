@@ -10,7 +10,8 @@ idf_component_register(SRCS "main.cpp"
                                 phy_interface
                                 iso-tp
                                 obd
-                                lib)
+                                lib
+                                display)
 
 ##################################################################
 # Clang-tidy
