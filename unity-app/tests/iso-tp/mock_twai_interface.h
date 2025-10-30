@@ -8,9 +8,7 @@
 // Мок-класс для IPhyInterface для тестирования ISO-TP протокола
 class MockTwaiInterface : public IPhyInterface {
  public:
-  TwaiError InstallStart() override {
-    return TwaiError::OK;
-  }
+  void InstallStart() override {}
 
   TwaiError Transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
     transmitted_frames.push_back(message);
