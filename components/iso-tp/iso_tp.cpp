@@ -14,7 +14,7 @@ static uint32_t millis() {
 }
 
 static const char* const TAG   = "ISO_TP";
-static const bool ISO_TP_DEBUG = false;
+static const bool ISO_TP_DEBUG = true;
 
 const char* IsoTp::isotp_state_to_string(isotp_states_t state) {
   switch (state) {
@@ -101,7 +101,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
 }
 
 bool IsoTp::can_receive() {
-  if (_subscriber.Receive(rxFrame, 0)) {
+  if (_subscriber.Receive(rxFrame, 1)) {
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
     return true;
   }
