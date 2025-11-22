@@ -32,13 +32,30 @@ class UI final {
   esp_err_t init();
 
   // Управление экранами
-  void switch_screen(int gpio_state);
-
-  // Обновление данных
+  void switch_screen(int num_screen);
+  void update_screen0();
   void update_screen1();
-  void update_screen2();
 
  private:
+  struct Screen1Elements {
+    lv_obj_t *screen{nullptr};
+    lv_obj_t *border1{nullptr};
+    lv_obj_t *border2{nullptr};
+    lv_obj_t *border3{nullptr};
+    lv_obj_t *time_container{nullptr};
+    lv_obj_t *time_label{nullptr};
+    uint32_t start_time{0};
+  };
+
+  struct Screen2Elements {
+    lv_obj_t *screen{nullptr};
+    lv_obj_t *bg{nullptr};
+    lv_obj_t *title{nullptr};
+    lv_obj_t *info_label{nullptr};
+    lv_obj_t *heap_label{nullptr};
+    lv_obj_t *spi_speed_label{nullptr};
+  };
+
   // GPIO пины для дисплея ST7789
   const gpio_num_t st7789_pin_num_sclk;
   const gpio_num_t st7789_pin_num_mosi;
@@ -60,17 +77,9 @@ class UI final {
   lv_color_t *buf2;
 
   // Экраны
-  lv_obj_t *screen1;
-  lv_obj_t *screen2;
+  Screen1Elements screen1_elements;
+  Screen2Elements screen2_elements;
   lv_obj_t *current_screen;
-
-  // Элементы UI
-  lv_obj_t *time_label;
-  lv_obj_t *heap_label;
-  lv_obj_t *spi_speed_label;
-
-  // Переменные для времени
-  uint32_t start_time;
 
   // Переменные для управления экранами
   int current_gpio_state;
@@ -81,8 +90,8 @@ class UI final {
   // Приватные методы инициализации
   esp_err_t init_st7789();
   void init_lvgl();
-  void create_ui();
-  void create_ui_screen2();
+  void create_ui0();
+  void create_ui1();
 
   // Функция обратного вызова для отправки данных на дисплей
   static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);
