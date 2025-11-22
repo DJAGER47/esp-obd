@@ -12,7 +12,7 @@
     "IDF_TARGET": "esp32c3"
   },
   "idf.port": "/dev/ttyACM0",
-  "idf.flashType": "JTAG",
+  "idf.flashType": "UART",
   "files.associations": {
     "numeric": "c",
     "x9c103s.h": "c",

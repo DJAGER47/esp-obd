@@ -13,9 +13,8 @@
 #include "obd2.h"
 #include "twai_driver.h"
 #include "ui.h"
-#include "ui_c.h"
 
-static UI ui_instance;
+static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, LCD_BK_LIGHT_PIN);
 
 // Глобальный экземпляр CAN драйвера
 // TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
@@ -37,15 +36,4 @@ extern "C" void app_main() {
     gpio_state = gpio_state ? 0 : 1;
     vTaskDelay(pdMS_TO_TICKS(5000));
   }
-
-  // // Инициализация GPIO для светодиода
-  // gpio_set_direction(LED_GPIO, GPIO_MODE_OUTPUT);
-
-  // while (true) {
-  //   // Моргание светодиодом
-  //   gpio_set_level(LED_GPIO, 1);  // Включить
-  //   vTaskDelay(500 / portTICK_PERIOD_MS);
-  //   gpio_set_level(LED_GPIO, 0);  // Выключить
-  //   vTaskDelay(1000 / portTICK_PERIOD_MS);
-  // }
 }

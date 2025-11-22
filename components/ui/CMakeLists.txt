@@ -1,3 +1,3 @@
 idf_component_register(SRCS "ui.cpp"
                        INCLUDE_DIRS "."
-                       REQUIRES lib)
+                       REQUIRES spi_flash lvgl esp_lcd driver)

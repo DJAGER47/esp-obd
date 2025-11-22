@@ -13,14 +13,6 @@
 extern "C" {
 #endif
 
-// Пины для дисплея ST7789
-#define ST7789_PIN_NUM_SCLK     GPIO_NUM_5
-#define ST7789_PIN_NUM_MOSI     GPIO_NUM_6
-#define ST7789_PIN_NUM_LCD_RST  GPIO_NUM_7
-#define ST7789_PIN_NUM_LCD_DC   GPIO_NUM_8
-#define ST7789_PIN_NUM_LCD_CS   GPIO_NUM_9
-#define ST7789_PIN_NUM_BK_LIGHT GPIO_NUM_10
-
 #ifdef __cplusplus
 }
 #endif
@@ -29,7 +21,12 @@ extern "C" {
 
 class UI final {
  public:
-  UI();
+  UI(gpio_num_t sclk_pin     = GPIO_NUM_5,
+     gpio_num_t mosi_pin     = GPIO_NUM_6,
+     gpio_num_t lcd_rst_pin  = GPIO_NUM_7,
+     gpio_num_t lcd_dc_pin   = GPIO_NUM_8,
+     gpio_num_t lcd_cs_pin   = GPIO_NUM_9,
+     gpio_num_t bk_light_pin = GPIO_NUM_10);
 
   // Инициализация
   esp_err_t init();
@@ -42,6 +39,14 @@ class UI final {
   void update_screen2();
 
  private:
+  // GPIO пины для дисплея ST7789
+  const gpio_num_t st7789_pin_num_sclk;
+  const gpio_num_t st7789_pin_num_mosi;
+  const gpio_num_t st7789_pin_num_lcd_rst;
+  const gpio_num_t st7789_pin_num_lcd_dc;
+  const gpio_num_t st7789_pin_num_lcd_cs;
+  const gpio_num_t st7789_pin_num_bk_light;
+
   // Разрешение дисплея
   static constexpr uint32_t ST7789_LCD_H_RES = 320;
   static constexpr uint32_t ST7789_LCD_V_RES = 170;
@@ -72,9 +77,6 @@ class UI final {
 
   // Переменная для скорости SPI
   int freq_khz;
-
-  // FreeRTOS таймер для LVGL
-  TimerHandle_t lvgl_timer;
 
   // Приватные методы инициализации
   esp_err_t init_st7789();
