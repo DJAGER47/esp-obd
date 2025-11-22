@@ -2,6 +2,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 idf_component_register(SRCS "main.cpp"
                             "twai/twai_driver.cpp"
+                            "FreeRTOS-openocd.c"
 
                        INCLUDE_DIRS "."
                                     "twai/"
@@ -10,7 +11,8 @@ idf_component_register(SRCS "main.cpp"
                                 phy_interface
                                 iso-tp
                                 obd
-                                lib)
+                                lib
+                                ui)
 
 ##################################################################
 # Clang-tidy
