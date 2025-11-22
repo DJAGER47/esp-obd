@@ -19,6 +19,63 @@
 
 static const char *TAG = "ui_class";
 
+int get_stack_usage_info(char *buffer, size_t buffer_size) {
+  if (buffer == NULL || buffer_size == 0) {
+    return 0;
+  }
+
+  // Получаем количество задач
+  UBaseType_t uxNumberOfTasks = uxTaskGetNumberOfTasks();
+
+  // Выделяем память для массива статусов задач
+  TaskStatus_t *pxTaskStatusArray = (TaskStatus_t *)pvPortMalloc(uxNumberOfTasks * sizeof(TaskStatus_t));
+
+  if (pxTaskStatusArray != NULL) {
+    // Получаем информацию о всех задачах
+    UBaseType_t uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, uxNumberOfTasks, NULL);
+
+    // Создаем строку для вывода информации
+    int offset = 0;
+
+    // Заголовок
+    offset += snprintf(buffer + offset, buffer_size - offset, "Tasks: %lu\n\n", (unsigned long)uxArraySize);
+
+    // Информация о каждой задаче
+    for (UBaseType_t x = 0; x < uxArraySize && x < 8; x++) {  // Ограничиваем до 8 задач для отображения
+      // Получаем максимальное использование стека для задачи
+      UBaseType_t uxStackHighWaterMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
+
+      // Рассчитываем процент использования стека
+      uint32_t stack_usage_percent = 0;
+      if (pxTaskStatusArray[x].usStackHighWaterMark > 0) {
+        stack_usage_percent = 100 - (uxStackHighWaterMark * 100 / pxTaskStatusArray[x].usStackHighWaterMark);
+      }
+
+      offset += snprintf(buffer + offset,
+                         buffer_size - offset,
+                         "%-8s: %3lu%% (%lu/%lu)\n",
+                         pxTaskStatusArray[x].pcTaskName,
+                         (unsigned long)stack_usage_percent,
+                         (unsigned long)(pxTaskStatusArray[x].usStackHighWaterMark - uxStackHighWaterMark),
+                         (unsigned long)pxTaskStatusArray[x].usStackHighWaterMark);
+    }
+
+    // Если задач больше, чем можем отобразить
+    if (uxArraySize > 8) {
+      offset +=
+          snprintf(buffer + offset, buffer_size - offset, "... and %lu more tasks", (unsigned long)(uxArraySize - 8));
+    }
+
+    // Освобождаем память
+    vPortFree(pxTaskStatusArray);
+
+    return offset;
+  } else {
+    snprintf(buffer, buffer_size, "Failed to get stack info");
+    return strlen(buffer);
+  }
+}
+
 UI::UI(gpio_num_t sclk_pin,
        gpio_num_t mosi_pin,
        gpio_num_t lcd_rst_pin,
@@ -50,6 +107,7 @@ esp_err_t UI::init() {
   init_lvgl();
   create_ui0();
   create_ui1();
+  create_ui2();
 
   switch_screen(0);
 
@@ -71,6 +129,12 @@ void UI::switch_screen(int num_screen) {
     current_screen = screen2_elements.screen;
     update_screen1();
     ESP_LOGI(TAG, "Switched to screen 2 (chip info)");
+  } else if (num_screen == 2 && current_screen != screen3_elements.screen) {
+    // Переключение на третий экран
+    lv_screen_load(screen3_elements.screen);
+    current_screen = screen3_elements.screen;
+    update_screen2();
+    ESP_LOGI(TAG, "Switched to screen 3 (stack info)");
   }
 }
 
@@ -91,6 +155,12 @@ void UI::update_screen1() {
     char heap_str[64];
     snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
     lv_label_set_text(screen2_elements.heap_label, heap_str);
+  }
+}
+
+void UI::update_screen2() {
+  if (screen3_elements.stack_info_label != NULL) {
+    update_stack_info();
   }
 }
 
@@ -327,6 +397,50 @@ void UI::create_ui1() {
   lv_obj_align(screen2_elements.spi_speed_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 }
 
+void UI::create_ui2() {
+  ESP_LOGI(TAG, "Creating third UI screen with stack info");
+
+  // Создание третьего экрана
+  screen3_elements.screen = lv_obj_create(NULL);
+
+  // Создание фона
+  screen3_elements.bg = lv_obj_create(screen3_elements.screen);
+  lv_obj_set_size(screen3_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
+  lv_obj_set_pos(screen3_elements.bg, 0, 0);
+  lv_obj_set_style_bg_color(screen3_elements.bg, lv_color_make(50, 0, 50), LV_PART_MAIN);  // Темно-фиолетовый фон
+  lv_obj_set_style_border_width(screen3_elements.bg, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(screen3_elements.bg, 0, LV_PART_MAIN);
+
+  // Заголовок
+  screen3_elements.title = lv_label_create(screen3_elements.screen);
+  lv_obj_set_style_text_font(screen3_elements.title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen3_elements.title, lv_color_make(255, 255, 255), LV_PART_MAIN);
+  lv_label_set_text(screen3_elements.title, "STACK INFO");
+  lv_obj_align(screen3_elements.title, LV_ALIGN_TOP_MID, 0, 10);
+
+  // Информация о стеке
+  screen3_elements.stack_info_label = lv_label_create(screen3_elements.screen);
+  lv_obj_set_style_text_font(screen3_elements.stack_info_label, &lv_font_montserrat_10, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen3_elements.stack_info_label, lv_color_make(255, 255, 255), LV_PART_MAIN);
+  lv_label_set_text(screen3_elements.stack_info_label, "Loading stack info...");
+  lv_obj_align(screen3_elements.stack_info_label, LV_ALIGN_TOP_LEFT, 5, 40);
+  lv_obj_set_width(screen3_elements.stack_info_label, ST7789_LCD_H_RES - 10);
+}
+
+void UI::update_stack_info() {
+  // Создаем строку для вывода информации
+  char stack_info[2048];
+
+  // Получаем информацию о стеке с помощью нашего компонента
+  int bytes_written = get_stack_usage_info(stack_info, sizeof(stack_info));
+
+  if (bytes_written > 0) {
+    // Обновляем метку на экране
+    lv_label_set_text(screen3_elements.stack_info_label, stack_info);
+  } else {
+    lv_label_set_text(screen3_elements.stack_info_label, "Failed to get stack info");
+  }
+}
 void UI::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
   // Получаем указатель на экземпляр из пользовательских данных дисплея
   UI *ui_instance = (UI *)lv_display_get_user_data(disp);
@@ -356,6 +470,10 @@ void UI::update_screen(void *arg) {
 
       if (ui_instance->current_screen == ui_instance->screen2_elements.screen) {
         ui_instance->update_screen1();
+      }
+
+      if (ui_instance->current_screen == ui_instance->screen3_elements.screen) {
+        ui_instance->update_screen2();
       }
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
