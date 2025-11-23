@@ -35,11 +35,9 @@ class UI final {
   void switch_screen(int num_screen);
   void update_screen0();
   void update_screen1();
-  void update_screen2();
-  void update_stack_info();
 
  private:
-  struct Screen1Elements {
+  struct Screen0Elements {
     lv_obj_t *screen{nullptr};
     lv_obj_t *border1{nullptr};
     lv_obj_t *border2{nullptr};
@@ -49,20 +47,13 @@ class UI final {
     uint32_t start_time{0};
   };
 
-  struct Screen2Elements {
+  struct Screen1Elements {
     lv_obj_t *screen{nullptr};
     lv_obj_t *bg{nullptr};
     lv_obj_t *title{nullptr};
     lv_obj_t *info_label{nullptr};
     lv_obj_t *heap_label{nullptr};
     lv_obj_t *spi_speed_label{nullptr};
-  };
-
-  struct Screen3Elements {
-    lv_obj_t *screen{nullptr};
-    lv_obj_t *bg{nullptr};
-    lv_obj_t *title{nullptr};
-    lv_obj_t *stack_info_label{nullptr};
   };
 
   // GPIO пины для дисплея ST7789
@@ -86,9 +77,8 @@ class UI final {
   lv_color_t *buf2;
 
   // Экраны
+  Screen0Elements screen0_elements;
   Screen1Elements screen1_elements;
-  Screen2Elements screen2_elements;
-  Screen3Elements screen3_elements;
   lv_obj_t *current_screen;
 
   // Переменные для управления экранами
@@ -102,7 +92,6 @@ class UI final {
   void init_lvgl();
   void create_ui0();
   void create_ui1();
-  void create_ui2();
 
   // Функция обратного вызова для отправки данных на дисплей
   static void lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map);

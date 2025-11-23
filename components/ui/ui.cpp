@@ -107,7 +107,6 @@ esp_err_t UI::init() {
   init_lvgl();
   create_ui0();
   create_ui1();
-  create_ui2();
 
   switch_screen(0);
 
@@ -117,50 +116,38 @@ esp_err_t UI::init() {
 }
 
 void UI::switch_screen(int num_screen) {
-  if (num_screen == 0 && current_screen != screen1_elements.screen) {
+  if (num_screen == 0 && current_screen != screen0_elements.screen) {
     // Переключение на первый экран
-    lv_screen_load(screen1_elements.screen);
-    current_screen = screen1_elements.screen;
+    lv_screen_load(screen0_elements.screen);
+    current_screen = screen0_elements.screen;
     update_screen0();
     ESP_LOGI(TAG, "Switched to screen 1 (time display)");
-  } else if (num_screen == 1 && current_screen != screen2_elements.screen) {
+  } else if (num_screen == 1 && current_screen != screen1_elements.screen) {
     // Переключение на второй экран
-    lv_screen_load(screen2_elements.screen);
-    current_screen = screen2_elements.screen;
+    lv_screen_load(screen1_elements.screen);
+    current_screen = screen1_elements.screen;
     update_screen1();
     ESP_LOGI(TAG, "Switched to screen 2 (chip info)");
-  } else if (num_screen == 2 && current_screen != screen3_elements.screen) {
-    // Переключение на третий экран
-    lv_screen_load(screen3_elements.screen);
-    current_screen = screen3_elements.screen;
-    update_screen2();
-    ESP_LOGI(TAG, "Switched to screen 3 (stack info)");
   }
 }
 
 void UI::update_screen0() {
-  if (screen1_elements.time_label != NULL) {
+  if (screen0_elements.time_label != NULL) {
     char time_str[15];
-    const uint32_t elapsed_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000 - screen1_elements.start_time;
+    const uint32_t elapsed_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000 - screen0_elements.start_time;
     const uint32_t hours        = elapsed_time / 3600;
     const uint32_t minutes      = (elapsed_time % 3600) / 60;
     const uint32_t seconds      = elapsed_time % 60;
     snprintf(time_str, sizeof(time_str), "%02" PRIu32 ":%02" PRIu32 ":%02" PRIu32, hours, minutes, seconds);
-    lv_label_set_text(screen1_elements.time_label, time_str);
+    lv_label_set_text(screen0_elements.time_label, time_str);
   }
 }
 
 void UI::update_screen1() {
-  if (screen2_elements.heap_label != NULL) {
+  if (screen1_elements.heap_label != NULL) {
     char heap_str[64];
     snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
-    lv_label_set_text(screen2_elements.heap_label, heap_str);
-  }
-}
-
-void UI::update_screen2() {
-  if (screen3_elements.stack_info_label != NULL) {
-    update_stack_info();
+    lv_label_set_text(screen1_elements.heap_label, heap_str);
   }
 }
 
@@ -278,53 +265,53 @@ void UI::create_ui0() {
   ESP_LOGI(TAG, "Creating UI elements");
 
   // Создание первого экрана
-  screen1_elements.screen = lv_obj_create(NULL);
+  screen0_elements.screen = lv_obj_create(NULL);
 
   // Создание красной рамки
-  screen1_elements.border1 = lv_obj_create(screen1_elements.screen);
-  lv_obj_set_size(screen1_elements.border1, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
-  lv_obj_set_pos(screen1_elements.border1, 0, 0);
-  lv_obj_set_style_border_width(screen1_elements.border1, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen1_elements.border1, lv_color_make(255, 0, 0), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen1_elements.border1, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen1_elements.border1, 0, LV_PART_MAIN);
+  screen0_elements.border1 = lv_obj_create(screen0_elements.screen);
+  lv_obj_set_size(screen0_elements.border1, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
+  lv_obj_set_pos(screen0_elements.border1, 0, 0);
+  lv_obj_set_style_border_width(screen0_elements.border1, 5, LV_PART_MAIN);
+  lv_obj_set_style_border_color(screen0_elements.border1, lv_color_make(255, 0, 0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(screen0_elements.border1, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(screen0_elements.border1, 0, LV_PART_MAIN);
 
-  screen1_elements.border2 = lv_obj_create(screen1_elements.screen);
-  lv_obj_set_size(screen1_elements.border2, ST7789_LCD_H_RES - 20, ST7789_LCD_V_RES - 20);
-  lv_obj_align(screen1_elements.border2, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_border_width(screen1_elements.border2, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen1_elements.border2, lv_color_make(0, 255, 0), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen1_elements.border2, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen1_elements.border2, 0, LV_PART_MAIN);
+  screen0_elements.border2 = lv_obj_create(screen0_elements.screen);
+  lv_obj_set_size(screen0_elements.border2, ST7789_LCD_H_RES - 20, ST7789_LCD_V_RES - 20);
+  lv_obj_align(screen0_elements.border2, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_style_border_width(screen0_elements.border2, 5, LV_PART_MAIN);
+  lv_obj_set_style_border_color(screen0_elements.border2, lv_color_make(0, 255, 0), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(screen0_elements.border2, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(screen0_elements.border2, 0, LV_PART_MAIN);
 
-  screen1_elements.border3 = lv_obj_create(screen1_elements.screen);
-  lv_obj_set_size(screen1_elements.border3, ST7789_LCD_H_RES - 40, ST7789_LCD_V_RES - 40);
-  lv_obj_align(screen1_elements.border3, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_border_width(screen1_elements.border3, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen1_elements.border3, lv_color_make(0, 0, 255), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen1_elements.border3, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen1_elements.border3, 0, LV_PART_MAIN);
+  screen0_elements.border3 = lv_obj_create(screen0_elements.screen);
+  lv_obj_set_size(screen0_elements.border3, ST7789_LCD_H_RES - 40, ST7789_LCD_V_RES - 40);
+  lv_obj_align(screen0_elements.border3, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_style_border_width(screen0_elements.border3, 5, LV_PART_MAIN);
+  lv_obj_set_style_border_color(screen0_elements.border3, lv_color_make(0, 0, 255), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(screen0_elements.border3, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(screen0_elements.border3, 0, LV_PART_MAIN);
 
   // Создание контейнера для метки времени с фоном
-  screen1_elements.time_container = lv_obj_create(screen1_elements.screen);
-  lv_obj_set_size(screen1_elements.time_container, 150, 50);
-  lv_obj_align(screen1_elements.time_container, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_bg_color(screen1_elements.time_container, lv_color_make(255, 255, 255), LV_PART_MAIN);  // Белый фон
-  lv_obj_set_style_bg_opa(screen1_elements.time_container, LV_OPA_70, LV_PART_MAIN);  // Полупрозрачный
-  lv_obj_set_style_border_width(screen1_elements.time_container, 2, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen1_elements.time_container, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черная рамка
-  lv_obj_set_style_radius(screen1_elements.time_container, 5, LV_PART_MAIN);  // Скругленные углы
+  screen0_elements.time_container = lv_obj_create(screen0_elements.screen);
+  lv_obj_set_size(screen0_elements.time_container, 150, 50);
+  lv_obj_align(screen0_elements.time_container, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_style_bg_color(screen0_elements.time_container, lv_color_make(255, 255, 255), LV_PART_MAIN);  // Белый фон
+  lv_obj_set_style_bg_opa(screen0_elements.time_container, LV_OPA_70, LV_PART_MAIN);  // Полупрозрачный
+  lv_obj_set_style_border_width(screen0_elements.time_container, 2, LV_PART_MAIN);
+  lv_obj_set_style_border_color(screen0_elements.time_container, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черная рамка
+  lv_obj_set_style_radius(screen0_elements.time_container, 5, LV_PART_MAIN);  // Скругленные углы
 
   // Создание метки для отображения времени
-  screen1_elements.time_label = lv_label_create(screen1_elements.time_container);
-  lv_obj_align(screen1_elements.time_label, LV_ALIGN_CENTER, 0, 0);
+  screen0_elements.time_label = lv_label_create(screen0_elements.time_container);
+  lv_obj_align(screen0_elements.time_label, LV_ALIGN_CENTER, 0, 0);
   lv_obj_set_style_text_font(
-      screen1_elements.time_label, &lv_font_montserrat_24, LV_PART_MAIN);  // Увеличен размер шрифта
-  lv_obj_set_style_text_color(screen1_elements.time_label, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черный текст
-  lv_label_set_text(screen1_elements.time_label, "00:00:00");
+      screen0_elements.time_label, &lv_font_montserrat_24, LV_PART_MAIN);  // Увеличен размер шрифта
+  lv_obj_set_style_text_color(screen0_elements.time_label, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черный текст
+  lv_label_set_text(screen0_elements.time_label, "00:00:00");
 
   // Сохраняем начальное время
-  screen1_elements.start_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
+  screen0_elements.start_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
 }
 
 void UI::create_ui1() {
@@ -337,22 +324,22 @@ void UI::create_ui1() {
   esp_flash_get_size(NULL, &flash_size);
 
   // Создание второго экрана
-  screen2_elements.screen = lv_obj_create(NULL);
+  screen1_elements.screen = lv_obj_create(NULL);
 
   // Создание фона
-  screen2_elements.bg = lv_obj_create(screen2_elements.screen);
-  lv_obj_set_size(screen2_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
-  lv_obj_set_pos(screen2_elements.bg, 0, 0);
-  lv_obj_set_style_bg_color(screen2_elements.bg, lv_color_make(0, 0, 50), LV_PART_MAIN);  // Темно-синий фон
-  lv_obj_set_style_border_width(screen2_elements.bg, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen2_elements.bg, 0, LV_PART_MAIN);
+  screen1_elements.bg = lv_obj_create(screen1_elements.screen);
+  lv_obj_set_size(screen1_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
+  lv_obj_set_pos(screen1_elements.bg, 0, 0);
+  lv_obj_set_style_bg_color(screen1_elements.bg, lv_color_make(0, 0, 50), LV_PART_MAIN);  // Темно-синий фон
+  lv_obj_set_style_border_width(screen1_elements.bg, 0, LV_PART_MAIN);
+  lv_obj_set_style_pad_all(screen1_elements.bg, 0, LV_PART_MAIN);
 
   // Заголовок
-  screen2_elements.title = lv_label_create(screen2_elements.screen);
-  lv_obj_set_style_text_font(screen2_elements.title, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen2_elements.title, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen2_elements.title, "CHIP INFO");
-  lv_obj_align(screen2_elements.title, LV_ALIGN_TOP_MID, 0, 10);
+  screen1_elements.title = lv_label_create(screen1_elements.screen);
+  lv_obj_set_style_text_font(screen1_elements.title, &lv_font_montserrat_18, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen1_elements.title, lv_color_make(255, 255, 255), LV_PART_MAIN);
+  lv_label_set_text(screen1_elements.title, "CHIP INFO");
+  lv_obj_align(screen1_elements.title, LV_ALIGN_TOP_MID, 0, 10);
 
   // Информация о чипе
   char chip_str[256];
@@ -369,78 +356,34 @@ void UI::create_ui1() {
            (chip_info.features & CHIP_FEATURE_BLE) ? "BLE " : "",
            (chip_info.features & CHIP_FEATURE_IEEE802154) ? "802.15.4" : "");
 
-  screen2_elements.info_label = lv_label_create(screen2_elements.screen);
-  lv_obj_set_style_text_font(screen2_elements.info_label, &lv_font_montserrat_14, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen2_elements.info_label, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen2_elements.info_label, chip_str);
-  lv_obj_align(screen2_elements.info_label, LV_ALIGN_CENTER, 0, 0);
+  screen1_elements.info_label = lv_label_create(screen1_elements.screen);
+  lv_obj_set_style_text_font(screen1_elements.info_label, &lv_font_montserrat_14, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen1_elements.info_label, lv_color_make(255, 255, 255), LV_PART_MAIN);
+  lv_label_set_text(screen1_elements.info_label, chip_str);
+  lv_obj_align(screen1_elements.info_label, LV_ALIGN_CENTER, 0, 0);
 
   // Информация о свободной памяти
   char heap_str[64];
   snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
 
-  screen2_elements.heap_label = lv_label_create(screen2_elements.screen);
-  lv_obj_set_style_text_font(screen2_elements.heap_label, &lv_font_montserrat_12, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen2_elements.heap_label, lv_color_make(255, 255, 0), LV_PART_MAIN);
-  lv_label_set_text(screen2_elements.heap_label, heap_str);
-  lv_obj_align(screen2_elements.heap_label, LV_ALIGN_BOTTOM_MID, 0, -30);
+  screen1_elements.heap_label = lv_label_create(screen1_elements.screen);
+  lv_obj_set_style_text_font(screen1_elements.heap_label, &lv_font_montserrat_12, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen1_elements.heap_label, lv_color_make(255, 255, 0), LV_PART_MAIN);
+  lv_label_set_text(screen1_elements.heap_label, heap_str);
+  lv_obj_align(screen1_elements.heap_label, LV_ALIGN_BOTTOM_MID, 0, -30);
 
   // Информация о скорости SPI2_HOST
   char spi_str[64];
   uint32_t spi_speed = (uint32_t)freq_khz;
   snprintf(spi_str, sizeof(spi_str), "SPI2 Speed: %" PRIu32 " Hz", spi_speed);
 
-  screen2_elements.spi_speed_label = lv_label_create(screen2_elements.screen);
-  lv_obj_set_style_text_font(screen2_elements.spi_speed_label, &lv_font_montserrat_12, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen2_elements.spi_speed_label, lv_color_make(0, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen2_elements.spi_speed_label, spi_str);
-  lv_obj_align(screen2_elements.spi_speed_label, LV_ALIGN_BOTTOM_MID, 0, -10);
+  screen1_elements.spi_speed_label = lv_label_create(screen1_elements.screen);
+  lv_obj_set_style_text_font(screen1_elements.spi_speed_label, &lv_font_montserrat_12, LV_PART_MAIN);
+  lv_obj_set_style_text_color(screen1_elements.spi_speed_label, lv_color_make(0, 255, 255), LV_PART_MAIN);
+  lv_label_set_text(screen1_elements.spi_speed_label, spi_str);
+  lv_obj_align(screen1_elements.spi_speed_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 }
 
-void UI::create_ui2() {
-  ESP_LOGI(TAG, "Creating third UI screen with stack info");
-
-  // Создание третьего экрана
-  screen3_elements.screen = lv_obj_create(NULL);
-
-  // Создание фона
-  screen3_elements.bg = lv_obj_create(screen3_elements.screen);
-  lv_obj_set_size(screen3_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
-  lv_obj_set_pos(screen3_elements.bg, 0, 0);
-  lv_obj_set_style_bg_color(screen3_elements.bg, lv_color_make(50, 0, 50), LV_PART_MAIN);  // Темно-фиолетовый фон
-  lv_obj_set_style_border_width(screen3_elements.bg, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen3_elements.bg, 0, LV_PART_MAIN);
-
-  // Заголовок
-  screen3_elements.title = lv_label_create(screen3_elements.screen);
-  lv_obj_set_style_text_font(screen3_elements.title, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen3_elements.title, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen3_elements.title, "STACK INFO");
-  lv_obj_align(screen3_elements.title, LV_ALIGN_TOP_MID, 0, 10);
-
-  // Информация о стеке
-  screen3_elements.stack_info_label = lv_label_create(screen3_elements.screen);
-  lv_obj_set_style_text_font(screen3_elements.stack_info_label, &lv_font_montserrat_10, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen3_elements.stack_info_label, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen3_elements.stack_info_label, "Loading stack info...");
-  lv_obj_align(screen3_elements.stack_info_label, LV_ALIGN_TOP_LEFT, 5, 40);
-  lv_obj_set_width(screen3_elements.stack_info_label, ST7789_LCD_H_RES - 10);
-}
-
-void UI::update_stack_info() {
-  // Создаем строку для вывода информации
-  char stack_info[2048];
-
-  // Получаем информацию о стеке с помощью нашего компонента
-  int bytes_written = get_stack_usage_info(stack_info, sizeof(stack_info));
-
-  if (bytes_written > 0) {
-    // Обновляем метку на экране
-    lv_label_set_text(screen3_elements.stack_info_label, stack_info);
-  } else {
-    lv_label_set_text(screen3_elements.stack_info_label, "Failed to get stack info");
-  }
-}
 void UI::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
   // Получаем указатель на экземпляр из пользовательских данных дисплея
   UI *ui_instance = (UI *)lv_display_get_user_data(disp);
@@ -464,17 +407,14 @@ void UI::update_screen(void *arg) {
   UI *ui_instance = (UI *)arg;
   if (ui_instance) {
     while (1) {
-      if (ui_instance->current_screen == ui_instance->screen1_elements.screen) {
+      if (ui_instance->current_screen == ui_instance->screen0_elements.screen) {
         ui_instance->update_screen0();
       }
 
-      if (ui_instance->current_screen == ui_instance->screen2_elements.screen) {
+      if (ui_instance->current_screen == ui_instance->screen1_elements.screen) {
         ui_instance->update_screen1();
       }
 
-      if (ui_instance->current_screen == ui_instance->screen3_elements.screen) {
-        ui_instance->update_screen2();
-      }
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   } else {
