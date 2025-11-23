@@ -19,63 +19,6 @@
 
 static const char *TAG = "ui_class";
 
-int get_stack_usage_info(char *buffer, size_t buffer_size) {
-  if (buffer == NULL || buffer_size == 0) {
-    return 0;
-  }
-
-  // Получаем количество задач
-  UBaseType_t uxNumberOfTasks = uxTaskGetNumberOfTasks();
-
-  // Выделяем память для массива статусов задач
-  TaskStatus_t *pxTaskStatusArray = (TaskStatus_t *)pvPortMalloc(uxNumberOfTasks * sizeof(TaskStatus_t));
-
-  if (pxTaskStatusArray != NULL) {
-    // Получаем информацию о всех задачах
-    UBaseType_t uxArraySize = uxTaskGetSystemState(pxTaskStatusArray, uxNumberOfTasks, NULL);
-
-    // Создаем строку для вывода информации
-    int offset = 0;
-
-    // Заголовок
-    offset += snprintf(buffer + offset, buffer_size - offset, "Tasks: %lu\n\n", (unsigned long)uxArraySize);
-
-    // Информация о каждой задаче
-    for (UBaseType_t x = 0; x < uxArraySize && x < 8; x++) {  // Ограничиваем до 8 задач для отображения
-      // Получаем максимальное использование стека для задачи
-      UBaseType_t uxStackHighWaterMark = uxTaskGetStackHighWaterMark(pxTaskStatusArray[x].xHandle);
-
-      // Рассчитываем процент использования стека
-      uint32_t stack_usage_percent = 0;
-      if (pxTaskStatusArray[x].usStackHighWaterMark > 0) {
-        stack_usage_percent = 100 - (uxStackHighWaterMark * 100 / pxTaskStatusArray[x].usStackHighWaterMark);
-      }
-
-      offset += snprintf(buffer + offset,
-                         buffer_size - offset,
-                         "%-8s: %3lu%% (%lu/%lu)\n",
-                         pxTaskStatusArray[x].pcTaskName,
-                         (unsigned long)stack_usage_percent,
-                         (unsigned long)(pxTaskStatusArray[x].usStackHighWaterMark - uxStackHighWaterMark),
-                         (unsigned long)pxTaskStatusArray[x].usStackHighWaterMark);
-    }
-
-    // Если задач больше, чем можем отобразить
-    if (uxArraySize > 8) {
-      offset +=
-          snprintf(buffer + offset, buffer_size - offset, "... and %lu more tasks", (unsigned long)(uxArraySize - 8));
-    }
-
-    // Освобождаем память
-    vPortFree(pxTaskStatusArray);
-
-    return offset;
-  } else {
-    snprintf(buffer, buffer_size, "Failed to get stack info");
-    return strlen(buffer);
-  }
-}
-
 UI::UI(gpio_num_t sclk_pin,
        gpio_num_t mosi_pin,
        gpio_num_t lcd_rst_pin,

@@ -59,6 +59,30 @@ void print_stack_usage(void) {
   ESP_LOGI(TAG, "=== End Stack Usage Information ===");
 }
 
+void print_runtime_stats(void) {
+  ESP_LOGI(TAG, "=== Runtime Statistics ===");
+
+  // Выделяем буфер для статистики
+  char *stats_buffer = (char *)pvPortMalloc(1024);
+
+  if (stats_buffer != NULL) {
+    // Получаем статистику выполнения задач
+    vTaskGetRunTimeStats(stats_buffer);
+    ESP_LOGI(TAG, "Runtime Stats:\n%s", stats_buffer);
+
+    // Получаем список задач
+    vTaskList(stats_buffer);
+    ESP_LOGI(TAG, "Task List:\n%s", stats_buffer);
+
+    // Освобождаем память
+    vPortFree(stats_buffer);
+  } else {
+    ESP_LOGE(TAG, "Failed to allocate memory for stats buffer");
+  }
+
+  ESP_LOGI(TAG, "=== End Runtime Statistics ===");
+}
+
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, LCD_BK_LIGHT_PIN);
 
 // Глобальный экземпляр CAN драйвера
@@ -81,9 +105,10 @@ extern "C" void app_main() {
     ui_instance.switch_screen(screen_state);
     screen_state = (screen_state + 1) % 3;  // Переключаемся между 3 экранами
 
-    // Выводим информацию о стеке каждые 5 циклов (каждые 25 секунд)
+    // Выводим информацию о стеке и статистику выполнения каждые 5 циклов (каждые 25 секунд)
     if (++stack_info_counter >= 5) {
       print_stack_usage();
+      print_runtime_stats();
       stack_info_counter = 0;
     }
 
