@@ -103,10 +103,9 @@ extern "C" void app_main() {
 
   while (1) {
     ui_instance.switch_screen(screen_state);
-    screen_state = (screen_state + 1) % 3;  // Переключаемся между 3 экранами
+    screen_state = (screen_state + 1) % 2;
 
-    // Выводим информацию о стеке и статистику выполнения каждые 5 циклов (каждые 25 секунд)
-    if (++stack_info_counter >= 5) {
+    if (++stack_info_counter >= 12) {
       print_stack_usage();
       print_runtime_stats();
       stack_info_counter = 0;
