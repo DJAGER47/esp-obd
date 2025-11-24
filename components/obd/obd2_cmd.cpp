@@ -13,7 +13,7 @@
 #include "iso_tp.h"
 #include "obd2.h"
 
-static const char* TAG = "OBD2";
+static const char* const TAG = "OBD2";
 
 /**
  * @brief Выводит отладочную информацию в лог (если включен режим отладки)
@@ -42,8 +42,7 @@ void OBD2::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
     char log_buffer[256];
     int offset = 0;
 
-    offset += snprintf(
-        log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
+    offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
 
     for (uint16_t i = 0; i < len && offset < sizeof(log_buffer) - 4; i++) {
       offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "%02X ", buffer[i]);
@@ -95,9 +94,7 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X",
-                msg.data[1],
-                msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
     }
 
     const uint8_t response_service = service + 0x40;

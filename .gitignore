@@ -3,3 +3,7 @@ build/*
 test/__pycache__/*
 unity-app/build/*
 managed_components/lvgl__lvgl/*
+clang_tidy_results/*
+warnings.txt
+html_report/*
+report.json

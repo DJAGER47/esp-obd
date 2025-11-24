@@ -7,7 +7,7 @@
 
 #include "esp_log.h"
 
-static const char* TAG = "FreeRtosMutex";
+static const char* const TAG = "FreeRtosMutex";
 
 void FreeRtosMutex::Create() {
   mutex_handle_ = xSemaphoreCreateMutexStatic(&mutex_buffer_);

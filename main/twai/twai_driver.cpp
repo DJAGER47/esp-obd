@@ -9,7 +9,7 @@
 #include "portmacro.h"
 #include "time.h"
 
-static const char* TAG = "TwaiDriver";
+static const char* const TAG = "TwaiDriver";
 
 TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps) :
     tx_pin_(tx_pin),
@@ -33,20 +33,18 @@ void TwaiDriver::InstallStart() {
       .clk_src = TWAI_CLK_SRC_DEFAULT,
       .bit_timing =
           {
-              .bitrate    = speed_kbps_ * 1000,  // Преобразование из kbps в bps
-              .sp_permill = 0,  // Использовать значение по умолчанию
-              .ssp_permill = 0  // Использовать значение по умолчанию
+              .bitrate     = speed_kbps_ * 1000,  // Преобразование из kbps в bps
+              .sp_permill  = 0,                   // Использовать значение по умолчанию
+              .ssp_permill = 0                    // Использовать значение по умолчанию
           },
-      .data_timing = {.bitrate = 0,  // Не используется для классического CAN
-                      .sp_permill  = 0,
-                      .ssp_permill = 0},
+      .data_timing    = {.bitrate     = 0,  // Не используется для классического CAN
+                         .sp_permill  = 0,
+                         .ssp_permill = 0},
       .fail_retry_cnt = 3,  // Повторить 3 раза при ошибке
       .tx_queue_depth = kTxQueueDepth,
       .intr_priority  = 0,  // Приоритет по умолчанию
-      .flags          = {.enable_self_test   = false,
-                         .enable_loopback    = false,
-                         .enable_listen_only = false,
-                         .no_receive_rtr     = false}};
+      .flags          = {
+                   .enable_self_test = false, .enable_loopback = false, .enable_listen_only = false, .no_receive_rtr = false}};
 
   // Создание узла TWAI
   esp_err_t err = twai_new_node_onchip(&node_config, &node_handle_);
@@ -90,9 +88,7 @@ void TwaiDriver::InstallStart() {
 }
 
 // Статическая функция обратного вызова для передачи
-bool TwaiDriver::TxCallback(twai_node_handle_t handle,
-                            const twai_tx_done_event_data_t* edata,
-                            void* user_ctx) {
+bool TwaiDriver::TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx) {
   TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
   if (driver && driver->node_handle_ == handle) {
     // Проверяем, есть ли сообщения в очереди
@@ -132,9 +128,7 @@ bool TwaiDriver::TxCallback(twai_node_handle_t handle,
 }
 
 // Статическая функция обратного вызова для приема
-bool TwaiDriver::RxCallback(twai_node_handle_t handle,
-                            const twai_rx_done_event_data_t* edata,
-                            void* user_ctx) {
+bool TwaiDriver::RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx) {
   TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
   if (driver && driver->node_handle_ == handle) {
     // Получение принятого фрейма
@@ -183,8 +177,8 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
     frame.header.fdf   = message.is_fd;
     frame.header.brs   = message.brs;
     frame.header.dlc   = message.data_length;
-    frame.buffer = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
-    frame.buffer_len = message.data_length;
+    frame.buffer       = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
+    frame.buffer_len   = message.data_length;
 
     esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
     if (err != ESP_OK) {

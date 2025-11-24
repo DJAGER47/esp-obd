@@ -1,9 +1,10 @@
 #include "twai_subscriber_iso_tp.h"
 
-#include "esp_log.h"
-#include "string.h"
+#include <cstring>
 
-static const char* TAG = "TwaiSubscriberIsoTp";
+#include "esp_log.h"
+
+static const char* const TAG = "TwaiSubscriberIsoTp";
 
 TwaiSubscriberIsoTp::TwaiSubscriberIsoTp(uint32_t queue_size) {
   xQueue_ = xQueueCreate(queue_size, sizeof(TwaiFrame));

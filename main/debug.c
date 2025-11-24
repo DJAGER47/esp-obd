@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 #include "esp_heap_caps.h"
 
-static const char *TAG = "debug";
+static const char * const TAG = "debug";
 
 void print_stack_usage(void) {
   ESP_LOGI(TAG, "=== Stack Usage Information ===");
