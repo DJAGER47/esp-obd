@@ -1,5 +1,4 @@
-#ifndef UI_H
-#define UI_H
+#pragma once
 
 #include <stdint.h>
 
@@ -8,16 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 #include "lvgl.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef __cplusplus
-}
-#endif
-
-#ifdef __cplusplus
+#include "phy_interface.h"
 
 class UI final {
  public:
@@ -36,6 +26,9 @@ class UI final {
   void update_screen0();
   void update_screen1();
 
+  // Добавление CAN сообщения для отображения
+  void addCanMessage(const TwaiFrame &frame);
+
  private:
   struct Screen0Elements {
     lv_obj_t *screen{nullptr};
@@ -45,6 +38,11 @@ class UI final {
     lv_obj_t *time_container{nullptr};
     lv_obj_t *time_label{nullptr};
     uint32_t start_time{0};
+
+    // Элементы для отображения CAN сообщений
+    lv_obj_t *can_container{nullptr};
+    lv_obj_t *can_labels[10]{nullptr};  // Массив для хранения меток сообщений
+    uint8_t can_message_count{0};       // Количество сообщений
   };
 
   struct Screen1Elements {
@@ -100,7 +98,3 @@ class UI final {
   static void update_screen(void *arg);
   static void lvgl_task(void *arg);
 };
-
-#endif  // __cplusplus
-
-#endif  // UI_H

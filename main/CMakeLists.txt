@@ -1,8 +1,10 @@
 set(CMAKE_CXX_STANDARD 17)
 
 idf_component_register(SRCS "main.cpp"
+                            "can_subscriber.cpp"
                             "twai/twai_driver.cpp"
                             "FreeRTOS-openocd.c"
+                            "debug.c"
 
                        INCLUDE_DIRS "."
                                     "twai/"

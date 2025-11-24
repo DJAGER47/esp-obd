@@ -75,15 +75,7 @@ void UI::switch_screen(int num_screen) {
 }
 
 void UI::update_screen0() {
-  if (screen0_elements.time_label != NULL) {
-    char time_str[15];
-    const uint32_t elapsed_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000 - screen0_elements.start_time;
-    const uint32_t hours        = elapsed_time / 3600;
-    const uint32_t minutes      = (elapsed_time % 3600) / 60;
-    const uint32_t seconds      = elapsed_time % 60;
-    snprintf(time_str, sizeof(time_str), "%02" PRIu32 ":%02" PRIu32 ":%02" PRIu32, hours, minutes, seconds);
-    lv_label_set_text(screen0_elements.time_label, time_str);
-  }
+  // Для экрана с CAN сообщениями обновление не требуется, так как сообщения добавляются динамически
 }
 
 void UI::update_screen1() {
@@ -92,6 +84,59 @@ void UI::update_screen1() {
     snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
     lv_label_set_text(screen1_elements.heap_label, heap_str);
   }
+}
+
+void UI::addCanMessage(const TwaiFrame &frame) {
+  // Форматируем сообщение в строку
+  char msg_str[64];
+  int offset = 0;
+
+  // Добавляем ID
+  if (frame.is_extended) {
+    // Для расширенного ID (29 бит) используем 8 символов
+    char id_str[9];
+    snprintf(id_str, sizeof(id_str), "%08lX", (unsigned long)frame.id);
+    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
+  } else {
+    // Для стандартного ID (11 бит) используем 3 символа
+    char id_str[4];
+    snprintf(id_str, sizeof(id_str), "%03lX", (unsigned long)frame.id);
+    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
+  }
+
+  // Добавляем данные
+  for (int i = 0; i < frame.data_length && i < 8; i++) {
+    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%02X ", frame.data[i]);
+  }
+
+  // Если у нас уже есть 10 сообщений, удаляем самое старое
+  if (screen0_elements.can_message_count >= 10) {
+    if (screen0_elements.can_labels[0] != nullptr) {
+      lv_obj_del(screen0_elements.can_labels[0]);
+    }
+
+    // Сдвигаем все метки вверх
+    for (int i = 0; i < 9; i++) {
+      screen0_elements.can_labels[i] = screen0_elements.can_labels[i + 1];
+    }
+    screen0_elements.can_labels[9]     = nullptr;
+    screen0_elements.can_message_count = 9;
+  }
+
+  // Создаем новую метку для сообщения
+  screen0_elements.can_labels[screen0_elements.can_message_count] = lv_label_create(screen0_elements.can_container);
+  lv_obj_set_style_text_font(
+      screen0_elements.can_labels[screen0_elements.can_message_count], &lv_font_montserrat_14, LV_PART_MAIN);
+  lv_obj_set_style_text_color(
+      screen0_elements.can_labels[screen0_elements.can_message_count], lv_color_make(0, 255, 0), LV_PART_MAIN);
+  lv_label_set_text(screen0_elements.can_labels[screen0_elements.can_message_count], msg_str);
+
+  // Позиционируем метку
+  lv_obj_set_pos(
+      screen0_elements.can_labels[screen0_elements.can_message_count], 0, screen0_elements.can_message_count * 16);
+
+  // Увеличиваем счетчик сообщений
+  screen0_elements.can_message_count++;
 }
 
 esp_err_t UI::init_st7789() {
@@ -210,51 +255,23 @@ void UI::create_ui0() {
   // Создание первого экрана
   screen0_elements.screen = lv_obj_create(NULL);
 
-  // Создание красной рамки
-  screen0_elements.border1 = lv_obj_create(screen0_elements.screen);
-  lv_obj_set_size(screen0_elements.border1, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
-  lv_obj_set_pos(screen0_elements.border1, 0, 0);
-  lv_obj_set_style_border_width(screen0_elements.border1, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen0_elements.border1, lv_color_make(255, 0, 0), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen0_elements.border1, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen0_elements.border1, 0, LV_PART_MAIN);
+  // Создание фона для CAN сообщений
+  screen0_elements.can_container = lv_obj_create(screen0_elements.screen);
+  lv_obj_set_size(screen0_elements.can_container, ST7789_LCD_H_RES - 10, ST7789_LCD_V_RES - 10);
+  lv_obj_set_pos(screen0_elements.can_container, 5, 5);
+  lv_obj_set_style_bg_color(screen0_elements.can_container, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черный фон
+  lv_obj_set_style_bg_opa(screen0_elements.can_container, LV_OPA_90, LV_PART_MAIN);  // Полупрозрачный
+  lv_obj_set_style_border_width(screen0_elements.can_container, 1, LV_PART_MAIN);
+  lv_obj_set_style_border_color(
+      screen0_elements.can_container, lv_color_make(255, 255, 255), LV_PART_MAIN);  // Белая рамка
+  lv_obj_set_style_pad_all(screen0_elements.can_container, 2, LV_PART_MAIN);
+  lv_obj_set_scroll_dir(screen0_elements.can_container, LV_DIR_VER);  // Включаем вертикальную прокрутку
 
-  screen0_elements.border2 = lv_obj_create(screen0_elements.screen);
-  lv_obj_set_size(screen0_elements.border2, ST7789_LCD_H_RES - 20, ST7789_LCD_V_RES - 20);
-  lv_obj_align(screen0_elements.border2, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_border_width(screen0_elements.border2, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen0_elements.border2, lv_color_make(0, 255, 0), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen0_elements.border2, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen0_elements.border2, 0, LV_PART_MAIN);
-
-  screen0_elements.border3 = lv_obj_create(screen0_elements.screen);
-  lv_obj_set_size(screen0_elements.border3, ST7789_LCD_H_RES - 40, ST7789_LCD_V_RES - 40);
-  lv_obj_align(screen0_elements.border3, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_border_width(screen0_elements.border3, 5, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen0_elements.border3, lv_color_make(0, 0, 255), LV_PART_MAIN);
-  lv_obj_set_style_bg_opa(screen0_elements.border3, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(screen0_elements.border3, 0, LV_PART_MAIN);
-
-  // Создание контейнера для метки времени с фоном
-  screen0_elements.time_container = lv_obj_create(screen0_elements.screen);
-  lv_obj_set_size(screen0_elements.time_container, 150, 50);
-  lv_obj_align(screen0_elements.time_container, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_bg_color(screen0_elements.time_container, lv_color_make(255, 255, 255), LV_PART_MAIN);  // Белый фон
-  lv_obj_set_style_bg_opa(screen0_elements.time_container, LV_OPA_70, LV_PART_MAIN);  // Полупрозрачный
-  lv_obj_set_style_border_width(screen0_elements.time_container, 2, LV_PART_MAIN);
-  lv_obj_set_style_border_color(screen0_elements.time_container, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черная рамка
-  lv_obj_set_style_radius(screen0_elements.time_container, 5, LV_PART_MAIN);  // Скругленные углы
-
-  // Создание метки для отображения времени
-  screen0_elements.time_label = lv_label_create(screen0_elements.time_container);
-  lv_obj_align(screen0_elements.time_label, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_style_text_font(
-      screen0_elements.time_label, &lv_font_montserrat_24, LV_PART_MAIN);  // Увеличен размер шрифта
-  lv_obj_set_style_text_color(screen0_elements.time_label, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черный текст
-  lv_label_set_text(screen0_elements.time_label, "00:00:00");
-
-  // Сохраняем начальное время
-  screen0_elements.start_time = (xTaskGetTickCount() * portTICK_PERIOD_MS) / 1000;
+  // Инициализируем массив меток для CAN сообщений
+  for (int i = 0; i < 10; i++) {
+    screen0_elements.can_labels[i] = nullptr;
+  }
+  screen0_elements.can_message_count = 0;
 }
 
 void UI::create_ui1() {
