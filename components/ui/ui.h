@@ -54,6 +54,8 @@ class UI final {
     lv_obj_t *spi_speed_label{nullptr};
   };
 
+  const uint32_t size_can_labels = 10;
+
   // GPIO пины для дисплея ST7789
   const gpio_num_t st7789_pin_num_sclk;
   const gpio_num_t st7789_pin_num_mosi;

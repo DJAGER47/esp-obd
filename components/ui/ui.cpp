@@ -110,13 +110,13 @@ void UI::addCanMessage(const TwaiFrame &frame) {
   }
 
   // Если у нас уже есть 10 сообщений, удаляем самое старое
-  if (screen0_elements.can_message_count >= 10) {
+  if (screen0_elements.can_message_count >= size_can_labels) {
     if (screen0_elements.can_labels[0] != nullptr) {
       lv_obj_del(screen0_elements.can_labels[0]);
     }
 
     // Сдвигаем все метки вверх
-    for (int i = 0; i < 9; i++) {
+    for (int i = 0; i < (size_can_labels - 1); i++) {
       screen0_elements.can_labels[i] = screen0_elements.can_labels[i + 1];
     }
     screen0_elements.can_labels[9]     = nullptr;
@@ -268,7 +268,7 @@ void UI::create_ui0() {
   lv_obj_set_scroll_dir(screen0_elements.can_container, LV_DIR_VER);  // Включаем вертикальную прокрутку
 
   // Инициализируем массив меток для CAN сообщений
-  for (int i = 0; i < 10; i++) {
+  for (int i = 0; i < size_can_labels; i++) {
     screen0_elements.can_labels[i] = nullptr;
   }
   screen0_elements.can_message_count = 0;

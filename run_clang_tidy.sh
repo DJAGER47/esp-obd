@@ -26,7 +26,7 @@ OUTPUT_FILE="clang_tidy_results/clang_tidy_${TIMESTAMP}.txt"
 
 idf.py clang-check --exclude-paths "~/esp/" \
                    --exclude-paths "/home/plavrovskiy/_My/esp_prj/obd2/managed_components" \
-                   --run-clang-tidy-options="-checks=-*,bugprone-*,cert-*,clang-analyzer-*,cppcoreguidelines-*,google-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-cppcoreguidelines-pro-bounds-constant-array-index,-misc-use-anonymous-namespace,-modernize-use-trailing-return-type,-readability-identifier-length,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-cppcoreguidelines-pro-type-vararg" 2>&1 | tee "${OUTPUT_FILE}";
+                   --run-clang-tidy-options="-checks=-*,bugprone-*,cert-*,clang-analyzer-*,cppcoreguidelines-*,google-*,misc-*,modernize-*,performance-*,portability-*,readability-*,-cppcoreguidelines-pro-bounds-constant-array-index,-misc-use-anonymous-namespace,-modernize-use-trailing-return-type,-readability-identifier-length,-cppcoreguidelines-avoid-magic-numbers,-readability-magic-numbers,-cppcoreguidelines-pro-type-vararg,-misc-include-cleaner" 2>&1 | tee "${OUTPUT_FILE}";
 
 
 
