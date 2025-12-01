@@ -18,7 +18,7 @@
 
 static const char *TAG = "main";
 
-static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, LCD_BK_LIGHT_PIN);
+static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);  // LCD_BK_LIGHT_PIN
 
 // Глобальный экземпляр CAN драйвера
 TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с

@@ -35,9 +35,7 @@ UI::UI(gpio_num_t sclk_pin,
     panel_handle(nullptr),
     buf1(nullptr),
     buf2(nullptr),
-    current_screen(nullptr),
-    current_gpio_state(0),
-    freq_khz(0) {}
+    current_screen(nullptr) {}
 
 esp_err_t UI::init() {
   ESP_LOGI(TAG, "Initializing UI");
@@ -142,18 +140,20 @@ void UI::addCanMessage(const TwaiFrame &frame) {
 esp_err_t UI::init_st7789() {
   ESP_LOGI(TAG, "Initializing ST7789 LCD display");
 
-  // Инициализация GPIO для подсветки
-  gpio_config_t bk_gpio_config;
-  memset(&bk_gpio_config, 0, sizeof(bk_gpio_config));
-  bk_gpio_config.pin_bit_mask = 1ULL << st7789_pin_num_bk_light;
-  bk_gpio_config.mode         = GPIO_MODE_OUTPUT;
-  bk_gpio_config.pull_up_en   = GPIO_PULLUP_DISABLE;
-  bk_gpio_config.pull_down_en = GPIO_PULLDOWN_DISABLE;
-  bk_gpio_config.intr_type    = GPIO_INTR_DISABLE;
-  ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
+  if (st7789_pin_num_bk_light == GPIO_NUM_NC) {
+    // Инициализация GPIO для подсветки
+    gpio_config_t bk_gpio_config;
+    memset(&bk_gpio_config, 0, sizeof(bk_gpio_config));
+    bk_gpio_config.pin_bit_mask = 1ULL << st7789_pin_num_bk_light;
+    bk_gpio_config.mode         = GPIO_MODE_OUTPUT;
+    bk_gpio_config.pull_up_en   = GPIO_PULLUP_DISABLE;
+    bk_gpio_config.pull_down_en = GPIO_PULLDOWN_DISABLE;
+    bk_gpio_config.intr_type    = GPIO_INTR_DISABLE;
+    ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
 
-  // Включаем подсветку
-  gpio_set_level(st7789_pin_num_bk_light, 1);
+    // Включаем подсветку
+    gpio_set_level(st7789_pin_num_bk_light, 1);
+  }
 
   // Конфигурация SPI шины
   spi_bus_config_t bus_config;
@@ -182,15 +182,6 @@ esp_err_t UI::init_st7789() {
   // Создание интерфейса панели
   esp_lcd_panel_io_handle_t io_handle = NULL;
   ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)SPI2_HOST, &io_config, &io_handle));
-  // Получение spi_device_handle_t из io_handle
-  // В структуре esp_lcd_panel_io_spi_t поле spi_dev находится сразу после поля base
-  spi_device_handle_t spi_dev = *(spi_device_handle_t *)((uint8_t *)io_handle + sizeof(esp_lcd_panel_io_t));
-  esp_err_t ret               = spi_device_get_actual_freq(spi_dev, &freq_khz);
-  if (ret == ESP_OK) {
-    freq_khz *= 1000;  // Преобразуем кГц в Гц
-  } else {
-    ESP_LOGE(TAG, "Failed to get SPI2 actual freq: %s", esp_err_to_name(ret));
-  }
 
   // Конфигурация панели ST7789
   esp_lcd_panel_dev_config_t panel_config;
@@ -209,7 +200,7 @@ esp_err_t UI::init_st7789() {
 
   // Установка ориентации дисплея
   ESP_ERROR_CHECK(esp_lcd_panel_invert_color(panel_handle, true));
-  ESP_ERROR_CHECK(esp_lcd_panel_set_gap(panel_handle, 0, 35));
+  // ESP_ERROR_CHECK(esp_lcd_panel_set_gap(panel_handle, 0, 35));
 
   // Исправление ориентации дисплея - меняем местами координаты X и Y
   ESP_LOGI(TAG, "Setting display orientation");
@@ -331,17 +322,6 @@ void UI::create_ui1() {
   lv_obj_set_style_text_color(screen1_elements.heap_label, lv_color_make(255, 255, 0), LV_PART_MAIN);
   lv_label_set_text(screen1_elements.heap_label, heap_str);
   lv_obj_align(screen1_elements.heap_label, LV_ALIGN_BOTTOM_MID, 0, -30);
-
-  // Информация о скорости SPI2_HOST
-  char spi_str[64];
-  uint32_t spi_speed = (uint32_t)freq_khz;
-  snprintf(spi_str, sizeof(spi_str), "SPI2 Speed: %" PRIu32 " Hz", spi_speed);
-
-  screen1_elements.spi_speed_label = lv_label_create(screen1_elements.screen);
-  lv_obj_set_style_text_font(screen1_elements.spi_speed_label, &lv_font_montserrat_12, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen1_elements.spi_speed_label, lv_color_make(0, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen1_elements.spi_speed_label, spi_str);
-  lv_obj_align(screen1_elements.spi_speed_label, LV_ALIGN_BOTTOM_MID, 0, -10);
 }
 
 void UI::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {

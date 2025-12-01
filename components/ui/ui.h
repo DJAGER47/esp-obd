@@ -32,14 +32,6 @@ class UI final {
  private:
   struct Screen0Elements {
     lv_obj_t *screen{nullptr};
-    lv_obj_t *border1{nullptr};
-    lv_obj_t *border2{nullptr};
-    lv_obj_t *border3{nullptr};
-    lv_obj_t *time_container{nullptr};
-    lv_obj_t *time_label{nullptr};
-    uint32_t start_time{0};
-
-    // Элементы для отображения CAN сообщений
     lv_obj_t *can_container{nullptr};
     lv_obj_t *can_labels[10]{nullptr};  // Массив для хранения меток сообщений
     uint8_t can_message_count{0};       // Количество сообщений
@@ -51,7 +43,6 @@ class UI final {
     lv_obj_t *title{nullptr};
     lv_obj_t *info_label{nullptr};
     lv_obj_t *heap_label{nullptr};
-    lv_obj_t *spi_speed_label{nullptr};
   };
 
   const uint32_t size_can_labels = 10;
@@ -66,7 +57,9 @@ class UI final {
 
   // Разрешение дисплея
   static constexpr uint32_t ST7789_LCD_H_RES = 320;
-  static constexpr uint32_t ST7789_LCD_V_RES = 170;
+  // static constexpr uint32_t ST7789_LCD_V_RES = 170;
+  static constexpr uint32_t ST7789_LCD_V_RES = 240;
+
   // Размер буфера LVGL
   static constexpr uint32_t DISP_BUF_SIZE = (ST7789_LCD_H_RES * 10);
 
@@ -80,12 +73,6 @@ class UI final {
   Screen0Elements screen0_elements;
   Screen1Elements screen1_elements;
   lv_obj_t *current_screen;
-
-  // Переменные для управления экранами
-  int current_gpio_state;
-
-  // Переменная для скорости SPI
-  int freq_khz;
 
   // Приватные методы инициализации
   esp_err_t init_st7789();
