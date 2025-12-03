@@ -51,8 +51,8 @@ esp_err_t UI::init() {
 
   switch_screen(0);
 
-  xTaskCreate(lvgl_task, "lvgl_task", 4096, this, 5, NULL);
-  xTaskCreate(update_screen, "update_time", 4096, this, 4, NULL);
+  xTaskCreate(lvgl_task, "lvgl_task", 8192, this, 5, NULL);        // Увеличиваем размер стека
+  xTaskCreate(update_screen, "update_time", 8192, this, 4, NULL);  // Увеличиваем размер стека
   return ESP_OK;
 }
 
@@ -140,7 +140,7 @@ void UI::addCanMessage(const TwaiFrame &frame) {
 esp_err_t UI::init_st7789() {
   ESP_LOGI(TAG, "Initializing ST7789 LCD display");
 
-  if (st7789_pin_num_bk_light == GPIO_NUM_NC) {
+  if (st7789_pin_num_bk_light != GPIO_NUM_NC) {
     // Инициализация GPIO для подсветки
     gpio_config_t bk_gpio_config;
     memset(&bk_gpio_config, 0, sizeof(bk_gpio_config));
