@@ -5,6 +5,7 @@
 #include "esp_err.h"
 #include "esp_lcd_panel_io.h"
 #include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 #include "freertos/timers.h"
 #include "lvgl.h"
 #include "phy_interface.h"
@@ -26,8 +27,11 @@ class UI final {
   void update_screen0();
   void update_screen1();
 
-  // Добавление CAN сообщения для отображения
-  void addCanMessage(const TwaiFrame &frame);
+  // Добавление CAN сообщения в очередь для отображения
+  void addCanMessageToQueue(const TwaiFrame &frame);
+
+  // Обработка сообщений из очереди и обновление экрана
+  void processCanMessages();
 
  private:
   struct Screen0Elements {
@@ -45,7 +49,8 @@ class UI final {
     lv_obj_t *heap_label{nullptr};
   };
 
-  const uint32_t size_can_labels = 10;
+  const uint32_t size_can_labels       = 10;
+  static const uint32_t can_queue_size = 20;  // Размер очереди для CAN сообщений
 
   // GPIO пины для дисплея ST7789
   const gpio_num_t st7789_pin_num_sclk;
@@ -73,6 +78,9 @@ class UI final {
   Screen0Elements screen0_elements;
   Screen1Elements screen1_elements;
   lv_obj_t *current_screen;
+
+  // Очередь для CAN сообщений
+  QueueHandle_t can_message_queue;
 
   // Приватные методы инициализации
   esp_err_t init_st7789();

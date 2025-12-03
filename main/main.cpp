@@ -26,7 +26,7 @@ TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
 
 // Функция обратного вызова для обработки CAN сообщений
 void can_message_callback(const TwaiFrame &frame) {
-  ui_instance.addCanMessage(frame);
+  ui_instance.addCanMessageToQueue(frame);
 }
 
 // Подписчик на CAN сообщения
@@ -48,18 +48,18 @@ extern "C" void app_main() {
   can_driver.RegisterSubscriber(can_subscriber);
 
   ESP_LOGI(TAG, "Application initialized successfully");
-  uint8_t screen_state        = 0;
-  uint32_t stack_info_counter = 0;
+  // uint8_t screen_state = 0;
+  // uint32_t stack_info_counter = 0;
 
   while (1) {
-    ui_instance.switch_screen(screen_state);
-    screen_state = (screen_state + 1) % 2;
+    // ui_instance.switch_screen(screen_state);
+    // screen_state = (screen_state + 1) % 2;
 
-    if (++stack_info_counter >= 12) {
-      print_stack_usage();
-      print_runtime_stats();
-      stack_info_counter = 0;
-    }
+    // if (++stack_info_counter >= 12) {
+    //   print_stack_usage();
+    //   print_runtime_stats();
+    //   stack_info_counter = 0;
+    // }
 
     vTaskDelay(pdMS_TO_TICKS(5000));
   }

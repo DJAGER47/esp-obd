@@ -35,7 +35,8 @@ UI::UI(gpio_num_t sclk_pin,
     panel_handle(nullptr),
     buf1(nullptr),
     buf2(nullptr),
-    current_screen(nullptr) {}
+    current_screen(nullptr),
+    can_message_queue(nullptr) {}
 
 esp_err_t UI::init() {
   ESP_LOGI(TAG, "Initializing UI");
@@ -48,6 +49,13 @@ esp_err_t UI::init() {
   init_lvgl();
   create_ui0();
   create_ui1();
+
+  // Создание очереди для CAN сообщений
+  can_message_queue = xQueueCreate(can_queue_size, sizeof(TwaiFrame));
+  if (can_message_queue == nullptr) {
+    ESP_LOGE(TAG, "Failed to create CAN message queue");
+    return ESP_ERR_NO_MEM;
+  }
 
   switch_screen(0);
 
@@ -73,7 +81,8 @@ void UI::switch_screen(int num_screen) {
 }
 
 void UI::update_screen0() {
-  // Для экрана с CAN сообщениями обновление не требуется, так как сообщения добавляются динамически
+  // Обрабатываем сообщения из очереди
+  processCanMessages();
 }
 
 void UI::update_screen1() {
@@ -84,57 +93,74 @@ void UI::update_screen1() {
   }
 }
 
-void UI::addCanMessage(const TwaiFrame &frame) {
-  // Форматируем сообщение в строку
-  char msg_str[64];
-  int offset = 0;
+void UI::addCanMessageToQueue(const TwaiFrame &frame) {
+  if (can_message_queue != nullptr) {
+    // Добавляем сообщение в очередь
+    if (xQueueSend(can_message_queue, &frame, 0) != pdTRUE) {
+      ESP_LOGW(TAG, "CAN message queue is full, dropping message");
+    }
+  }
+}
 
-  // Добавляем ID
-  if (frame.is_extended) {
-    // Для расширенного ID (29 бит) используем 8 символов
-    char id_str[9];
-    snprintf(id_str, sizeof(id_str), "%08lX", (unsigned long)frame.id);
-    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
-  } else {
-    // Для стандартного ID (11 бит) используем 3 символа
-    char id_str[4];
-    snprintf(id_str, sizeof(id_str), "%03lX", (unsigned long)frame.id);
-    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
+void UI::processCanMessages() {
+  if (can_message_queue == nullptr) {
+    return;
   }
 
-  // Добавляем данные
-  for (int i = 0; i < frame.data_length && i < 8; i++) {
-    offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%02X ", frame.data[i]);
-  }
+  TwaiFrame frame;
+  // Обрабатываем все сообщения в очереди
+  while (xQueueReceive(can_message_queue, &frame, 0) == pdTRUE) {
+    // Форматируем сообщение в строку
+    char msg_str[64];
+    int offset = 0;
 
-  // Если у нас уже есть 10 сообщений, удаляем самое старое
-  if (screen0_elements.can_message_count >= size_can_labels) {
-    if (screen0_elements.can_labels[0] != nullptr) {
-      lv_obj_del(screen0_elements.can_labels[0]);
+    // Добавляем ID
+    if (frame.is_extended) {
+      // Для расширенного ID (29 бит) используем 8 символов
+      char id_str[9];
+      snprintf(id_str, sizeof(id_str), "%08lX", (unsigned long)frame.id);
+      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
+    } else {
+      // Для стандартного ID (11 бит) используем 3 символа
+      char id_str[4];
+      snprintf(id_str, sizeof(id_str), "%03lX", (unsigned long)frame.id);
+      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
     }
 
-    // Сдвигаем все метки вверх
-    for (int i = 0; i < (size_can_labels - 1); i++) {
-      screen0_elements.can_labels[i] = screen0_elements.can_labels[i + 1];
+    // Добавляем данные
+    for (int i = 0; i < frame.data_length && i < 8; i++) {
+      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%02X ", frame.data[i]);
     }
-    screen0_elements.can_labels[9]     = nullptr;
-    screen0_elements.can_message_count = 9;
+
+    // Если у нас уже есть 10 сообщений, удаляем самое старое
+    if (screen0_elements.can_message_count >= size_can_labels) {
+      if (screen0_elements.can_labels[0] != nullptr) {
+        lv_obj_del(screen0_elements.can_labels[0]);
+      }
+
+      // Сдвигаем все метки вверх
+      for (int i = 0; i < (size_can_labels - 1); i++) {
+        screen0_elements.can_labels[i] = screen0_elements.can_labels[i + 1];
+      }
+      screen0_elements.can_labels[9]     = nullptr;
+      screen0_elements.can_message_count = 9;
+    }
+
+    // Создаем новую метку для сообщения
+    screen0_elements.can_labels[screen0_elements.can_message_count] = lv_label_create(screen0_elements.can_container);
+    lv_obj_set_style_text_font(
+        screen0_elements.can_labels[screen0_elements.can_message_count], &lv_font_montserrat_14, LV_PART_MAIN);
+    lv_obj_set_style_text_color(
+        screen0_elements.can_labels[screen0_elements.can_message_count], lv_color_make(0, 255, 0), LV_PART_MAIN);
+    lv_label_set_text(screen0_elements.can_labels[screen0_elements.can_message_count], msg_str);
+
+    // Позиционируем метку
+    lv_obj_set_pos(
+        screen0_elements.can_labels[screen0_elements.can_message_count], 0, screen0_elements.can_message_count * 16);
+
+    // Увеличиваем счетчик сообщений
+    screen0_elements.can_message_count++;
   }
-
-  // Создаем новую метку для сообщения
-  screen0_elements.can_labels[screen0_elements.can_message_count] = lv_label_create(screen0_elements.can_container);
-  lv_obj_set_style_text_font(
-      screen0_elements.can_labels[screen0_elements.can_message_count], &lv_font_montserrat_14, LV_PART_MAIN);
-  lv_obj_set_style_text_color(
-      screen0_elements.can_labels[screen0_elements.can_message_count], lv_color_make(0, 255, 0), LV_PART_MAIN);
-  lv_label_set_text(screen0_elements.can_labels[screen0_elements.can_message_count], msg_str);
-
-  // Позиционируем метку
-  lv_obj_set_pos(
-      screen0_elements.can_labels[screen0_elements.can_message_count], 0, screen0_elements.can_message_count * 16);
-
-  // Увеличиваем счетчик сообщений
-  screen0_elements.can_message_count++;
 }
 
 esp_err_t UI::init_st7789() {
@@ -355,7 +381,7 @@ void UI::update_screen(void *arg) {
         ui_instance->update_screen1();
       }
 
-      vTaskDelay(pdMS_TO_TICKS(1000));
+      vTaskDelay(pdMS_TO_TICKS(100));
     }
   } else {
     while (1) {
