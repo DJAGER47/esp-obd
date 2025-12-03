@@ -30,18 +30,18 @@ int main() {
   // Инициализация Unity
   UNITY_BEGIN();
 
-  // run_iso_tp_tests();
-  // run_iso_tp_extended_tests();
+  run_iso_tp_tests();
+  run_iso_tp_extended_tests();
   run_iso_tp_edge_case_tests();
 
-  // run_twai_subscriber_iso_tp_tests();
+  run_twai_subscriber_iso_tp_tests();
 
   // Отключаем тесты OBD2, так как они не работают с текущей версией кода
   // printf("\n=== Запуск тестов OBD2 ===\n");
-  // run_obd_pid_group_1_20_tests();
-  // run_obd_pid_group_21_40_tests();
-  // run_obd_pid_group_41_60_tests();
-  // run_obd_pid_group_61_80_tests();
+  run_obd_pid_group_1_20_tests();
+  run_obd_pid_group_21_40_tests();
+  run_obd_pid_group_41_60_tests();
+  run_obd_pid_group_61_80_tests();
 
   // Завершение Unity и получение результата
   int failures = UNITY_END();

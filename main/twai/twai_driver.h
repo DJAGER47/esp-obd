@@ -20,17 +20,14 @@ class TwaiDriver final : public IPhyInterface {
   static const int kTxQueueDepth   = 10;
   static const int kMaxSubscribers = 8;
 
-  static bool TxCallback(twai_node_handle_t handle,
-                         const twai_tx_done_event_data_t* edata,
-                         void* user_ctx);
-  static bool RxCallback(twai_node_handle_t handle,
-                         const twai_rx_done_event_data_t* edata,
-                         void* user_ctx);
+  static bool TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx);
+  static bool RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx);
 
   void DispatchMessage(const TwaiFrame& message);
 
-  gpio_num_t tx_pin_;
-  gpio_num_t rx_pin_;
+  const gpio_num_t tx_pin_;
+  const gpio_num_t rx_pin_;
+
   uint32_t speed_kbps_;
   twai_node_handle_t node_handle_;
   QueueHandle_t tx_queue_;

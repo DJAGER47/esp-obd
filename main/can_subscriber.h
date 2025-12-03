@@ -9,9 +9,11 @@ class CanSubscriber : public ITwaiSubscriber {
  public:
   explicit CanSubscriber(CanMessageCallback callback);
 
-  bool onTwaiMessage(const TwaiFrame& frame) override;
+  QueueHandle_t onTwaiMessage() override;
   bool isInterested(const TwaiFrame& frame) override;
+  void ProcessMessages();  // Обработка сообщений из очереди
 
  private:
   CanMessageCallback callback_;
+  QueueHandle_t message_queue_;
 };

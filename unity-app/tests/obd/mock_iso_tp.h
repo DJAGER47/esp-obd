@@ -177,10 +177,7 @@ class MockIsoTp : public IIsoTp {
 // Вспомогательные функции для создания OBD2 сообщений
 
 // Создание OBD2 ответа для одного байта данных
-inline IIsoTp::Message create_obd_response_1_byte(uint32_t rx_id,
-                                                  uint8_t service,
-                                                  uint8_t pid,
-                                                  uint8_t data) {
+inline IIsoTp::Message create_obd_response_1_byte(uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data) {
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;  // Стандартный OBD2 запрос ID
   msg.rx_id   = rx_id;
@@ -214,13 +211,8 @@ inline IIsoTp::Message create_obd_response_2_bytes(
 }
 
 // Создание OBD2 ответа для четырех байт данных (например, для supportedPIDs)
-inline IIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
-                                                   uint8_t service,
-                                                   uint8_t pid,
-                                                   uint8_t data_a,
-                                                   uint8_t data_b,
-                                                   uint8_t data_c,
-                                                   uint8_t data_d) {
+inline IIsoTp::Message create_obd_response_4_bytes(
+    uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data_a, uint8_t data_b, uint8_t data_c, uint8_t data_d) {
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;
@@ -237,10 +229,33 @@ inline IIsoTp::Message create_obd_response_4_bytes(uint32_t rx_id,
   return msg;
 }
 
+// Создание OBD2 ответа для пяти байт данных
+inline IIsoTp::Message create_obd_response_5_bytes(uint32_t rx_id,
+                                                   uint8_t service,
+                                                   uint8_t pid,
+                                                   uint8_t data_a,
+                                                   uint8_t data_b,
+                                                   uint8_t data_c,
+                                                   uint8_t data_d,
+                                                   uint8_t data_e) {
+  IIsoTp::Message msg;
+  msg.tx_id   = 0x7DF;
+  msg.rx_id   = rx_id;
+  msg.len     = 8;
+  msg.data    = new uint8_t[8];
+  msg.data[0] = 7;  // Длина данных
+  msg.data[1] = service + 0x40;
+  msg.data[2] = pid;
+  msg.data[3] = data_a;
+  msg.data[4] = data_b;
+  msg.data[5] = data_c;
+  msg.data[6] = data_d;
+  msg.data[7] = data_e;
+  return msg;
+}
+
 // Создание сообщения об ошибке OBD2
-inline IIsoTp::Message create_obd_error_response(uint32_t rx_id,
-                                                 uint8_t service,
-                                                 uint8_t error_code) {
+inline IIsoTp::Message create_obd_error_response(uint32_t rx_id, uint8_t service, uint8_t error_code) {
   IIsoTp::Message msg;
   msg.tx_id   = 0x7DF;
   msg.rx_id   = rx_id;

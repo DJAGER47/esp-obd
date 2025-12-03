@@ -76,7 +76,19 @@
     "stop_token": "cpp",
     "streambuf": "cpp",
     "typeinfo": "cpp",
-    "variant": "cpp"
+    "variant": "cpp",
+    "bitset": "cpp",
+    "complex": "cpp",
+    "condition_variable": "cpp",
+    "list": "cpp",
+    "map": "cpp",
+    "set": "cpp",
+    "regex": "cpp",
+    "fstream": "cpp",
+    "future": "cpp",
+    "iostream": "cpp",
+    "mutex": "cpp",
+    "text_encoding": "cpp"
   },
   "clangd.path": "/home/plavrovskiy/.espressif/tools/esp-clang/esp-19.1.2_20250312/esp-clang/bin/clangd",
   "clangd.arguments": [

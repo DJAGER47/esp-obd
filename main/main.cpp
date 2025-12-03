@@ -52,6 +52,9 @@ extern "C" void app_main() {
   // uint32_t stack_info_counter = 0;
 
   while (1) {
+    // Обрабатываем сообщения из очереди CAN подписчика
+    can_subscriber.ProcessMessages();
+
     // ui_instance.switch_screen(screen_state);
     // screen_state = (screen_state + 1) % 2;
 
@@ -61,6 +64,6 @@ extern "C" void app_main() {
     //   stack_info_counter = 0;
     // }
 
-    vTaskDelay(pdMS_TO_TICKS(5000));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }

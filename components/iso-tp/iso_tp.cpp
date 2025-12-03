@@ -13,8 +13,7 @@ static uint32_t millis() {
   return (uint32_t)(xTaskGetTickCount() * portTICK_PERIOD_MS);
 }
 
-static const char* const TAG   = "ISO_TP";
-static const bool ISO_TP_DEBUG = true;
+static const char* const TAG = "ISO_TP";
 
 const char* IsoTp::isotp_state_to_string(isotp_states_t state) {
   switch (state) {
@@ -69,8 +68,7 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
     char log_buffer[128];
     int offset = 0;
 
-    offset += snprintf(
-        log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
+    offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "Buffer: %" PRIX32 " [%d] ", id, len);
 
     for (uint16_t i = 0; i < len && offset < sizeof(log_buffer) - 4; i++) {
       offset += snprintf(log_buffer + offset, sizeof(log_buffer) - offset, "%02X ", buffer[i]);
@@ -114,9 +112,8 @@ void IsoTp::send_fc(const Message_t& msg) {
   TxBuf[0] = (N_PCI_FC | msg.fc_status);
   TxBuf[1] = msg.blocksize;
   /* fix wrong separation time values according spec */
-  const bool wrong_sep_time =
-      (msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9));
-  TxBuf[2] = wrong_sep_time ? 0x7F : msg.min_sep_time;
+  const bool wrong_sep_time = (msg.min_sep_time > 0x7F) && ((msg.min_sep_time < 0xF1) || (msg.min_sep_time > 0xF9));
+  TxBuf[2]                  = wrong_sep_time ? 0x7F : msg.min_sep_time;
   can_send(msg.tx_id, 8, TxBuf);
 }
 
@@ -157,8 +154,7 @@ void IsoTp::rcv_sf(Message_t& msg) {
 
   uint16_t copy_len = msg.len;
   if (msg.len > msg.max_len) {
-    log_print(
-        "Warning: Buffer too small for SF (need %d, have %d), truncating", msg.len, msg.max_len);
+    log_print("Warning: Buffer too small for SF (need %d, have %d), truncating", msg.len, msg.max_len);
     copy_len = msg.max_len;
   }
 
@@ -220,15 +216,11 @@ void IsoTp::rcv_cf(Message_t& msg) {
   if (received_seq_id != expected_seq_id) {
     if (received_seq_id < expected_seq_id) {
       // Дублированный кадр - игнорируем
-      log_print("Duplicate CF ignored: Got sequence ID: %d Expected: %d",
-                received_seq_id,
-                expected_seq_id);
+      log_print("Duplicate CF ignored: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
       return;
     } else {
       // Пропущен кадр - ошибка
-      log_print("Missing CF detected: Got sequence ID: %d Expected: %d",
-                received_seq_id,
-                expected_seq_id);
+      log_print("Missing CF detected: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
       msg.tp_state = ISOTP_IDLE;
       msg.seq_id   = 1;
       return;
@@ -242,8 +234,7 @@ void IsoTp::rcv_cf(Message_t& msg) {
     uint16_t copy_len = (rest > available_space) ? available_space : rest;
     memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
     if (copy_len < rest) {
-      log_print(
-          "Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
+      log_print("Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
     }
     msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
     log_print("Last CF received with seq. ID: %d", msg.seq_id);

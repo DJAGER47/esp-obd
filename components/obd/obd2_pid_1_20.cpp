@@ -10,6 +10,18 @@
 #include "obd2.h"
 
 /**
+ * @brief Получает список поддерживаемых PID в диапазоне 1-20
+ *
+ * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_00
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
+ */
+std::optional<uint32_t> OBD2::supportedPIDs_1_20() {
+  return getSupportedPIDs(SUPPORTED_PIDS_1_20);
+}
+
+/**
  * @brief Получает статус мониторинга с момента последнего сброса DTC
  *
  * Включает статус индикатора неисправности (MIL) и количество DTC.
@@ -268,19 +280,213 @@ std::optional<uint8_t> OBD2::oxygenSensorsPresent_2banks() {
   return std::nullopt;
 }
 
-/*
-[this]() -> std::optional<float> {
-        return response[A] / 200.0;
-      };
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_1_A              = 20;  // 0x14 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_2_A              = 21;  // 0x15 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_3_A              = 22;  // 0x16 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_4_A              = 23;  // 0x17 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_5_A              = 24;  // 0x18 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_6_A              = 25;  // 0x19 - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_7_A              = 26;  // 0x1A - V %
-constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_A              = 27;  // 0x1B - V %
-*/
+/**
+ * @brief Получает данные кислородного датчика 1 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor1Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_1_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 1 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor1FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_1_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 2 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor2Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_2_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 2 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor2FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_2_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 3 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor3Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_3_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 3 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor3FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_3_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 4 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor4Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_4_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 4 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor4FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_4_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 5 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor5Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_5_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 5 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor5FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_5_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 6 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor6Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_6_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 6 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor6FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_6_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 7 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor7Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_7_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 7 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor7FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_7_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 8 - напряжение
+ *
+ * @return std::optional<float> Напряжение в вольтах
+ */
+std::optional<float> OBD2::oxygenSensor8Voltage() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_8_A, response)) {
+    return {response[A] / 200.0f};
+  }
+  return std::nullopt;
+}
+
+/**
+ * @brief Получает данные кислородного датчика 8 - коррекция топлива
+ *
+ * @return std::optional<float> Коррекция топлива в процентах
+ */
+std::optional<float> OBD2::oxygenSensor8FuelTrim() {
+  ResponseType response;
+  if (processPID(SERVICE_01, OXYGEN_SENSOR_8_A, response)) {
+    return {(response[B] * 100.0f / 128.0f) - 100.0f};
+  }
+  return std::nullopt;
+}
 
 /**
  * @brief Получает стандарт OBD, которому соответствует автомобиль

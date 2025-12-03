@@ -3,14 +3,16 @@
 #include <queue>
 #include <vector>
 
+#include "freertos/queue.h"
 #include "phy_interface.h"
+#include "time_utils.h"
 
 // Мок-класс для IPhyInterface для тестирования ISO-TP протокола
 class MockTwaiInterface : public IPhyInterface {
  public:
   void InstallStart() override {}
 
-  TwaiError Transmit(const TwaiFrame& message, uint32_t ticks_to_wait) override {
+  TwaiError Transmit(const TwaiFrame& message, Time_ms timeout_ms) override {
     transmitted_frames.push_back(message);
     transmit_called = true;
     return transmit_result;
@@ -34,7 +36,10 @@ class MockTwaiInterface : public IPhyInterface {
     // Передаем фрейм всем подписчикам
     for (auto subscriber : subscribers) {
       if (subscriber->isInterested(frame)) {
-        subscriber->onTwaiMessage(frame);
+        QueueHandle_t queue = subscriber->onTwaiMessage();
+        if (queue != nullptr) {
+          xQueueSend(queue, &frame, 0);
+        }
       }
     }
   }
@@ -75,10 +80,7 @@ inline TwaiFrame create_first_frame(uint32_t id, uint16_t total_length, const ui
 }
 
 // Создание последовательного кадра (Consecutive Frame)
-inline TwaiFrame create_consecutive_frame(uint32_t id,
-                                          uint8_t seq_num,
-                                          const uint8_t* data,
-                                          uint8_t length) {
+inline TwaiFrame create_consecutive_frame(uint32_t id, uint8_t seq_num, const uint8_t* data, uint8_t length) {
   TwaiFrame frame   = {};
   frame.id          = id;
   frame.data_length = 8;
@@ -90,10 +92,7 @@ inline TwaiFrame create_consecutive_frame(uint32_t id,
 }
 
 // Создание кадра управления потоком (Flow Control)
-inline TwaiFrame create_flow_control_frame(uint32_t id,
-                                           uint8_t flow_status,
-                                           uint8_t block_size,
-                                           uint8_t sep_time) {
+inline TwaiFrame create_flow_control_frame(uint32_t id, uint8_t flow_status, uint8_t block_size, uint8_t sep_time) {
   TwaiFrame frame   = {};
   frame.id          = id;
   frame.data_length = 8;

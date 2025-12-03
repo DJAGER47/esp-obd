@@ -9,6 +9,18 @@
 #include "obd2.h"
 
 /**
+ * @brief Получает список поддерживаемых PID в диапазоне 41-60
+ *
+ * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_40
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
+ */
+std::optional<uint32_t> OBD2::supportedPIDs_41_60() {
+  return getSupportedPIDs(SUPPORTED_PIDS_41_60);
+}
+
+/**
  * @brief Получает статус текущего цикла движения
  *
  * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_41

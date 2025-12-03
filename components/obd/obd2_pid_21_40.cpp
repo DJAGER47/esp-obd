@@ -10,6 +10,18 @@
 #include "obd2.h"
 
 /**
+ * @brief Получает список поддерживаемых PID в диапазоне 21-40
+ *
+ * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
+ * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_20
+ *
+ * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
+ */
+std::optional<uint32_t> OBD2::supportedPIDs_21_40() {
+  return getSupportedPIDs(SUPPORTED_PIDS_21_40);
+}
+
+/**
  * @brief Получает расстояние, пройденное с горящей лампой неисправности (MIL)
  *
  * @return std::optional<uint16_t> Расстояние в километрах

@@ -15,8 +15,8 @@
  * ✅ PID 61 - demandedTorque() - требуемый крутящий момент двигателя в %
  * ✅ PID 62 - torque() - фактический крутящий момент двигателя в %
  * ✅ PID 63 - referenceTorque() - эталонный крутящий момент двигателя в Нм
- * ❌ PID 64 - enginePercentTorqueData() - данные о проценте крутящего момента двигателя - НЕ
- * РЕАЛИЗОВАН ✅ PID 65 - auxSupported() - поддерживаемые вспомогательные входы/выходы ✅ PID 80 -
+ * ✅ PID 64 - enginePercentTorqueData() - данные о проценте крутящего момента двигателя
+ * ✅ PID 65 - auxSupported() - поддерживаемые вспомогательные входы/выходы ✅ PID 80 -
  * supportedPIDs81_100() - поддерживаемые PID группы 81-100 ✅ PID A0 - supportedPIDs101_120() -
  * поддерживаемые PID группы 101-120 ✅ PID C0 - supportedPIDs121_140() - поддерживаемые PID группы
  * 121-140
@@ -45,10 +45,8 @@ void test_pid_61_demanded_torque_valid_data() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 128 - 125 = 3.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   3.0,
-                                   static_cast<double>(torque.value()),
-                                   "demandedTorque должен вернуть правильный крутящий момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, 3.0, static_cast<double>(torque.value()), "demandedTorque должен вернуть правильный крутящий момент");
 
   if (response.data)
     delete[] response.data;
@@ -68,10 +66,8 @@ void test_pid_61_demanded_torque_negative() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 80 - 125 = -45.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   -45.0,
-                                   static_cast<double>(torque.value()),
-                                   "demandedTorque должен обрабатывать отрицательный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, -45.0, static_cast<double>(torque.value()), "demandedTorque должен обрабатывать отрицательный момент");
 
   if (response.data)
     delete[] response.data;
@@ -91,10 +87,8 @@ void test_pid_61_demanded_torque_max() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 255 - 125 = 130.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   130.0,
-                                   static_cast<double>(torque.value()),
-                                   "demandedTorque должен обрабатывать максимальный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, 130.0, static_cast<double>(torque.value()), "demandedTorque должен обрабатывать максимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -114,10 +108,8 @@ void test_pid_61_demanded_torque_min() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "demandedTorque должен вернуть значение");
 
   // Ожидаемое значение: 0 - 125 = -125.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   -125.0,
-                                   static_cast<double>(torque.value()),
-                                   "demandedTorque должен обрабатывать минимальный момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, -125.0, static_cast<double>(torque.value()), "demandedTorque должен обрабатывать минимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -141,10 +133,8 @@ void test_pid_62_actual_torque_valid_data() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 144 - 125 = 19.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   19.0,
-                                   static_cast<double>(torque.value()),
-                                   "torque должен вернуть правильный фактический момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, 19.0, static_cast<double>(torque.value()), "torque должен вернуть правильный фактический момент");
 
   if (response.data)
     delete[] response.data;
@@ -185,10 +175,8 @@ void test_pid_62_actual_torque_negative() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 60 - 125 = -65.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   -65.0,
-                                   static_cast<double>(torque.value()),
-                                   "torque должен обрабатывать отрицательный момент (торможение)");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, -65.0, static_cast<double>(torque.value()), "torque должен обрабатывать отрицательный момент (торможение)");
 
   if (response.data)
     delete[] response.data;
@@ -208,10 +196,8 @@ void test_pid_62_actual_torque_min() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "torque должен вернуть значение");
 
   // Ожидаемое значение: 0 - 125 = -125.0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1,
-                                   -125.0,
-                                   static_cast<double>(torque.value()),
-                                   "torque должен обрабатывать минимальный фактический момент");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1, -125.0, static_cast<double>(torque.value()), "torque должен обрабатывать минимальный фактический момент");
 
   if (response.data)
     delete[] response.data;
@@ -235,8 +221,7 @@ void test_pid_63_reference_torque_valid_data() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      300, torque.value(), "referenceTorque должен вернуть правильный эталонный момент");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(300, torque.value(), "referenceTorque должен вернуть правильный эталонный момент");
 
   if (response.data)
     delete[] response.data;
@@ -256,8 +241,7 @@ void test_pid_63_reference_torque_high() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      5000, torque.value(), "referenceTorque должен обрабатывать высокий момент");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(5000, torque.value(), "referenceTorque должен обрабатывать высокий момент");
 
   if (response.data)
     delete[] response.data;
@@ -277,8 +261,7 @@ void test_pid_63_reference_torque_max() {
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
   // Формула: (A*256 + B) Нм
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      65535, torque.value(), "referenceTorque должен обрабатывать максимальный момент");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(65535, torque.value(), "referenceTorque должен обрабатывать максимальный момент");
 
   if (response.data)
     delete[] response.data;
@@ -297,8 +280,119 @@ void test_pid_63_reference_torque_zero() {
   auto torque = obd2.referenceTorque();
   TEST_ASSERT_TRUE_MESSAGE(torque.has_value(), "referenceTorque должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0, torque.value(), "referenceTorque должен обрабатывать нулевой эталонный момент");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(0, torque.value(), "referenceTorque должен обрабатывать нулевой эталонный момент");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// ============================================================================
+// PID 64 - ENGINE PERCENT TORQUE DATA ТЕСТЫ
+// ============================================================================
+
+// Тест 13: enginePercentTorqueData - валидные данные
+void test_pid_64_engine_percent_torque_data_valid() {
+  g_mock_iso_tp.reset();
+
+  // Данные о проценте крутящего момента: 0x7D, 0x8A, 0x96, 0xA0, 0xB0
+  // Формула: A-125, B-125, C-125, D-125, E-125
+  // Ожидаемые значения: 0, 13, 25, 35, 51%
+  IIsoTp::Message response = create_obd_response_5_bytes(0x7E8, SERVICE_01, 0x64, 0x7D, 0x8A, 0x96, 0xA0, 0xB0);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto torque_data = obd2.enginePercentTorqueData();
+  TEST_ASSERT_TRUE_MESSAGE(torque_data.has_value(), "enginePercentTorqueData должен вернуть значение");
+
+  // Проверяем все 5 значений
+  auto& data = torque_data.value();
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(0, data[0], "Холостой ход должен быть 0%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(13, data[1], "Точка 1 должна быть 13%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(25, data[2], "Точка 2 должна быть 25%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(35, data[3], "Точка 3 должна быть 35%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(51, data[4], "Точка 4 должна быть 51%");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 14: enginePercentTorqueData - отрицательные значения
+void test_pid_64_engine_percent_torque_data_negative() {
+  g_mock_iso_tp.reset();
+
+  // Данные о проценте крутящего момента: 0x50, 0x60, 0x70, 0x40, 0x30
+  // Формула: A-125, B-125, C-125, D-125, E-125
+  // Ожидаемые значения: -45, -29, -13, -61, -101%
+  IIsoTp::Message response = create_obd_response_5_bytes(0x7E8, SERVICE_01, 0x64, 0x50, 0x60, 0x70, 0x40, 0x30);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto torque_data = obd2.enginePercentTorqueData();
+  TEST_ASSERT_TRUE_MESSAGE(torque_data.has_value(), "enginePercentTorqueData должен вернуть значение");
+
+  // Проверяем все 5 значений
+  auto& data = torque_data.value();
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-45, data[0], "Холостой ход должен быть -45%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-29, data[1], "Точка 1 должна быть -29%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-13, data[2], "Точка 2 должна быть -13%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-61, data[3], "Точка 3 должна быть -61%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-77, data[4], "Точка 4 должна быть -77%");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 15: enginePercentTorqueData - максимальные значения
+void test_pid_64_engine_percent_torque_data_max() {
+  g_mock_iso_tp.reset();
+
+  // Данные о проценте крутящего момента: 0xFF, 0xFF, 0xFF, 0xFF, 0xFF
+  // Формула: A-125, B-125, C-125, D-125, E-125
+  // Ожидаемые значения: 130, 130, 130, 130, 130%
+  IIsoTp::Message response = create_obd_response_5_bytes(0x7E8, SERVICE_01, 0x64, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto torque_data = obd2.enginePercentTorqueData();
+  TEST_ASSERT_TRUE_MESSAGE(torque_data.has_value(), "enginePercentTorqueData должен вернуть значение");
+
+  // Проверяем все 5 значений
+  auto& data = torque_data.value();
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(130, data[0], "Холостой ход должен быть 130%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(130, data[1], "Точка 1 должна быть 130%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(130, data[2], "Точка 2 должна быть 130%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(130, data[3], "Точка 3 должна быть 130%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(130, data[4], "Точка 4 должна быть 130%");
+
+  if (response.data)
+    delete[] response.data;
+}
+
+// Тест 16: enginePercentTorqueData - минимальные значения
+void test_pid_64_engine_percent_torque_data_min() {
+  g_mock_iso_tp.reset();
+
+  // Данные о проценте крутящего момента: 0x00, 0x00, 0x00, 0x00, 0x00
+  // Формула: A-125, B-125, C-125, D-125, E-125
+  // Ожидаемые значения: -125, -125, -125, -125, -125%
+  IIsoTp::Message response = create_obd_response_5_bytes(0x7E8, SERVICE_01, 0x64, 0x00, 0x00, 0x00, 0x00, 0x00);
+  g_mock_iso_tp.add_receive_message(response);
+  g_mock_iso_tp.set_receive_result(true);
+
+  OBD2 obd2(g_mock_iso_tp);
+  auto torque_data = obd2.enginePercentTorqueData();
+  TEST_ASSERT_TRUE_MESSAGE(torque_data.has_value(), "enginePercentTorqueData должен вернуть значение");
+
+  // Проверяем все 5 значений
+  auto& data = torque_data.value();
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-125, data[0], "Холостой ход должен быть -125%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-125, data[1], "Точка 1 должна быть -125%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-125, data[2], "Точка 2 должна быть -125%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-125, data[3], "Точка 3 должен быть -125%");
+  TEST_ASSERT_EQUAL_INT16_MESSAGE(-125, data[4], "Точка 4 должна быть -125%");
 
   if (response.data)
     delete[] response.data;
@@ -322,8 +416,7 @@ void test_pid_65_aux_supported_valid_data() {
   TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
   // Формула: (A*256 + B) - битовая маска
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0x1234, aux.value(), "auxSupported должен вернуть правильную битовую маску");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(0x1234, aux.value(), "auxSupported должен вернуть правильную битовую маску");
 
   if (response.data)
     delete[] response.data;
@@ -342,8 +435,7 @@ void test_pid_65_aux_supported_all_bits() {
   auto aux = obd2.auxSupported();
   TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0xFFFF, aux.value(), "auxSupported должен обрабатывать все установленные биты");
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(0xFFFF, aux.value(), "auxSupported должен обрабатывать все установленные биты");
 
   if (response.data)
     delete[] response.data;
@@ -363,9 +455,7 @@ void test_pid_65_aux_supported_none() {
   TEST_ASSERT_TRUE_MESSAGE(aux.has_value(), "auxSupported должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0x0000,
-      aux.value(),
-      "auxSupported должен обрабатывать отсутствие поддерживаемых входов/выходов");
+      0x0000, aux.value(), "auxSupported должен обрабатывать отсутствие поддерживаемых входов/выходов");
 
   if (response.data)
     delete[] response.data;
@@ -380,8 +470,7 @@ void test_pid_80_supported_pids_81_100_valid_data() {
   g_mock_iso_tp.reset();
 
   // Поддерживаемые PID: 0x12345678
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0x80, 0x12, 0x34, 0x56, 0x78);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0x80, 0x12, 0x34, 0x56, 0x78);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -401,8 +490,7 @@ void test_pid_80_supported_pids_81_100_none() {
   g_mock_iso_tp.reset();
 
   // Нет поддерживаемых PID: 0x00000000
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0x80, 0x00, 0x00, 0x00, 0x00);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0x80, 0x00, 0x00, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -411,9 +499,7 @@ void test_pid_80_supported_pids_81_100_none() {
   TEST_ASSERT_TRUE_MESSAGE(supported.has_value(), "supportedPIDs81_100 должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(
-      0x00000000,
-      supported.value(),
-      "supportedPIDs81_100 должен обрабатывать отсутствие поддерживаемых PID");
+      0x00000000, supported.value(), "supportedPIDs81_100 должен обрабатывать отсутствие поддерживаемых PID");
 
   if (response.data)
     delete[] response.data;
@@ -428,8 +514,7 @@ void test_pid_a0_supported_pids_101_120_valid_data() {
   g_mock_iso_tp.reset();
 
   // Поддерживаемые PID: 0xABCDEF01
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xA0, 0xAB, 0xCD, 0xEF, 0x01);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xA0, 0xAB, 0xCD, 0xEF, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -437,9 +522,8 @@ void test_pid_a0_supported_pids_101_120_valid_data() {
   auto supported = obd2.supportedPIDs101_120();
   TEST_ASSERT_TRUE_MESSAGE(supported.has_value(), "supportedPIDs101_120 должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0xABCDEF01,
-                                   supported.value(),
-                                   "supportedPIDs101_120 должен вернуть правильную битовую маску");
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(
+      0xABCDEF01, supported.value(), "supportedPIDs101_120 должен вернуть правильную битовую маску");
 
   if (response.data)
     delete[] response.data;
@@ -450,8 +534,7 @@ void test_pid_a0_supported_pids_101_120_all() {
   g_mock_iso_tp.reset();
 
   // Все PID поддерживаются: 0xFFFFFFFF
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xA0, 0xFF, 0xFF, 0xFF, 0xFF);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xA0, 0xFF, 0xFF, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -460,9 +543,7 @@ void test_pid_a0_supported_pids_101_120_all() {
   TEST_ASSERT_TRUE_MESSAGE(supported.has_value(), "supportedPIDs101_120 должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(
-      0xFFFFFFFF,
-      supported.value(),
-      "supportedPIDs101_120 должен обрабатывать все поддерживаемые PID");
+      0xFFFFFFFF, supported.value(), "supportedPIDs101_120 должен обрабатывать все поддерживаемые PID");
 
   if (response.data)
     delete[] response.data;
@@ -477,8 +558,7 @@ void test_pid_c0_supported_pids_121_140_valid_data() {
   g_mock_iso_tp.reset();
 
   // Поддерживаемые PID: 0x87654321
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xC0, 0x87, 0x65, 0x43, 0x21);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xC0, 0x87, 0x65, 0x43, 0x21);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -486,9 +566,8 @@ void test_pid_c0_supported_pids_121_140_valid_data() {
   auto supported = obd2.supportedPIDs121_140();
   TEST_ASSERT_TRUE_MESSAGE(supported.has_value(), "supportedPIDs121_140 должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0x87654321,
-                                   supported.value(),
-                                   "supportedPIDs121_140 должен вернуть правильную битовую маску");
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(
+      0x87654321, supported.value(), "supportedPIDs121_140 должен вернуть правильную битовую маску");
 
   if (response.data)
     delete[] response.data;
@@ -499,8 +578,7 @@ void test_pid_c0_supported_pids_121_140_partial() {
   g_mock_iso_tp.reset();
 
   // Частичная поддержка PID: 0x80000001 (только первый и последний биты)
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xC0, 0x80, 0x00, 0x00, 0x01);
+  IIsoTp::Message response = create_obd_response_4_bytes(0x7E8, SERVICE_01, 0xC0, 0x80, 0x00, 0x00, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -509,9 +587,7 @@ void test_pid_c0_supported_pids_121_140_partial() {
   TEST_ASSERT_TRUE_MESSAGE(supported.has_value(), "supportedPIDs121_140 должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(
-      0x80000001,
-      supported.value(),
-      "supportedPIDs121_140 должен обрабатывать частичную поддержку PID");
+      0x80000001, supported.value(), "supportedPIDs121_140 должен обрабатывать частичную поддержку PID");
 
   if (response.data)
     delete[] response.data;
@@ -541,6 +617,12 @@ extern "C" void run_obd_pid_group_61_80_tests() {
   RUN_TEST(test_pid_63_reference_torque_high);
   RUN_TEST(test_pid_63_reference_torque_max);
   RUN_TEST(test_pid_63_reference_torque_zero);
+
+  // PID 64 - Engine percent torque data
+  RUN_TEST(test_pid_64_engine_percent_torque_data_valid);
+  RUN_TEST(test_pid_64_engine_percent_torque_data_negative);
+  RUN_TEST(test_pid_64_engine_percent_torque_data_max);
+  RUN_TEST(test_pid_64_engine_percent_torque_data_min);
 
   // PID 65 - Auxiliary input/output supported
   RUN_TEST(test_pid_65_aux_supported_valid_data);

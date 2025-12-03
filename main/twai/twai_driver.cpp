@@ -22,29 +22,32 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps
 }
 
 void TwaiDriver::InstallStart() {
-  twai_onchip_node_config_t node_config = {
-      .io_cfg =
-          {
-              .tx                = tx_pin_,
-              .rx                = rx_pin_,
-              .quanta_clk_out    = GPIO_NUM_NC,  // Не используется
-              .bus_off_indicator = GPIO_NUM_NC   // Не используется
-          },
-      .clk_src = TWAI_CLK_SRC_DEFAULT,
-      .bit_timing =
-          {
-              .bitrate     = speed_kbps_ * 1000,  // Преобразование из kbps в bps
-              .sp_permill  = 0,                   // Использовать значение по умолчанию
-              .ssp_permill = 0                    // Использовать значение по умолчанию
-          },
-      .data_timing    = {.bitrate     = 0,  // Не используется для классического CAN
-                         .sp_permill  = 0,
-                         .ssp_permill = 0},
-      .fail_retry_cnt = 3,  // Повторить 3 раза при ошибке
-      .tx_queue_depth = kTxQueueDepth,
-      .intr_priority  = 0,  // Приоритет по умолчанию
-      .flags          = {
-                   .enable_self_test = false, .enable_loopback = false, .enable_listen_only = false, .no_receive_rtr = false}};
+  twai_onchip_node_config_t node_config = {.io_cfg =
+                                               {
+                                                   .tx                = tx_pin_,
+                                                   .rx                = rx_pin_,
+                                                   .quanta_clk_out    = GPIO_NUM_NC,  // Не используется
+                                                   .bus_off_indicator = GPIO_NUM_NC   // Не используется
+                                               },
+                                           .clk_src = TWAI_CLK_SRC_DEFAULT,
+                                           .bit_timing =
+                                               {
+                                                   .bitrate = speed_kbps_ * 1000,  // Преобразование из kbps в bps
+                                                   .sp_permill = 0,  // Использовать значение по умолчанию
+                                                   .ssp_permill = 0  // Использовать значение по умолчанию
+                                               },
+                                           .data_timing = {.bitrate = 0,  // Не используется для классического CAN
+                                                           .sp_permill  = 0,
+                                                           .ssp_permill = 0},
+                                           .fail_retry_cnt = 3,  // Повторить 3 раза при ошибке
+                                           .tx_queue_depth = kTxQueueDepth,
+                                           .intr_priority  = 0,  // Приоритет по умолчанию
+                                           .flags          = {
+                                                        .enable_self_test   = false,
+                                                        .enable_loopback    = false,
+                                                        .enable_listen_only = false,
+                                                        .no_receive_rtr     = false,
+                                           }};
 
   // Создание узла TWAI
   esp_err_t err = twai_new_node_onchip(&node_config, &node_handle_);
@@ -256,9 +259,13 @@ void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
     ITwaiSubscriber* subscriber = subscribers_[i];
     if (subscriber != nullptr) {
       if (subscriber->isInterested(message)) {
-        bool handled = subscriber->onTwaiMessage(message);
-        if (!handled) {
-          ESP_LOGW(TAG, "Subscriber failed to handle message");
+        QueueHandle_t queue = subscriber->onTwaiMessage();
+        if (queue != nullptr) {
+          // Помещаем сообщение в очередь подписчика
+          BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+          if (xQueueSendToBackFromISR(queue, &message, &xHigherPriorityTaskWoken) != pdTRUE) {
+            ESP_LOGW(TAG, "Failed to send message to subscriber queue: queue full");
+          }
         }
       }
     }

@@ -17,18 +17,8 @@ bool TwaiSubscriberIsoTp::isInterested(const TwaiFrame& frame) {
   return true;
 }
 
-bool TwaiSubscriberIsoTp::onTwaiMessage(const TwaiFrame& frame) {
-  if (xQueue_ == nullptr) {
-    ESP_LOGE(TAG, "Queue not initialized");
-    return false;
-  }
-
-  if (xQueueSend(xQueue_, &frame, 0) != pdTRUE) {
-    ESP_LOGW(TAG, "Queue is full, dropping frame");
-    return false;
-  }
-
-  return true;
+QueueHandle_t TwaiSubscriberIsoTp::onTwaiMessage() {
+  return xQueue_;
 }
 
 bool TwaiSubscriberIsoTp::Receive(TwaiFrame& frame, TickType_t timeout_ms) {

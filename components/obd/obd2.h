@@ -9,12 +9,15 @@
 
 class OBD2 final {
  public:
+  static const bool OBD_DEBUG = false;
+
   OBD2(IIsoTp& driver, uint16_t tx_id = 0x7DF, uint16_t rx_id = 0x7E8);
 
   // pid
   bool isPidSupported(uint8_t pid);
 
   // 1 - 20
+  std::optional<uint32_t> supportedPIDs_1_20();
   std::optional<uint32_t> monitorStatus();
   std::optional<uint16_t> freezeDTC();
   std::optional<uint16_t> fuelSystemStatus();
@@ -34,15 +37,48 @@ class OBD2 final {
   std::optional<float> throttle();
   std::optional<uint8_t> commandedSecAirStatus();
   std::optional<uint8_t> oxygenSensorsPresent_2banks();
+  std::optional<float> oxygenSensor1Voltage();
+  std::optional<float> oxygenSensor1FuelTrim();
+  std::optional<float> oxygenSensor2Voltage();
+  std::optional<float> oxygenSensor2FuelTrim();
+  std::optional<float> oxygenSensor3Voltage();
+  std::optional<float> oxygenSensor3FuelTrim();
+  std::optional<float> oxygenSensor4Voltage();
+  std::optional<float> oxygenSensor4FuelTrim();
+  std::optional<float> oxygenSensor5Voltage();
+  std::optional<float> oxygenSensor5FuelTrim();
+  std::optional<float> oxygenSensor6Voltage();
+  std::optional<float> oxygenSensor6FuelTrim();
+  std::optional<float> oxygenSensor7Voltage();
+  std::optional<float> oxygenSensor7FuelTrim();
+  std::optional<float> oxygenSensor8Voltage();
+  std::optional<float> oxygenSensor8FuelTrim();
   std::optional<uint8_t> obdStandards();
   std::optional<uint8_t> oxygenSensorsPresent_4banks();
   std::optional<bool> auxInputStatus();
   std::optional<uint16_t> runTime();
 
   // 21 - 40
+  std::optional<uint32_t> supportedPIDs_21_40();
   std::optional<uint16_t> distTravelWithMIL();
   std::optional<float> fuelRailPressure();
   std::optional<uint32_t> fuelRailGuagePressure();
+  std::optional<float> oxygenSensor1Lambda();
+  std::optional<float> oxygenSensor1VoltageWide();
+  std::optional<float> oxygenSensor2Lambda();
+  std::optional<float> oxygenSensor2VoltageWide();
+  std::optional<float> oxygenSensor3Lambda();
+  std::optional<float> oxygenSensor3VoltageWide();
+  std::optional<float> oxygenSensor4Lambda();
+  std::optional<float> oxygenSensor4VoltageWide();
+  std::optional<float> oxygenSensor5Lambda();
+  std::optional<float> oxygenSensor5VoltageWide();
+  std::optional<float> oxygenSensor6Lambda();
+  std::optional<float> oxygenSensor6VoltageWide();
+  std::optional<float> oxygenSensor7Lambda();
+  std::optional<float> oxygenSensor7VoltageWide();
+  std::optional<float> oxygenSensor8Lambda();
+  std::optional<float> oxygenSensor8VoltageWide();
   std::optional<float> commandedEGR();
   std::optional<float> egrError();
   std::optional<float> commandedEvapPurge();
@@ -51,12 +87,21 @@ class OBD2 final {
   std::optional<uint16_t> distSinceCodesCleared();
   std::optional<float> evapSysVapPressure();
   std::optional<uint8_t> absBaroPressure();
+  std::optional<float> oxygenSensor1Current();
+  std::optional<float> oxygenSensor2Current();
+  std::optional<float> oxygenSensor3Current();
+  std::optional<float> oxygenSensor4Current();
+  std::optional<float> oxygenSensor5Current();
+  std::optional<float> oxygenSensor6Current();
+  std::optional<float> oxygenSensor7Current();
+  std::optional<float> oxygenSensor8Current();
   std::optional<float> catTempB1S1();
   std::optional<float> catTempB2S1();
   std::optional<float> catTempB1S2();
   std::optional<float> catTempB2S2();
 
   // 41 - 60
+  std::optional<uint32_t> supportedPIDs_41_60();
   std::optional<uint32_t> monitorDriveCycleStatus();
   std::optional<float> ctrlModVoltage();
   std::optional<float> absLoad();
@@ -71,6 +116,10 @@ class OBD2 final {
   std::optional<float> commandedThrottleActuator();
   std::optional<uint16_t> timeRunWithMIL();
   std::optional<uint16_t> timeSinceCodesCleared();
+  std::optional<uint8_t> maxEquivalenceRatio();
+  std::optional<uint8_t> maxOxygenSensorVoltage();
+  std::optional<uint8_t> maxOxygenSensorCurrent();
+  std::optional<uint16_t> maxManifoldPressure();
   std::optional<uint16_t> maxMafRate();
   std::optional<uint8_t> fuelType();
   std::optional<float> ethanolPercent();
@@ -89,15 +138,19 @@ class OBD2 final {
   std::optional<uint8_t> emissionRqmts();
 
   // 61 - 80
+  std::optional<uint32_t> supportedPIDs_61_80();
   std::optional<int16_t> demandedTorque();
   std::optional<int16_t> torque();
   std::optional<uint16_t> referenceTorque();
+  std::optional<std::array<int16_t, 5>> enginePercentTorqueData();
   std::optional<uint16_t> auxSupported();
+
+  std::optional<uint32_t> supportedPIDs81_100();
+  std::optional<uint32_t> supportedPIDs101_120();
+  std::optional<uint32_t> supportedPIDs121_140();
 
  private:
   using ResponseType = std::array<uint8_t, 8>;
-
-  static const bool OBD_DEBUG = true;
 
   // Вспомогательный метод для получения поддерживаемых PID
   std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
@@ -150,47 +203,47 @@ class OBD2 final {
   static const uint8_t THROTTLE_POSITION                = 17;  // 0x11 - %
   static const uint8_t COMMANDED_SECONDARY_AIR_STATUS   = 18;  // 0x12 - bit encoded
   static const uint8_t OXYGEN_SENSORS_PRESENT_2_BANKS   = 19;  // 0x13 - bit encoded
-  static const uint8_t OXYGEN_SENSOR_1_A = 20;  // 0x14 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_2_A = 21;  // 0x15 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_3_A = 22;  // 0x16 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_4_A = 23;  // 0x17 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_5_A = 24;  // 0x18 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_6_A = 25;  // 0x19 - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_7_A = 26;  // 0x1A - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_8_A = 27;  // 0x1B - V % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OBD_STANDARDS     = 28;  // 0x1C - bit encoded
-  static const uint8_t OXYGEN_SENSORS_PRESENT_4_BANKS = 29;  // 0x1D - bit encoded
-  static const uint8_t AUX_INPUT_STATUS               = 30;  // 0x1E - bit encoded
-  static const uint8_t RUN_TIME_SINCE_ENGINE_START    = 31;  // 0x1F - sec
+  static const uint8_t OXYGEN_SENSOR_1_A                = 20;  // 0x14 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_2_A                = 21;  // 0x15 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_3_A                = 22;  // 0x16 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_4_A                = 23;  // 0x17 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_5_A                = 24;  // 0x18 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_6_A                = 25;  // 0x19 - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_7_A                = 26;  // 0x1A - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_8_A                = 27;  // 0x1B - V % ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OBD_STANDARDS                    = 28;  // 0x1C - bit encoded
+  static const uint8_t OXYGEN_SENSORS_PRESENT_4_BANKS   = 29;  // 0x1D - bit encoded
+  static const uint8_t AUX_INPUT_STATUS                 = 30;  // 0x1E - bit encoded
+  static const uint8_t RUN_TIME_SINCE_ENGINE_START      = 31;  // 0x1F - sec
 
   static const uint8_t SUPPORTED_PIDS_21_40          = 32;  // 0x20 - bit encoded
   static const uint8_t DISTANCE_TRAVELED_WITH_MIL_ON = 33;  // 0x21 - km
   static const uint8_t FUEL_RAIL_PRESSURE            = 34;  // 0x22 - kPa
   static const uint8_t FUEL_RAIL_GUAGE_PRESSURE      = 35;  // 0x23 - kPa
-  static const uint8_t OXYGEN_SENSOR_1_B = 36;  // 0x24 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_2_B = 37;  // 0x25 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_3_B = 38;  // 0x26 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_4_B = 39;  // 0x27 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_5_B = 40;  // 0x28 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_6_B = 41;  // 0x29 - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_7_B = 42;  // 0x2A - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_8_B = 43;  // 0x2B - ratio V ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t COMMANDED_EGR     = 44;  // 0x2C - %
-  static const uint8_t EGR_ERROR         = 45;  // 0x2D - %
+  static const uint8_t OXYGEN_SENSOR_1_B             = 36;  // 0x24 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_2_B             = 37;  // 0x25 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_3_B             = 38;  // 0x26 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_4_B             = 39;  // 0x27 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_5_B             = 40;  // 0x28 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_6_B             = 41;  // 0x29 - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_7_B             = 42;  // 0x2A - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_8_B             = 43;  // 0x2B - ratio V ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t COMMANDED_EGR                 = 44;  // 0x2C - %
+  static const uint8_t EGR_ERROR                     = 45;  // 0x2D - %
   static const uint8_t COMMANDED_EVAPORATIVE_PURGE   = 46;  // 0x2E - %
   static const uint8_t FUEL_TANK_LEVEL_INPUT         = 47;  // 0x2F - %
   static const uint8_t WARM_UPS_SINCE_CODES_CLEARED  = 48;  // 0x30 - count
   static const uint8_t DIST_TRAV_SINCE_CODES_CLEARED = 49;  // 0x31 - km
   static const uint8_t EVAP_SYSTEM_VAPOR_PRESSURE    = 50;  // 0x32 - Pa
   static const uint8_t ABS_BAROMETRIC_PRESSURE       = 51;  // 0x33 - kPa
-  static const uint8_t OXYGEN_SENSOR_1_C = 52;  // 0x34 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_2_C = 53;  // 0x35 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_3_C = 54;  // 0x36 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_4_C = 55;  // 0x37 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_5_C = 56;  // 0x38 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_6_C = 57;  // 0x39 - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_7_C = 58;  // 0x3A - ratio mA ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t OXYGEN_SENSOR_8_C = 59;  // 0x3B - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_1_C             = 52;  // 0x34 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_2_C             = 53;  // 0x35 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_3_C             = 54;  // 0x36 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_4_C             = 55;  // 0x37 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_5_C             = 56;  // 0x38 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_6_C             = 57;  // 0x39 - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_7_C             = 58;  // 0x3A - ratio mA ❌ НЕ РЕАЛИЗОВАН
+  static const uint8_t OXYGEN_SENSOR_8_C             = 59;  // 0x3B - ratio mA ❌ НЕ РЕАЛИЗОВАН
   static const uint8_t CATALYST_TEMP_BANK_1_SENSOR_1 = 60;  // 0x3C - °C
   static const uint8_t CATALYST_TEMP_BANK_2_SENSOR_1 = 61;  // 0x3D - °C
   static const uint8_t CATALYST_TEMP_BANK_1_SENSOR_2 = 62;  // 0x3E - °C
@@ -229,12 +282,12 @@ class OBD2 final {
   static const uint8_t ENGINE_FUEL_RATE                 = 94;  // 0x5E - L/h
   static const uint8_t EMISSION_REQUIREMENTS            = 95;  // 0x5F - bit encoded
 
-  static const uint8_t SUPPORTED_PIDS_61_80           = 96;  // 0x60 - bit encoded
-  static const uint8_t DEMANDED_ENGINE_PERCENT_TORQUE = 97;  // 0x61 - %
-  static const uint8_t ACTUAL_ENGINE_TORQUE           = 98;  // 0x62 - %
-  static const uint8_t ENGINE_REFERENCE_TORQUE        = 99;  // 0x63 - Nm
-  static const uint8_t ENGINE_PERCENT_TORQUE_DATA = 100;  // 0x64 - % ❌ НЕ РЕАЛИЗОВАН
-  static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED = 101;  // 0x65 - bit encoded
+  static const uint8_t SUPPORTED_PIDS_61_80           = 96;   // 0x60 - bit encoded
+  static const uint8_t DEMANDED_ENGINE_PERCENT_TORQUE = 97;   // 0x61 - %
+  static const uint8_t ACTUAL_ENGINE_TORQUE           = 98;   // 0x62 - %
+  static const uint8_t ENGINE_REFERENCE_TORQUE        = 99;   // 0x63 - Nm
+  static const uint8_t ENGINE_PERCENT_TORQUE_DATA     = 100;  // 0x64 - %
+  static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED     = 101;  // 0x65 - bit encoded
 
   static const uint8_t SUPPORTED_PIDS_81_100  = 128;  // 0x80 - bit encoded
   static const uint8_t SUPPORTED_PIDS_101_120 = 160;  // 0xA0 - bit encoded

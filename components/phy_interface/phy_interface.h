@@ -6,27 +6,29 @@
 
 // Определение структуры TwaiFrame перед использованием
 struct TwaiFrame {
-  uint32_t id;       // Идентификатор сообщения
-  bool is_extended;  // Флаг расширенного идентификатора (29 бит)
-  bool is_rtr;       // Флаг удаленного запроса (Remote Transmission Request)
-  bool is_fd;        // Флаг CAN FD
-  bool brs;          // Bit Rate Switch (для CAN FD)
-  uint8_t data[8];   // Данные (максимум 64 байта для CAN FD)
+  uint32_t id;          // Идентификатор сообщения
+  bool is_extended;     // Флаг расширенного идентификатора (29 бит)
+  bool is_rtr;          // Флаг удаленного запроса (Remote Transmission Request)
+  bool is_fd;           // Флаг CAN FD
+  bool brs;             // Bit Rate Switch (для CAN FD)
+  uint8_t data[8];      // Данные (максимум 64 байта для CAN FD)
   uint8_t data_length;  // Длина данных (DLC)
 };
 
 class ITwaiSubscriber {
  public:
   /**
-   * @brief Обработка входящего TWAI сообщения
+   * @brief Получение очереди для входящего TWAI сообщения
    *
    * Этот метод вызывается, когда получено TWAI сообщение,
    * в котором подписчик выразил заинтересованность.
+   * Метод должен вернуть указатель на очередь, в которую
+   * будет помещено сообщение. Если подписчик не хочет
+   * обрабатывать сообщение, должен вернуть nullptr.
    *
-   * @param frame Ссылка на полученный TWAI фрейм
-   * @return true если сообщение было успешно обработано, false в противном случае
+   * @return Указатель на очередь для помещения сообщения или nullptr
    */
-  virtual bool onTwaiMessage(const TwaiFrame& frame) = 0;
+  virtual QueueHandle_t onTwaiMessage() = 0;
 
   /**
    * @brief Проверка заинтересованности подписчика в конкретном TWAI сообщении

@@ -10,11 +10,10 @@ class TwaiSubscriberIsoTp final : public ITwaiSubscriber {
   bool isInterested(const TwaiFrame& frame) override;
 
   /**
-   * @brief Обработка входящего TWAI сообщения
-   * @param frame Ссылка на полученный TWAI фрейм
-   * @return true если сообщение успешно помещено в очередь, false в противном случае
+   * @brief Получение очереди для входящих TWAI сообщений
+   * @return Указатель на очередь для помещения сообщений
    */
-  bool onTwaiMessage(const TwaiFrame& frame) override;
+  QueueHandle_t onTwaiMessage() override;
 
   /**
    * @brief Получение сообщения из очереди

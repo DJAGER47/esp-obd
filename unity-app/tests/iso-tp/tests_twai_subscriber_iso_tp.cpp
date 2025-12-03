@@ -36,15 +36,13 @@ void test_twai_subscriber_iso_tp_is_interested() {
   frame3.is_rtr    = true;
 
   // Проверяем, что isInterested всегда возвращает true
-  TEST_ASSERT_TRUE_MESSAGE(subscriber.isInterested(frame1),
-                           "isInterested должен возвращать true для любого фрейма");
+  TEST_ASSERT_TRUE_MESSAGE(subscriber.isInterested(frame1), "isInterested должен возвращать true для любого фрейма");
   TEST_ASSERT_TRUE_MESSAGE(subscriber.isInterested(frame2),
                            "isInterested должен возвращать true для расширенного фрейма");
-  TEST_ASSERT_TRUE_MESSAGE(subscriber.isInterested(frame3),
-                           "isInterested должен возвращать true для RTR фрейма");
+  TEST_ASSERT_TRUE_MESSAGE(subscriber.isInterested(frame3), "isInterested должен возвращать true для RTR фрейма");
 }
 
-// Тест 2: Проверка, что onTwaiMessage помещает сообщение в очередь
+// Тест 2: Проверка, что onTwaiMessage возвращает очередь
 void test_twai_subscriber_iso_tp_on_twai_message() {
   TwaiSubscriberIsoTp subscriber;
 
@@ -57,9 +55,13 @@ void test_twai_subscriber_iso_tp_on_twai_message() {
   send_frame.data[2]     = 0x03;
   send_frame.data[3]     = 0x04;
 
-  // Отправляем фрейм
-  bool result = subscriber.onTwaiMessage(send_frame);
-  TEST_ASSERT_TRUE_MESSAGE(result, "onTwaiMessage должен успешно поместить фрейм в очередь");
+  // Получаем очередь от подписчика
+  QueueHandle_t queue = subscriber.onTwaiMessage();
+  TEST_ASSERT_NOT_NULL_MESSAGE(queue, "onTwaiMessage должен вернуть валидную очередь");
+
+  // Помещаем фрейм в очередь
+  bool result = (xQueueSend(queue, &send_frame, 0) == pdTRUE);
+  TEST_ASSERT_TRUE_MESSAGE(result, "Фрейм должен быть успешно помещен в очередь");
 
   // Получаем фрейм
   TwaiFrame receive_frame = {};
@@ -68,8 +70,7 @@ void test_twai_subscriber_iso_tp_on_twai_message() {
   // Проверяем, что фрейм получен корректно
   TEST_ASSERT_TRUE_MESSAGE(result, "Receive должен успешно получить фрейм из очереди");
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(send_frame.id, receive_frame.id, "ID фрейма должен совпадать");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      send_frame.data_length, receive_frame.data_length, "Длина данных должна совпадать");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(send_frame.data_length, receive_frame.data_length, "Длина данных должна совпадать");
   TEST_ASSERT_EQUAL_UINT8_ARRAY_MESSAGE(
       send_frame.data, receive_frame.data, send_frame.data_length, "Данные должны совпадать");
 }
@@ -98,12 +99,16 @@ void test_twai_subscriber_iso_tp_queue_overflow() {
   TwaiFrame frame2 = {};
   frame2.id        = 0x456;
 
+  // Получаем очередь от подписчика
+  QueueHandle_t queue = subscriber.onTwaiMessage();
+  TEST_ASSERT_NOT_NULL_MESSAGE(queue, "onTwaiMessage должен вернуть валидную очередь");
+
   // Отправляем первый фрейм
-  bool result1 = subscriber.onTwaiMessage(frame1);
+  bool result1 = (xQueueSend(queue, &frame1, 0) == pdTRUE);
   TEST_ASSERT_TRUE_MESSAGE(result1, "Первый фрейм должен быть успешно помещен в очередь");
 
   // Отправляем второй фрейм, который должен вызвать переполнение
-  bool result2 = subscriber.onTwaiMessage(frame2);
+  bool result2 = (xQueueSend(queue, &frame2, 0) == pdTRUE);
   TEST_ASSERT_FALSE_MESSAGE(result2, "Второй фрейм должен вызвать переполнение очереди");
 
   // Получаем фрейм из очереди
@@ -112,8 +117,7 @@ void test_twai_subscriber_iso_tp_queue_overflow() {
 
   // Проверяем, что получен первый фрейм
   TEST_ASSERT_TRUE_MESSAGE(receive_result, "Receive должен успешно получить фрейм из очереди");
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(
-      frame1.id, receive_frame.id, "ID фрейма должен совпадать с первым фреймом");
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(frame1.id, receive_frame.id, "ID фрейма должен совпадать с первым фреймом");
 }
 
 // Функция запуска всех тестов
