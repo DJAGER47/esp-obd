@@ -36,16 +36,11 @@ class UI final {
  private:
   struct Screen0Elements {
     lv_obj_t *screen{nullptr};
-    lv_obj_t *can_container{nullptr};
-    lv_obj_t *can_labels[10]{nullptr};  // Массив для хранения меток сообщений
-    uint8_t can_message_count{0};       // Количество сообщений
   };
 
   struct Screen1Elements {
     lv_obj_t *screen{nullptr};
     lv_obj_t *bg{nullptr};
-    lv_obj_t *title{nullptr};
-    lv_obj_t *info_label{nullptr};
     lv_obj_t *heap_label{nullptr};
   };
 
@@ -78,9 +73,6 @@ class UI final {
   Screen0Elements screen0_elements;
   Screen1Elements screen1_elements;
   lv_obj_t *current_screen;
-
-  // Очередь для CAN сообщений
-  QueueHandle_t can_message_queue;
 
   // Приватные методы инициализации
   esp_err_t init_st7789();

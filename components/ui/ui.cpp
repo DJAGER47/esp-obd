@@ -35,8 +35,7 @@ UI::UI(gpio_num_t sclk_pin,
     panel_handle(nullptr),
     buf1(nullptr),
     buf2(nullptr),
-    current_screen(nullptr),
-    can_message_queue(nullptr) {}
+    current_screen(nullptr) {}
 
 esp_err_t UI::init() {
   ESP_LOGI(TAG, "Initializing UI");
@@ -50,17 +49,10 @@ esp_err_t UI::init() {
   create_ui0();
   create_ui1();
 
-  // Создание очереди для CAN сообщений
-  can_message_queue = xQueueCreate(can_queue_size, sizeof(TwaiFrame));
-  if (can_message_queue == nullptr) {
-    ESP_LOGE(TAG, "Failed to create CAN message queue");
-    return ESP_ERR_NO_MEM;
-  }
-
   switch_screen(0);
 
-  xTaskCreate(lvgl_task, "lvgl_task", 8192, this, 5, NULL);        // Увеличиваем размер стека
-  xTaskCreate(update_screen, "update_time", 8192, this, 4, NULL);  // Увеличиваем размер стека
+  xTaskCreate(lvgl_task, "lvgl_task", 8192, this, 5, NULL);
+  xTaskCreate(update_screen, "update_time", 8192, this, 4, NULL);
   return ESP_OK;
 }
 
@@ -82,7 +74,6 @@ void UI::switch_screen(int num_screen) {
 
 void UI::update_screen0() {
   // Обрабатываем сообщения из очереди
-  processCanMessages();
 }
 
 void UI::update_screen1() {
@@ -90,76 +81,6 @@ void UI::update_screen1() {
     char heap_str[64];
     snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
     lv_label_set_text(screen1_elements.heap_label, heap_str);
-  }
-}
-
-void UI::addCanMessageToQueue(const TwaiFrame &frame) {
-  if (can_message_queue != nullptr) {
-    // Добавляем сообщение в очередь
-    if (xQueueSend(can_message_queue, &frame, 0) != pdTRUE) {
-      ESP_LOGW(TAG, "CAN message queue is full, dropping message");
-    }
-  }
-}
-
-void UI::processCanMessages() {
-  if (can_message_queue == nullptr) {
-    return;
-  }
-
-  TwaiFrame frame;
-  // Обрабатываем все сообщения в очереди
-  while (xQueueReceive(can_message_queue, &frame, 0) == pdTRUE) {
-    // Форматируем сообщение в строку
-    char msg_str[64];
-    int offset = 0;
-
-    // Добавляем ID
-    if (frame.is_extended) {
-      // Для расширенного ID (29 бит) используем 8 символов
-      char id_str[9];
-      snprintf(id_str, sizeof(id_str), "%08lX", (unsigned long)frame.id);
-      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
-    } else {
-      // Для стандартного ID (11 бит) используем 3 символа
-      char id_str[4];
-      snprintf(id_str, sizeof(id_str), "%03lX", (unsigned long)frame.id);
-      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%s [%d] ", id_str, frame.data_length);
-    }
-
-    // Добавляем данные
-    for (int i = 0; i < frame.data_length && i < 8; i++) {
-      offset += snprintf(msg_str + offset, sizeof(msg_str) - offset, "%02X ", frame.data[i]);
-    }
-
-    // Если у нас уже есть 10 сообщений, удаляем самое старое
-    if (screen0_elements.can_message_count >= size_can_labels) {
-      if (screen0_elements.can_labels[0] != nullptr) {
-        lv_obj_del(screen0_elements.can_labels[0]);
-      }
-
-      // Сдвигаем все метки вверх
-      for (int i = 0; i < (size_can_labels - 1); i++) {
-        screen0_elements.can_labels[i] = screen0_elements.can_labels[i + 1];
-      }
-      screen0_elements.can_labels[9]     = nullptr;
-      screen0_elements.can_message_count = 9;
-    }
-
-    // Создаем новую метку для сообщения
-    screen0_elements.can_labels[screen0_elements.can_message_count] = lv_label_create(screen0_elements.can_container);
-    lv_obj_set_style_text_font(
-        screen0_elements.can_labels[screen0_elements.can_message_count], &lv_font_montserrat_14, LV_PART_MAIN);
-    lv_obj_set_style_text_color(
-        screen0_elements.can_labels[screen0_elements.can_message_count], lv_color_make(0, 255, 0), LV_PART_MAIN);
-    lv_label_set_text(screen0_elements.can_labels[screen0_elements.can_message_count], msg_str);
-
-    // Позиционируем метку
-    lv_obj_set_pos(
-        screen0_elements.can_labels[screen0_elements.can_message_count], 0, screen0_elements.can_message_count * 16);
-
-    // Увеличиваем счетчик сообщений
-    screen0_elements.can_message_count++;
   }
 }
 
@@ -271,34 +192,10 @@ void UI::create_ui0() {
 
   // Создание первого экрана
   screen0_elements.screen = lv_obj_create(NULL);
-
-  // Создание фона для CAN сообщений
-  screen0_elements.can_container = lv_obj_create(screen0_elements.screen);
-  lv_obj_set_size(screen0_elements.can_container, ST7789_LCD_H_RES - 10, ST7789_LCD_V_RES - 10);
-  lv_obj_set_pos(screen0_elements.can_container, 5, 5);
-  lv_obj_set_style_bg_color(screen0_elements.can_container, lv_color_make(0, 0, 0), LV_PART_MAIN);  // Черный фон
-  lv_obj_set_style_bg_opa(screen0_elements.can_container, LV_OPA_90, LV_PART_MAIN);  // Полупрозрачный
-  lv_obj_set_style_border_width(screen0_elements.can_container, 1, LV_PART_MAIN);
-  lv_obj_set_style_border_color(
-      screen0_elements.can_container, lv_color_make(255, 255, 255), LV_PART_MAIN);  // Белая рамка
-  lv_obj_set_style_pad_all(screen0_elements.can_container, 2, LV_PART_MAIN);
-  lv_obj_set_scroll_dir(screen0_elements.can_container, LV_DIR_VER);  // Включаем вертикальную прокрутку
-
-  // Инициализируем массив меток для CAN сообщений
-  for (int i = 0; i < size_can_labels; i++) {
-    screen0_elements.can_labels[i] = nullptr;
-  }
-  screen0_elements.can_message_count = 0;
 }
 
 void UI::create_ui1() {
   ESP_LOGI(TAG, "Creating second UI screen with chip info");
-
-  // Получение информации о чипе
-  esp_chip_info_t chip_info;
-  uint32_t flash_size;
-  esp_chip_info(&chip_info);
-  esp_flash_get_size(NULL, &flash_size);
 
   // Создание второго экрана
   screen1_elements.screen = lv_obj_create(NULL);
@@ -307,37 +204,9 @@ void UI::create_ui1() {
   screen1_elements.bg = lv_obj_create(screen1_elements.screen);
   lv_obj_set_size(screen1_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
   lv_obj_set_pos(screen1_elements.bg, 0, 0);
-  lv_obj_set_style_bg_color(screen1_elements.bg, lv_color_make(0, 0, 50), LV_PART_MAIN);  // Темно-синий фон
+  lv_obj_set_style_bg_color(screen1_elements.bg, lv_color_make(0, 0, 0), LV_PART_MAIN);
   lv_obj_set_style_border_width(screen1_elements.bg, 0, LV_PART_MAIN);
   lv_obj_set_style_pad_all(screen1_elements.bg, 0, LV_PART_MAIN);
-
-  // Заголовок
-  screen1_elements.title = lv_label_create(screen1_elements.screen);
-  lv_obj_set_style_text_font(screen1_elements.title, &lv_font_montserrat_18, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen1_elements.title, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen1_elements.title, "CHIP INFO");
-  lv_obj_align(screen1_elements.title, LV_ALIGN_TOP_MID, 0, 10);
-
-  // Информация о чипе
-  char chip_str[256];
-  snprintf(chip_str,
-           sizeof(chip_str),
-           "Chip: %s\nCores: %d\nRev: v%d.%d\nFlash: %" PRIu32 "MB\nFeatures: %s%s%s%s",
-           CONFIG_IDF_TARGET,
-           chip_info.cores,
-           chip_info.revision / 100,
-           chip_info.revision % 100,
-           flash_size / (1024 * 1024),
-           (chip_info.features & CHIP_FEATURE_WIFI_BGN) ? "WiFi " : "",
-           (chip_info.features & CHIP_FEATURE_BT) ? "BT " : "",
-           (chip_info.features & CHIP_FEATURE_BLE) ? "BLE " : "",
-           (chip_info.features & CHIP_FEATURE_IEEE802154) ? "802.15.4" : "");
-
-  screen1_elements.info_label = lv_label_create(screen1_elements.screen);
-  lv_obj_set_style_text_font(screen1_elements.info_label, &lv_font_montserrat_14, LV_PART_MAIN);
-  lv_obj_set_style_text_color(screen1_elements.info_label, lv_color_make(255, 255, 255), LV_PART_MAIN);
-  lv_label_set_text(screen1_elements.info_label, chip_str);
-  lv_obj_align(screen1_elements.info_label, LV_ALIGN_CENTER, 0, 0);
 
   // Информация о свободной памяти
   char heap_str[64];

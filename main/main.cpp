@@ -18,6 +18,10 @@
 
 static const char *TAG = "main";
 
+// Переменные для отслеживания последовательности пакетов
+static uint32_t expected_packet_index = 0;
+static bool packet_index_initialized  = false;
+
 // LCD_BK_LIGHT_PIN
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
 
@@ -26,7 +30,33 @@ TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
 
 // Функция обратного вызова для обработки CAN сообщений
 void can_message_callback(const TwaiFrame &frame) {
-  ui_instance.addCanMessageToQueue(frame);
+  // Проверяем, что это сообщение с идентификатором 0x123 (наш тестовый идентификатор)
+  if (frame.id == 0x123 && frame.data_length == 8) {
+    // Извлекаем номер пакета из первых 4 байт (little-endian)
+    uint32_t packet_index = (uint32_t)frame.data[0] | ((uint32_t)frame.data[1] << 8) | ((uint32_t)frame.data[2] << 16) |
+                            ((uint32_t)frame.data[3] << 24);
+
+    // Если это первый пакет, инициализируем ожидаемый индекс
+    if (!packet_index_initialized) {
+      expected_packet_index    = packet_index;
+      packet_index_initialized = true;
+      ESP_LOGI(TAG, "Initialized packet index to %lu", packet_index);
+    }
+
+    // Проверяем последовательность пакетов
+    if (packet_index != expected_packet_index) {
+      ESP_LOGW(TAG,
+               "Packet sequence mismatch: expected %lu, got %lu (diff: %ld)",
+               expected_packet_index,
+               packet_index,
+               (int32_t)(packet_index - expected_packet_index));
+      // Обновляем ожидаемый индекс
+      expected_packet_index = packet_index + 1;
+    } else {
+      // Инкрементируем ожидаемый индекс для следующего пакета
+      expected_packet_index++;
+    }
+  }
 }
 
 // Подписчик на CAN сообщения

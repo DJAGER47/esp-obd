@@ -292,23 +292,7 @@ class OBD2 final {
   static const uint8_t ENGINE_PERCENT_TORQUE_DATA     = 0x64;  // - %
   static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED     = 0x65;  // - bit encoded
 
-  static const uint8_t SUPPORTED_PIDS_81_100            = 0x80;  // - bit encoded
-  static const uint8_t COMMANDED_THROTTLE_ACTUATOR      = 0x81;  // - %
-  static const uint8_t ETHANOL_FUEL                     = 0x82;  // - %
-  static const uint8_t ABS_EVAP_SYS_VAPOR_PRESSURE      = 0x83;  // - kPa
-  static const uint8_t EVAP_SYS_VAPOR_PRESSURE_WIDE     = 0x84;  // - Pa
-  static const uint8_t SHORT_TERM_SEC_OXY_SENS_TRIM_1_3 = 0x85;  // - %
-  static const uint8_t LONG_TERM_SEC_OXY_SENS_TRIM_1_3  = 0x86;  // - %
-  static const uint8_t SHORT_TERM_SEC_OXY_SENS_TRIM_2_4 = 0x87;  // - %
-  static const uint8_t LONG_TERM_SEC_OXY_SENS_TRIM_2_4  = 0x88;  // - %
-  static const uint8_t FUEL_RAIL_ABS_PRESSURE           = 0x89;  // - kPa
-  static const uint8_t RELATIVE_ACCELERATOR_PEDAL_POS   = 0x8A;  // - %
-  static const uint8_t HYBRID_BATTERY_REMAINING_LIFE    = 0x8B;  // - %
-  static const uint8_t ENGINE_OIL_TEMP                  = 0x8C;  // - °C
-  static const uint8_t FUEL_INJECTION_TIMING            = 0x8D;  // - °
-  static const uint8_t ENGINE_FUEL_RATE                 = 0x8E;  // - L/h
-  static const uint8_t EMISSION_REQUIREMENTS            = 0x8F;  // - bit encoded
-
+  static const uint8_t SUPPORTED_PIDS_81_100  = 0x80;  // - bit encoded
   static const uint8_t SUPPORTED_PIDS_101_120 = 0xA0;  // - bit encoded
   static const uint8_t SUPPORTED_PIDS_121_140 = 0xC0;  // - bit encoded
 
