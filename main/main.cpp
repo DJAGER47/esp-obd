@@ -20,7 +20,6 @@ static const char *TAG = "main";
 
 // Переменные для отслеживания последовательности пакетов
 static uint32_t expected_packet_index = 0;
-static bool packet_index_initialized  = false;
 
 // LCD_BK_LIGHT_PIN
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
@@ -35,13 +34,6 @@ void can_message_callback(const TwaiFrame &frame) {
     // Извлекаем номер пакета из первых 4 байт (little-endian)
     uint32_t packet_index = (uint32_t)frame.data[0] | ((uint32_t)frame.data[1] << 8) | ((uint32_t)frame.data[2] << 16) |
                             ((uint32_t)frame.data[3] << 24);
-
-    // Если это первый пакет, инициализируем ожидаемый индекс
-    if (!packet_index_initialized) {
-      expected_packet_index    = packet_index;
-      packet_index_initialized = true;
-      ESP_LOGI(TAG, "Initialized packet index to %lu", packet_index);
-    }
 
     // Проверяем последовательность пакетов
     if (packet_index != expected_packet_index) {
