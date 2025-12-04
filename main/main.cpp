@@ -78,22 +78,24 @@ extern "C" void app_main() {
   can_driver.RegisterSubscriber(can_subscriber);
 
   ESP_LOGI(TAG, "Application initialized successfully");
-  // uint8_t screen_state = 0;
+  uint8_t screen_state = 0;
   // uint32_t stack_info_counter = 0;
 
   while (1) {
     // Обрабатываем сообщения из очереди CAN подписчика
     can_subscriber.ProcessMessages();
 
-    // ui_instance.switch_screen(screen_state);
-    // screen_state = (screen_state + 1) % 2;
+    ui_instance.switch_screen(screen_state);
+    screen_state = (screen_state + 1) % 2;
 
     // if (++stack_info_counter >= 12) {
     //   print_stack_usage();
     //   print_runtime_stats();
     //   stack_info_counter = 0;
     // }
-
-    vTaskDelay(pdMS_TO_TICKS(100));
+    print_debug_info();
+    print_runtime_stats();
+    ESP_LOGI(TAG, "\n\n\n");
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }

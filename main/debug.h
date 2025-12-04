@@ -4,8 +4,8 @@
 extern "C" {
 #endif
 
-void print_stack_usage(void);
 void print_runtime_stats(void);
+void print_debug_info(void);
 
 #ifdef __cplusplus
 }
