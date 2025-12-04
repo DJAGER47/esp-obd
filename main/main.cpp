@@ -49,6 +49,9 @@ void can_message_callback(const TwaiFrame &frame) {
       expected_packet_index++;
     }
   }
+  TwaiFrame frame_send = frame;
+  frame_send.id        = 0x321;
+  can_driver.Transmit(frame_send, 10);
 }
 
 // Подписчик на CAN сообщения
@@ -70,24 +73,22 @@ extern "C" void app_main() {
   can_driver.RegisterSubscriber(can_subscriber);
 
   ESP_LOGI(TAG, "Application initialized successfully");
-  uint8_t screen_state = 0;
+  // uint8_t screen_state = 0;
   // uint32_t stack_info_counter = 0;
 
   while (1) {
     // Обрабатываем сообщения из очереди CAN подписчика
     can_subscriber.ProcessMessages();
 
-    ui_instance.switch_screen(screen_state);
-    screen_state = (screen_state + 1) % 2;
+    // ui_instance.switch_screen(screen_state);
+    // screen_state = (screen_state + 1) % 2;
 
-    // if (++stack_info_counter >= 12) {
-    //   print_stack_usage();
+    // if (++stack_info_counter >= 5000) {
+    //   print_debug_info();
     //   print_runtime_stats();
+    //   ESP_LOGI(TAG, "\n\n\n");
     //   stack_info_counter = 0;
     // }
-    print_debug_info();
-    print_runtime_stats();
-    ESP_LOGI(TAG, "\n\n\n");
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    vTaskDelay(pdMS_TO_TICKS(1));
   }
 }
