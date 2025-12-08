@@ -3,7 +3,6 @@
 #include <sys/param.h>
 #include <unistd.h>
 
-#include "can_subscriber.h"
 #include "debug.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
@@ -16,11 +15,11 @@
 #include "twai_driver.h"
 #include "ui.h"
 
-static const char *TAG = "main";
+static const char* const TAG = "main";
 
 // LCD_BK_LIGHT_PIN
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
-TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
+static TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
 
 extern "C" void app_main() {
   ESP_LOGI("APP", "Starting application");

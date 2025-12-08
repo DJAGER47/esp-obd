@@ -149,6 +149,25 @@ class OBD2 final {
   std::optional<uint32_t> supportedPIDs101_120();
   std::optional<uint32_t> supportedPIDs121_140();
 
+  // Service 09 - Request vehicle information
+  std::optional<uint32_t> supportedPIDs_Service09();
+  std::optional<uint8_t> vinMessageCount();
+  bool getVIN(char* vin_buffer, size_t buffer_size);
+
+  std::optional<uint8_t> calibrationIdMessageCount();
+  bool getCalibrationId(char* calib_buffer, size_t buffer_size);
+
+  std::optional<uint8_t> cvnMessageCount();
+  bool getCalibrationVerificationNumbers(uint32_t* cvn_buffer, size_t buffer_size, size_t* count);
+
+  std::optional<uint8_t> performanceTrackingMessageCount();
+  bool getPerformanceTrackingSparkIgnition(uint16_t* tracking_buffer, size_t buffer_size, size_t* count);
+
+  std::optional<uint8_t> ecuNameMessageCount();
+  bool getEcuName(char* ecu_buffer, size_t buffer_size);
+
+  bool getPerformanceTrackingCompressionIgnition(uint16_t* tracking_buffer, size_t buffer_size, size_t* count);
+
  private:
   using ResponseType = std::array<uint8_t, 8>;
 
@@ -176,7 +195,7 @@ class OBD2 final {
   // CAN only)
   // 07	Show pending Diagnostic Trouble Codes (detected during current or last driving cycle)
   // 08	Control operation of on-board component/system
-  // 09	Request vehicle information
+  static const uint8_t SERVICE_09 = 9;  // 09	Request vehicle information
   // 0A	Permanent Diagnostic Trouble Codes (DTCs) (Cleared DTCs)
 
   // UDS >= 0x10
@@ -295,6 +314,20 @@ class OBD2 final {
   static const uint8_t SUPPORTED_PIDS_81_100  = 0x80;  // - bit encoded
   static const uint8_t SUPPORTED_PIDS_101_120 = 0xA0;  // - bit encoded
   static const uint8_t SUPPORTED_PIDS_121_140 = 0xC0;  // - bit encoded
+
+  // Service 09 - Request vehicle information
+  static const uint8_t SERVICE_09_SUPPORTED_PIDS_01_20             = 0x00;  // - bit encoded
+  static const uint8_t SERVICE_09_VIN_MESSAGE_COUNT                = 0x01;  // - count
+  static const uint8_t SERVICE_09_VIN                              = 0x02;  // - 17-char ASCII
+  static const uint8_t SERVICE_09_CALIB_ID_MESSAGE_COUNT           = 0x03;  // - count
+  static const uint8_t SERVICE_09_CALIBRATION_ID                   = 0x04;  // - 16-char ASCII
+  static const uint8_t SERVICE_09_CVN_MESSAGE_COUNT                = 0x05;  // - count
+  static const uint8_t SERVICE_09_CALIBRATION_VERIFICATION_NUMBERS = 0x06;  // - 4-byte hex
+  static const uint8_t SERVICE_09_PERF_TRACK_MESSAGE_COUNT         = 0x07;  // - count
+  static const uint8_t SERVICE_09_PERF_TRACK_SPARK_IGNITION        = 0x08;  // - 4-byte values
+  static const uint8_t SERVICE_09_ECU_NAME_MESSAGE_COUNT           = 0x09;  // - count
+  static const uint8_t SERVICE_09_ECU_NAME                         = 0x0A;  // - 20-char ASCII
+  static const uint8_t SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION  = 0x0B;  // - 4-byte values
 
   void queryPID(uint8_t service, uint8_t pid);
   bool processPID(uint8_t service, uint16_t pid, ResponseType& response);

@@ -95,39 +95,3 @@ std::optional<uint16_t> OBD2::auxSupported() {
   }
   return std::nullopt;
 }
-
-/**
- * @brief Получает список поддерживаемых PID в диапазоне 81-100
- *
- * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
- * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_80
- *
- * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
- */
-std::optional<uint32_t> OBD2::supportedPIDs81_100() {
-  return getSupportedPIDs(SUPPORTED_PIDS_81_100);
-}
-
-/**
- * @brief Получает список поддерживаемых PID в диапазоне 101-120
- *
- * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
- * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_A0
- *
- * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
- */
-std::optional<uint32_t> OBD2::supportedPIDs101_120() {
-  return getSupportedPIDs(SUPPORTED_PIDS_101_120);
-}
-
-/**
- * @brief Получает список поддерживаемых PID в диапазоне 121-140
- *
- * Возвращает битовую маску, где каждый бит указывает на поддержку соответствующего PID.
- * @see https://en.wikipedia.org/wiki/OBD-II_PIDs#Service_01_PID_C0
- *
- * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
- */
-std::optional<uint32_t> OBD2::supportedPIDs121_140() {
-  return getSupportedPIDs(SUPPORTED_PIDS_121_140);
-}
