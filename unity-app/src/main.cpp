@@ -12,6 +12,7 @@ extern "C" void run_obd_pid_group_1_20_tests();
 extern "C" void run_obd_pid_group_21_40_tests();
 extern "C" void run_obd_pid_group_41_60_tests();
 extern "C" void run_obd_pid_group_61_80_tests();
+extern "C" void run_obd_pid_group_81_xx_tests();
 
 // Функции, необходимые для работы Unity
 extern "C" void setUp() {
@@ -42,6 +43,7 @@ int main() {
   run_obd_pid_group_21_40_tests();
   run_obd_pid_group_41_60_tests();
   run_obd_pid_group_61_80_tests();
+  run_obd_pid_group_81_xx_tests();
 
   // Завершение Unity и получение результата
   int failures = UNITY_END();
