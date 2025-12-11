@@ -180,43 +180,43 @@ class OBD2 final {
   std::optional<std::array<float, 4>> fuelSystemPercentageUse();
 
   // PIDs 101-120
-  std::optional<uint16_t> auxInputOutputSupported();
-  std::optional<std::array<float, 2>> massAirFlowSensor();
-  std::optional<std::array<int16_t, 2>> engineCoolantTempSensors();
-  std::optional<std::array<int16_t, 2>> intakeAirTempSensors();
-  std::optional<std::array<float, 3>> egrValues();
-  std::optional<float> dieselIntakeAirFlow();
-  std::optional<std::array<int16_t, 2>> egrTemperature();
-  std::optional<std::array<float, 2>> throttleControl();
-  std::optional<std::array<uint16_t, 2>> fuelPressureControl();
-  std::optional<std::array<uint16_t, 3>> injectionPressureControl();
-  std::optional<uint16_t> turbochargerInletPressure();
-  std::optional<std::array<float, 5>> boostPressureControl();
-  std::optional<std::array<uint16_t, 5>> vgtControl();
-  std::optional<std::array<uint16_t, 3>> wastegateControl();
-  std::optional<std::array<uint16_t, 3>> exhaustPressure();
-  std::optional<std::array<uint16_t, 5>> turbochargerRPM();
-  std::optional<std::array<int16_t, 4>> turbochargerTemperature1();
-  std::optional<std::array<int16_t, 4>> turbochargerTemperature2();
-  std::optional<int16_t> chargeAirCoolerTemp();
-  std::optional<std::array<int16_t, 2>> exhaustGasTempBank1();
+  // std::optional<uint16_t> auxInputOutputSupported();
+  // std::optional<std::array<float, 2>> massAirFlowSensor();
+  // std::optional<std::array<int16_t, 2>> engineCoolantTempSensors();
+  // std::optional<std::array<int16_t, 2>> intakeAirTempSensors();
+  // std::optional<std::array<float, 3>> egrValues();
+  // std::optional<float> dieselIntakeAirFlow();
+  // std::optional<std::array<int16_t, 2>> egrTemperature();
+  // std::optional<std::array<float, 2>> throttleControl();
+  // std::optional<std::array<uint16_t, 2>> fuelPressureControl();
+  // std::optional<std::array<uint16_t, 3>> injectionPressureControl();
+  // std::optional<uint16_t> turbochargerInletPressure();
+  // std::optional<std::array<float, 5>> boostPressureControl();
+  // std::optional<std::array<uint16_t, 5>> vgtControl();
+  // std::optional<std::array<uint16_t, 3>> wastegateControl();
+  // std::optional<std::array<uint16_t, 3>> exhaustPressure();
+  // std::optional<std::array<uint16_t, 5>> turbochargerRPM();
+  // std::optional<std::array<int16_t, 4>> turbochargerTemperature1();
+  // std::optional<std::array<int16_t, 4>> turbochargerTemperature2();
+  // std::optional<int16_t> chargeAirCoolerTemp();
+  // std::optional<std::array<int16_t, 2>> exhaustGasTempBank1();
 
   // PIDs 121-140
-  std::optional<std::array<uint16_t, 4>> noxSensorCorrectedData();
-  std::optional<float> cylinderFuelRate();
-  std::optional<std::array<int16_t, 4>> evapSystemVaporPressure();
-  std::optional<float> transmissionActualGear();
-  std::optional<float> commandedDieselExhaustFluidDosing();
-  std::optional<uint32_t> odometer();
-  std::optional<std::array<uint16_t, 2>> noxSensorConcentration34();
-  std::optional<std::array<uint16_t, 2>> noxSensorCorrectedConcentration34();
-  std::optional<bool> absDisableSwitchState();
-  std::optional<std::array<float, 2>> fuelLevelInputAB();
-  std::optional<std::array<uint32_t, 2>> exhaustParticulateControlSystemDiagnostic();
-  std::optional<std::array<uint16_t, 2>> fuelPressureAB();
-  std::optional<std::array<uint16_t, 5>> particulateControlDriverInducementSystem();
-  std::optional<uint16_t> distanceSinceReflashOrModuleReplacement();
-  std::optional<uint8_t> noxParticulateControlDiagnosticWarningLamp();
+  // std::optional<std::array<uint16_t, 4>> noxSensorCorrectedData();
+  // std::optional<float> cylinderFuelRate();
+  // std::optional<std::array<int16_t, 4>> evapSystemVaporPressure();
+  // std::optional<float> transmissionActualGear();
+  // std::optional<float> commandedDieselExhaustFluidDosing();
+  // std::optional<uint32_t> odometer();
+  // std::optional<std::array<uint16_t, 2>> noxSensorConcentration34();
+  // std::optional<std::array<uint16_t, 2>> noxSensorCorrectedConcentration34();
+  // std::optional<bool> absDisableSwitchState();
+  // std::optional<std::array<float, 2>> fuelLevelInputAB();
+  // std::optional<std::array<uint32_t, 2>> exhaustParticulateControlSystemDiagnostic();
+  // std::optional<std::array<uint16_t, 2>> fuelPressureAB();
+  // std::optional<std::array<uint16_t, 5>> particulateControlDriverInducementSystem();
+  // std::optional<uint16_t> distanceSinceReflashOrModuleReplacement();
+  // std::optional<uint8_t> noxParticulateControlDiagnosticWarningLamp();
 
   // Service 09 - Request vehicle information
   std::optional<uint32_t> supportedPIDs_Service09();
@@ -408,36 +408,36 @@ class OBD2 final {
 
   // PIDs 81-100
   static const uint8_t SUPPORTED_PIDS_81_100               = 0x80;  // - bit encoded
-  static const uint8_t ENGINE_RUN_TIME_AECD_1_2            = 0x81;  // - s
-  static const uint8_t ENGINE_RUN_TIME_AECD_3_4            = 0x82;  // - s
-  static const uint8_t NOX_SENSOR                          = 0x83;  // - ppm
-  static const uint8_t MANIFOLD_SURFACE_TEMP               = 0x84;  // - °C
+  static const uint8_t ENGINE_RUN_TIME_AECD_1_2            = 0x81;  //❌ - s
+  static const uint8_t ENGINE_RUN_TIME_AECD_3_4            = 0x82;  //❌ - s
+  static const uint8_t NOX_SENSOR                          = 0x83;  //❌ - ppm
+  static const uint8_t MANIFOLD_SURFACE_TEMP               = 0x84;  //❌ - °C
   static const uint8_t NOX_REAGENT_SYSTEM                  = 0x85;  // - %
-  static const uint8_t PM_SENSOR                           = 0x86;  // - μg/m3, light, °C
-  static const uint8_t INTAKE_MANIFOLD_ABS_PRESSURE_81_100 = 0x87;  // - kPa
-  static const uint8_t SCR_INDUCE_SYSTEM                   = 0x88;  // - various
-  static const uint8_t RUN_TIME_AECD_11_15                 = 0x89;  // - s
-  static const uint8_t RUN_TIME_AECD_16_20                 = 0x8A;  // - s
-  static const uint8_t DIESEL_AFTERTREATMENT               = 0x8B;  // - various
-  static const uint8_t O2_SENSOR_WIDE_RANGE                = 0x8C;  // - V
+  static const uint8_t PM_SENSOR                           = 0x86;  //❌ - μg/m3, light, °C
+  static const uint8_t INTAKE_MANIFOLD_ABS_PRESSURE_81_100 = 0x87;  //❌ - kPa
+  static const uint8_t SCR_INDUCE_SYSTEM                   = 0x88;  //❌ - various
+  static const uint8_t RUN_TIME_AECD_11_15                 = 0x89;  //❌ - s
+  static const uint8_t RUN_TIME_AECD_16_20                 = 0x8A;  //❌ - s
+  static const uint8_t DIESEL_AFTERTREATMENT               = 0x8B;  //❌ - various
+  static const uint8_t O2_SENSOR_WIDE_RANGE                = 0x8C;  //❌ - V
   static const uint8_t THROTTLE_POSITION_G                 = 0x8D;  // - %
   static const uint8_t ENGINE_FRICTION_PERCENT_TORQUE      = 0x8E;  // - %
-  static const uint8_t PM_SENSOR_BANK_1_2                  = 0x8F;  // - μg/m3, °C
-  static const uint8_t WWH_OBD_VEHICLE_INFO_1              = 0x90;  // - various
-  static const uint8_t WWH_OBD_VEHICLE_INFO_2              = 0x91;  // - h
-  static const uint8_t FUEL_SYSTEM_CONTROL                 = 0x92;  // - various
-  static const uint8_t WWH_OBD_COUNTERS_SUPPORT            = 0x93;  // - h
-  static const uint8_t NOX_WARNING_INDUCTION_SYSTEM        = 0x94;  // - various
-  static const uint8_t EXHAUST_GAS_TEMP_SENSOR_1           = 0x98;  // - °C
-  static const uint8_t EXHAUST_GAS_TEMP_SENSOR_2           = 0x99;  // - °C
-  static const uint8_t HYBRID_EV_BATTERY_VOLTAGE           = 0x9A;  // - V
+  static const uint8_t PM_SENSOR_BANK_1_2                  = 0x8F;  //❌ - μg/m3, °C
+  static const uint8_t WWH_OBD_VEHICLE_INFO_1              = 0x90;  //❌ - various
+  static const uint8_t WWH_OBD_VEHICLE_INFO_2              = 0x91;  //❌ - h
+  static const uint8_t FUEL_SYSTEM_CONTROL                 = 0x92;  //❌ - various
+  static const uint8_t WWH_OBD_COUNTERS_SUPPORT            = 0x93;  //❌ - h
+  static const uint8_t NOX_WARNING_INDUCTION_SYSTEM        = 0x94;  //❌ - various
+  static const uint8_t EXHAUST_GAS_TEMP_SENSOR_1           = 0x98;  //❌ - °C
+  static const uint8_t EXHAUST_GAS_TEMP_SENSOR_2           = 0x99;  //❌ - °C
+  static const uint8_t HYBRID_EV_BATTERY_VOLTAGE           = 0x9A;  //❌ - V
   static const uint8_t DIESEL_EXHAUST_FLUID_SENSOR_DATA    = 0x9B;  // - %
-  static const uint8_t O2_SENSOR_DATA_81_100               = 0x9C;  // - V, mA
+  static const uint8_t O2_SENSOR_DATA_81_100               = 0x9C;  //❌ - V, mA
   static const uint8_t ENGINE_FUEL_RATE_81_100             = 0x9D;  // - g/s
   static const uint8_t ENGINE_EXHAUST_FLOW_RATE            = 0x9E;  // - kg/h
-  static const uint8_t FUEL_SYSTEM_PERCENTAGE_USE          = 0x9F;  // - %
+  static const uint8_t FUEL_SYSTEM_PERCENTAGE_USE          = 0x9F;  //❌ - %
 
-  // PIDs 101-120
+  // PIDs 101-120 ❌
   static const uint8_t SUPPORTED_PIDS_101_120                 = 0xA0;  // - bit encoded
   static const uint8_t NOX_SENSOR_CORRECTED_DATA              = 0xA1;  // - ppm
   static const uint8_t CYLINDER_FUEL_RATE                     = 0xA2;  // - mg/stroke
@@ -445,11 +445,11 @@ class OBD2 final {
   static const uint8_t TRANSMISSION_ACTUAL_GEAR               = 0xA4;  // - ratio
   static const uint8_t COMMANDED_DIESEL_EXHAUST_FLUID_DOSING  = 0xA5;  // - %
   static const uint8_t ODOMETER                               = 0xA6;  // - km
-  static const uint8_t NOX_SENSOR_CONCENTRATION_3_4           = 0xA7;  // - ppm
-  static const uint8_t NOX_SENSOR_CORRECTED_CONCENTRATION_3_4 = 0xA8;  // - ppm
+  static const uint8_t NOX_SENSOR_CONCENTRATION_3_4           = 0xA7;  //❌ - ppm
+  static const uint8_t NOX_SENSOR_CORRECTED_CONCENTRATION_3_4 = 0xA8;  //❌ - ppm
   static const uint8_t ABS_DISABLE_SWITCH_STATE               = 0xA9;  // - bit encoded
 
-  // PIDs 121-140
+  // PIDs 121-140 ❌
   static const uint8_t SUPPORTED_PIDS_121_140                        = 0xC0;  // - bit encoded
   static const uint8_t FUEL_LEVEL_INPUT_A_B                          = 0xC3;  // - %
   static const uint8_t EXHAUST_PARTICULATE_CONTROL_SYSTEM_DIAGNOSTIC = 0xC4;  // - seconds / Count
