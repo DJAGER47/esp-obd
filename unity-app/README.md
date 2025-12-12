@@ -134,3 +134,32 @@ cd tests/ecu_simulator
 - Протокольные тесты (ISO-TP, обработка ошибок)
 
 Более подробную информацию см. в [README тестов с ECU симулятором](tests/ecu_simulator/README.md).
+
+## Тестирование с санитайзерами
+
+Проект поддерживает запуск тестов с различными санитайзерами для обнаружения ошибок памяти и неопределенного поведения.
+
+### Поддерживаемые санитайзеры
+
+- **AddressSanitizer (ASan)**: Обнаруживает ошибки работы с памятью
+- **UndefinedBehaviorSanitizer (UBSan)**: Обнаруживает неопределенное поведение
+- **ThreadSanitizer (TSan)**: Обнаруживает гонки данных в многопоточных приложениях
+
+### Сборка и запуск с санитайзерами
+
+Для сборки и запуска тестов с санитайзерами используется специальный скрипт:
+
+```bash
+# Сборка и запуск с AddressSanitizer
+./build_with_sanitizers.sh --asan && ./build_sanitizers/unity_app
+
+# Сборка и запуск с UndefinedBehaviorSanitizer
+./build_with_sanitizers.sh --ubsan && ./build_sanitizers/unity_app
+
+# Сборка и запуск с ThreadSanitizer
+./build_with_sanitizers.sh --tsan && ./build_sanitizers/unity_app
+```
+
+### Дополнительная информация
+
+Более подробную информацию о санитайзерах и их использовании см. в [README_SANITIZERS.md](README_SANITIZERS.md).

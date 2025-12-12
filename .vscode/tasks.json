@@ -30,6 +30,66 @@
                     "message": 5
                 }
             }
+        },
+        {
+            "label": "build unity app with asan",
+            "type": "shell",
+            "command": "cd unity-app && mkdir -p build_sanitizers && cd build_sanitizers && cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_ASAN=ON .. && cmake --build .",
+            "args": [],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
+        },
+        {
+            "label": "build unity app with ubsan",
+            "type": "shell",
+            "command": "cd unity-app && mkdir -p build_sanitizers && cd build_sanitizers && cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_UBSAN=ON .. && cmake --build .",
+            "args": [],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            },
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": {
+                "owner": "cpp",
+                "fileLocation": "absolute",
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):(\\d+):\\s+(warning|error):\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "column": 3,
+                    "severity": 4,
+                    "message": 5
+                }
+            }
         }
     ]
 }

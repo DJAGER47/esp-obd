@@ -3,6 +3,8 @@
 #include <cstring>
 
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
 
 static const char* const TAG = "TwaiSubscriberIsoTp";
 
@@ -12,6 +14,15 @@ TwaiSubscriberIsoTp::TwaiSubscriberIsoTp(uint32_t queue_size) {
     ESP_LOGE(TAG, "Failed to create queue");
   }
 }
+
+#ifdef TEST_INSTANCES
+#warning "only tests"
+TwaiSubscriberIsoTp::~TwaiSubscriberIsoTp() {
+  if (xQueue_ != nullptr) {
+    vQueueDelete(xQueue_);
+  }
+}
+#endif
 
 bool TwaiSubscriberIsoTp::isInterested(const TwaiFrame& frame) {
   return true;

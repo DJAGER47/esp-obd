@@ -92,7 +92,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   message.is_fd       = false;
   message.brs         = false;
   message.data_length = len;
-  if (len <= 8) {  // Проверка на максимальный размер данных для классического CAN
+  if ((len <= 8) && (data != nullptr)) {  // Проверка на максимальный размер данных для классического CAN
     memcpy(message.data, data, len);
   }
   _bus.Transmit(message, 0);
@@ -121,7 +121,9 @@ void IsoTp::send_sf(const Message_t& msg) {
   uint8_t TxBuf[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   // SF message high nibble = 0x0 , low nibble = Length
   TxBuf[0] = (N_PCI_SF | msg.len);
-  memcpy(TxBuf + 1, msg.buffer, msg.len);
+  if (msg.len > 0 && msg.buffer != nullptr) {
+    memcpy(TxBuf + 1, msg.buffer, msg.len);
+  }
   //  return can_send(msg.tx_id,msg.len+1,TxBuf);// Add PCI length
   can_send(msg.tx_id, 8, TxBuf);  // Always send full frame
 }
@@ -131,8 +133,10 @@ void IsoTp::send_ff(const Message_t& msg) {
 
   TxBuf[0] = (N_PCI_FF | ((msg.len & 0x0F00) >> 8));
   TxBuf[1] = (msg.len & 0x00FF);
-  memcpy(TxBuf + 2, msg.buffer, 6);  // Skip 2 Bytes PCI
-  can_send(msg.tx_id, 8, TxBuf);     // First Frame has full length
+  if (msg.buffer != nullptr) {
+    memcpy(TxBuf + 2, msg.buffer, 6);  // Skip 2 Bytes PCI
+  }
+  can_send(msg.tx_id, 8, TxBuf);  // First Frame has full length
 }
 
 void IsoTp::send_cf(const Message_t& msg) {
@@ -140,12 +144,14 @@ void IsoTp::send_cf(const Message_t& msg) {
   uint16_t len     = (msg.len > 7) ? 7 : msg.len;
 
   TxBuf[0] = (N_PCI_CF | (msg.seq_id & 0x0F));
-  memcpy(TxBuf + 1, msg.buffer, len);  // Skip 1 Byte PCI
-                                       // return can_send(msg.tx_id,len+1,TxBuf);
-                                       // // Last frame is probably shorter
-                                       // than 8 -> Signals last CF Frame
-  can_send(msg.tx_id, 8, TxBuf);       // Last frame is probably shorter
-                                       // than 8, pad with 00
+  if (len > 0 && msg.buffer != nullptr) {
+    memcpy(TxBuf + 1, msg.buffer, len);  // Skip 1 Byte PCI
+  }
+  // return can_send(msg.tx_id,len+1,TxBuf);
+  // // Last frame is probably shorter
+  // than 8 -> Signals last CF Frame
+  can_send(msg.tx_id, 8, TxBuf);  // Last frame is probably shorter
+                                  // than 8, pad with 00
 }
 
 void IsoTp::rcv_sf(Message_t& msg) {
@@ -159,7 +165,9 @@ void IsoTp::rcv_sf(Message_t& msg) {
   }
 
   /* copy the received data bytes */
-  memcpy(msg.buffer, rxFrame.data + 1, copy_len);  // Skip PCI, SF uses len bytes
+  if (msg.buffer != nullptr && copy_len > 0) {
+    memcpy(msg.buffer, rxFrame.data + 1, copy_len);  // Skip PCI, SF uses len bytes
+  }
   msg.tp_state = ISOTP_FINISHED;
 }
 
@@ -173,8 +181,10 @@ void IsoTp::rcv_ff(Message_t& msg) {
 
   /* copy the first received data bytes */
   uint16_t copy_len = (msg.max_len > 6) ? 6 : msg.max_len;
-  memcpy(msg.buffer, rxFrame.data + 2, copy_len);  // Skip 2 bytes PCI
-  rest -= 6;                                       // Restlength
+  if (msg.buffer != nullptr && copy_len > 0) {
+    memcpy(msg.buffer, rxFrame.data + 2, copy_len);  // Skip 2 bytes PCI
+  }
+  rest -= 6;  // Restlength
 
   msg.tp_state = ISOTP_WAIT_DATA;
 
@@ -232,7 +242,9 @@ void IsoTp::rcv_cf(Message_t& msg) {
   const size_t available_space = std::max(tmp_space, static_cast<ssize_t>(0));
   if (rest <= 7) {  // Last Frame
     uint16_t copy_len = (rest > available_space) ? available_space : rest;
-    memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
+    if (msg.buffer != nullptr && copy_len > 0) {
+      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
+    }
     if (copy_len < rest) {
       log_print("Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
     }
@@ -240,7 +252,9 @@ void IsoTp::rcv_cf(Message_t& msg) {
     log_print("Last CF received with seq. ID: %d", msg.seq_id);
   } else {
     uint16_t copy_len = (7 > available_space) ? available_space : 7;
-    memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
+    if (msg.buffer != nullptr && copy_len > 0) {
+      memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
+    }
     if (copy_len < 7) {
       log_print("Warning: Truncated CF frame (needed 7, had %d space)", available_space);
     }

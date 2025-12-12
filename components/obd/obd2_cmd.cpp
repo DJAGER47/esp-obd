@@ -99,7 +99,12 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
 
     const uint8_t response_service = service + 0x40;
     if ((msg.data[1] == response_service) && (msg.data[2] == pid)) {
-      std::copy(msg.data + 3, msg.data + 3 + response.size(), response.begin());
+      // Проверяем, что в ответе достаточно данных для копирования
+      size_t data_len = msg.len - 3;  // Вычитаем 3 байта заголовка
+      if (data_len > response.size()) {
+        data_len = response.size();  // Ограничиваем размером response
+      }
+      std::copy(msg.data + 3, msg.data + 3 + data_len, response.begin());
       return true;
     }
   }

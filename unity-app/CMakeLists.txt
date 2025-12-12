@@ -33,11 +33,34 @@ add_executable(unity_app
     Unity-2.6.1/src/unity.c
 )
 
+add_definitions(-DTEST_INSTANCES)
+
 # Установка флагов компиляции в зависимости от типа сборки
 target_compile_options(unity_app PRIVATE
     $<$<CONFIG:Debug>:-g -O0 -DDEBUG>
     $<$<CONFIG:Release>:-O3 -DNDEBUG>
 )
+
+# Добавим опции для санитайзеров
+option(ENABLE_ASAN "Enable AddressSanitizer" OFF)
+option(ENABLE_UBSAN "Enable UndefinedBehaviorSanitizer" OFF)
+option(ENABLE_TSAN "Enable ThreadSanitizer" OFF)
+
+# Настройка флагов компиляции для санитайзеров
+if(ENABLE_ASAN)
+    target_compile_options(unity_app PRIVATE -fsanitize=address -fno-omit-frame-pointer)
+    target_link_options(unity_app PRIVATE -fsanitize=address)
+endif()
+
+if(ENABLE_UBSAN)
+    target_compile_options(unity_app PRIVATE -fsanitize=undefined)
+    target_link_options(unity_app PRIVATE -fsanitize=undefined)
+endif()
+
+if(ENABLE_TSAN)
+    target_compile_options(unity_app PRIVATE -fsanitize=thread)
+    target_link_options(unity_app PRIVATE -fsanitize=thread)
+endif()
 
 set_property(TARGET unity_app PROPERTY CXX_STANDARD 17)
 set_property(TARGET unity_app PROPERTY CXX_STANDARD_REQUIRED ON)

@@ -7,6 +7,9 @@
 class TwaiSubscriberIsoTp final : public ITwaiSubscriber {
  public:
   explicit TwaiSubscriberIsoTp(uint32_t queue_size = 10);
+#ifdef TEST_INSTANCES
+  ~TwaiSubscriberIsoTp();
+#endif
   bool isInterested(const TwaiFrame& frame) override;
 
   /**

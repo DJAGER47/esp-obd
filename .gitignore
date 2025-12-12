@@ -7,3 +7,4 @@ clang_tidy_results/*
 warnings.txt
 html_report/*
 report.json
+unity-app/build_sanitizers/*

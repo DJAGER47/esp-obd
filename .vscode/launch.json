@@ -36,6 +36,58 @@
       "type": "espidf",
       "name": "Launch",
       "request": "launch"
+    },
+    {
+      "name": "Debug Unity App with ASan",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/unity-app/build_sanitizers/unity_app",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/unity-app/build_sanitizers",
+      "environment": [
+        {
+          "name": "ASAN_OPTIONS",
+          "value": "detect_leaks=1:abort_on_error=1"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build unity app with asan",
+      "miDebuggerPath": "/usr/bin/gdb"
+    },
+    {
+      "name": "Debug Unity App with UBSan",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceFolder}/unity-app/build_sanitizers/unity_app",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}/unity-app/build_sanitizers",
+      "environment": [
+        {
+          "name": "UBSAN_OPTIONS",
+          "value": "print_stacktrace=1"
+        }
+      ],
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ],
+      "preLaunchTask": "build unity app with ubsan",
+      "miDebuggerPath": "/usr/bin/gdb"
     }
   ]
 }
