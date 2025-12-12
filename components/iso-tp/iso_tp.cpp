@@ -76,6 +76,7 @@ void IsoTp::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
 
     ESP_LOGI(TAG, "%s", log_buffer);
   }
+  log_print("\n");
 }
 
 IsoTp::IsoTp(IPhyInterface& bus) :
@@ -160,7 +161,7 @@ void IsoTp::rcv_sf(Message_t& msg) {
 
   uint16_t copy_len = msg.len;
   if (msg.len > msg.max_len) {
-    log_print("Warning: Buffer too small for SF (need %d, have %d), truncating", msg.len, msg.max_len);
+    log_print("Warning: Buffer too small for SF (need %d, have %d), truncating\n", msg.len, msg.max_len);
     copy_len = msg.max_len;
   }
 
@@ -188,9 +189,9 @@ void IsoTp::rcv_ff(Message_t& msg) {
 
   msg.tp_state = ISOTP_WAIT_DATA;
 
-  log_print("First frame received with message length: %d", rest);
-  log_print("Send flow controll.");
-  log_print("ISO-TP state: %s", IsoTp::isotp_state_to_string(msg.tp_state));
+  log_print("First frame received with message length: %d\n", rest);
+  log_print("Send flow controll.\n");
+  log_print("ISO-TP state: %s\n", IsoTp::isotp_state_to_string(msg.tp_state));
 
   /* send our first FC frame with Target Address*/
   Message_t fc;
@@ -207,15 +208,15 @@ void IsoTp::rcv_cf(Message_t& msg) {
   const uint32_t delta = millis() - wait_cf;
 
   if ((delta >= TIMEOUT_FC) && msg.seq_id > 1) {
-    log_print("CF frame timeout during receive wait_cf=%lu delta=%lu", wait_cf, delta);
+    log_print("CF frame timeout during receive wait_cf=%lu delta=%lu\n", wait_cf, delta);
 
     msg.tp_state = ISOTP_IDLE;
     return;
   }
   wait_cf = millis();
 
-  log_print("ISO-TP state: %s", IsoTp::isotp_state_to_string(msg.tp_state));
-  log_print("CF received with message rest length: %d", rest);
+  log_print("ISO-TP state: %s\n", IsoTp::isotp_state_to_string(msg.tp_state));
+  log_print("CF received with message rest length: %d\n", rest);
 
   if (msg.tp_state != ISOTP_WAIT_DATA)
     return;
@@ -226,11 +227,11 @@ void IsoTp::rcv_cf(Message_t& msg) {
   if (received_seq_id != expected_seq_id) {
     if (received_seq_id < expected_seq_id) {
       // Дублированный кадр - игнорируем
-      log_print("Duplicate CF ignored: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
+      log_print("Duplicate CF ignored: Got sequence ID: %d Expected: %d\n", received_seq_id, expected_seq_id);
       return;
     } else {
       // Пропущен кадр - ошибка
-      log_print("Missing CF detected: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
+      log_print("Missing CF detected: Got sequence ID: %d Expected: %d\n", received_seq_id, expected_seq_id);
       msg.tp_state = ISOTP_IDLE;
       msg.seq_id   = 1;
       return;
@@ -246,20 +247,20 @@ void IsoTp::rcv_cf(Message_t& msg) {
       memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
     }
     if (copy_len < rest) {
-      log_print("Warning: Truncated last CF frame (needed %d, had %d space)", rest, available_space);
+      log_print("Warning: Truncated last CF frame (needed %d, had %d space)\n", rest, available_space);
     }
     msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
-    log_print("Last CF received with seq. ID: %d", msg.seq_id);
+    log_print("Last CF received with seq. ID: %d\n", msg.seq_id);
   } else {
     uint16_t copy_len = (7 > available_space) ? available_space : 7;
     if (msg.buffer != nullptr && copy_len > 0) {
       memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
     }
     if (copy_len < 7) {
-      log_print("Warning: Truncated CF frame (needed 7, had %d space)", available_space);
+      log_print("Warning: Truncated CF frame (needed 7, had %d space)\n", available_space);
     }
     rest -= 7;  // Got another 7 Bytes of Data;
-    log_print("CF received with seq. ID: %d", msg.seq_id);
+    log_print("CF received with seq. ID: %d\n", msg.seq_id);
   }
 
   msg.seq_id++;
@@ -277,7 +278,7 @@ bool IsoTp::rcv_fc(Message_t& msg) {
       msg.min_sep_time = 0x7F;
   }
 
-  log_print("FC frame: FS %d, Blocksize %d, Min. separation Time %d",
+  log_print("FC frame: FS %d, Blocksize %d, Min. separation Time %d\n",
             rxFrame.data[0] & 0x0F,
             msg.blocksize,
             msg.min_sep_time);
@@ -290,14 +291,14 @@ bool IsoTp::rcv_fc(Message_t& msg) {
     case ISOTP_FC_WT:
       fc_wait_frames++;
       if (fc_wait_frames >= MAX_FCWAIT_FRAME) {
-        log_print("FC wait frames exceeded.");
+        log_print("FC wait frames exceeded.\n");
         fc_wait_frames = 0;
       }
-      log_print("Start waiting for next FC");
+      log_print("Start waiting for next FC\n");
       break;
 
     case ISOTP_FC_OVFLW:
-      log_print("Overflow in receiver side");
+      log_print("Overflow in receiver side\n");
       // fall through
     default:
       return false;
@@ -326,17 +327,17 @@ bool IsoTp::send(Message& msg) {
   uint32_t wait_fc = 0;
 
   while (true) {
-    log_print("\tISO-TP State: %s", isotp_state_to_string(internalMsg.tp_state));
+    log_print("\tISO-TP State: %s\n", isotp_state_to_string(internalMsg.tp_state));
 
     switch (internalMsg.tp_state) {
       case ISOTP_SEND:
         if (internalMsg.len <= 7) {
-          log_print("Send SF");
+          log_print("Send SF\n");
           send_sf(internalMsg);
           return true;
         }
 
-        log_print("Send FF");
+        log_print("Send FF\n");
         send_ff(internalMsg);
         internalMsg.seq_id = 1;
         internalMsg.buffer += 6;
@@ -356,7 +357,7 @@ bool IsoTp::send(Message& msg) {
 
         const uint32_t delta = millis() - wait_fc;
         if (delta >= TIMEOUT_FC) {
-          log_print("FC timeout during receive wait_fc=%lu delta=%lu", wait_fc, delta);
+          log_print("FC timeout during receive wait_fc=%lu delta=%lu\n", wait_fc, delta);
           return false;
         }
       } break;
@@ -365,9 +366,9 @@ bool IsoTp::send(Message& msg) {
         if (internalMsg.len > 7) {
           fc_delay(internalMsg.min_sep_time);
           send_cf(internalMsg);
-          log_print("Send Seq %d", internalMsg.seq_id);
+          log_print("Send Seq %d\n", internalMsg.seq_id);
           if (internalMsg.blocksize > 0) {
-            log_print("Blocksize trigger %d", internalMsg.seq_id % internalMsg.blocksize);
+            log_print("Blocksize trigger %d\n", internalMsg.seq_id % internalMsg.blocksize);
             if (!(internalMsg.seq_id % internalMsg.blocksize)) {
               internalMsg.tp_state = ISOTP_WAIT_FC;
               wait_fc              = millis();
@@ -381,10 +382,10 @@ bool IsoTp::send(Message& msg) {
           }
           internalMsg.buffer += 7;
           internalMsg.len -= 7;
-          log_print("Length      : %d", internalMsg.len);
+          log_print("Length      : %d\n", internalMsg.len);
         } else {
           fc_delay(internalMsg.min_sep_time);
-          log_print("Send last Seq %d", internalMsg.seq_id);
+          log_print("Send last Seq %d\n", internalMsg.seq_id);
           send_cf(internalMsg);
           return true;
         }
@@ -424,38 +425,38 @@ bool IsoTp::receive(Message& msg, size_t size_buffer) {
   uint32_t delta     = 0;
 
   wait_session = millis();
-  log_print("Start receive...");
+  log_print("Start receive...\n");
 
   while (internalMsg.tp_state != ISOTP_FINISHED) {
     delta = millis() - wait_session;
     if (delta >= TIMEOUT_SESSION) {
-      log_print("ISO-TP Session timeout wait_session=%lu delta=%lu", wait_session, delta);
+      log_print("ISO-TP Session timeout wait_session=%lu delta=%lu\n", wait_session, delta);
       return false;
     }
 
     if (can_receive()) {
       if (rxFrame.id == internalMsg.rx_id) {
-        log_print("rxId OK!");
+        log_print("rxId OK!\n");
         n_pci_type = rxFrame.data[0] & 0xF0;
 
         switch (n_pci_type) {
           case N_PCI_FC:
-            log_print("FC");  // flow control frame
+            log_print("FC\n");  // flow control frame
             rcv_fc(internalMsg);
             break;
 
           case N_PCI_SF:
-            log_print("SF");      // single frame
+            log_print("SF\n");    // single frame
             rcv_sf(internalMsg);  // internalMsg.tp_state=ISOTP_FINISHED;
             break;
 
           case N_PCI_FF:
-            log_print("FF");      // first frame
+            log_print("FF\n");    // first frame
             rcv_ff(internalMsg);  // internalMsg.tp_state=ISOTP_WAIT_DATA;
             break;
 
           case N_PCI_CF:
-            log_print("CF");  // consecutive frame
+            log_print("CF\n");  // consecutive frame
             rcv_cf(internalMsg);
             break;
         }
@@ -469,7 +470,7 @@ bool IsoTp::receive(Message& msg, size_t size_buffer) {
   msg.len   = internalMsg.len;
   // Note: msg.data points to the same buffer as internalMsg.buffer, so data is already there
 
-  log_print("ISO-TP message received:");
+  log_print("ISO-TP message received:\n");
   log_print_buffer(internalMsg.rx_id, internalMsg.buffer, internalMsg.len);
 
   return true;

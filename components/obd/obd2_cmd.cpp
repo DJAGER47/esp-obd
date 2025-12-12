@@ -50,6 +50,7 @@ void OBD2::log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len) {
 
     log_print("%s", log_buffer);
   }
+  log_print("\n");
 }
 
 /**
@@ -71,10 +72,10 @@ OBD2::OBD2(IIsoTp& driver, uint16_t tx_id, uint16_t rx_id) :
  * @param pid Parameter ID (PID) из сервиса
  */
 void OBD2::queryPID(uint8_t service, uint8_t pid) {
-  log_print("Service: %d PID: %d", service, pid);
-  uint8_t data[8]{2, service, pid, 0x00, 0x00, 0x00, 0x00, 0x00};
+  log_print("Service: %d PID: %d\n", service, pid);
+  uint8_t data[8]{service, pid, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   IsoTp::Message msg{tx_id_, rx_id_, 3, data};
-  log_print("Sending the following command/query");
+  log_print("Sending the following command/query\n");
   log_print_buffer(msg.tx_id, msg.data, msg.len);
   iso_tp_.send(msg);
 }
@@ -94,17 +95,18 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
     }
 
     const uint8_t response_service = service + 0x40;
-    if ((msg.data[1] == response_service) && (msg.data[2] == pid)) {
+    if ((msg.data[0] == response_service) && (msg.data[1] == pid)) {
       // Проверяем, что в ответе достаточно данных для копирования
-      size_t data_len = msg.len - 3;  // Вычитаем 3 байта заголовка
+      size_t data_len = msg.len - 2;  // Вычитаем 3 байта заголовка
       if (data_len > response.size()) {
+        log_print("processPID: trim data\n");
         data_len = response.size();  // Ограничиваем размером response
       }
-      std::copy(msg.data + 3, msg.data + 3 + data_len, response.begin());
+      std::copy(msg.data + 2, msg.data + 2 + data_len, response.begin());
       return true;
     }
   }

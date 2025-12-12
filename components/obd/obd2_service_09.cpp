@@ -57,7 +57,7 @@ bool OBD2::getVIN(char* vin_buffer, size_t buffer_size) {
     return false;
   }
 
-  log_print("Getting VIN...");
+  log_print("Getting VIN...\n");
 
   // Отправляем запрос для получения VIN (Service 09, PID 02)
   queryPID(0x09, 0x02);
@@ -66,12 +66,12 @@ bool OBD2::getVIN(char* vin_buffer, size_t buffer_size) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос VIN
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x02) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x02) {
       // Очищаем буфер
       memset(vin_buffer, 0, buffer_size);
 
@@ -88,15 +88,15 @@ bool OBD2::getVIN(char* vin_buffer, size_t buffer_size) {
 
       if (vin_index == 17) {
         vin_buffer[17] = '\0';  // Гарантируем нулевое завершение строки
-        log_print("VIN: %s", vin_buffer);
+        log_print("VIN: %s\n", vin_buffer);
         return true;
       } else {
-        log_print("Invalid VIN length: %d", vin_index);
+        log_print("Invalid VIN length: %d\n", vin_index);
       }
     }
   }
 
-  log_print("No VIN response");
+  log_print("No VIN response\n");
   vin_buffer[0] = '\0';  // Пустая строка в случае ошибки
   return false;
 }
@@ -138,12 +138,12 @@ bool OBD2::getCalibrationId(char* calib_buffer, size_t buffer_size) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос Calibration ID
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x04) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x04) {
       // Очищаем буфер
       memset(calib_buffer, 0, buffer_size);
 
@@ -160,13 +160,13 @@ bool OBD2::getCalibrationId(char* calib_buffer, size_t buffer_size) {
 
       if (calib_index > 0) {
         calib_buffer[calib_index] = '\0';  // Гарантируем нулевое завершение строки
-        log_print("Calibration ID: %s", calib_buffer);
+        log_print("Calibration ID: %s\n", calib_buffer);
         return true;
       }
     }
   }
 
-  log_print("No Calibration ID response");
+  log_print("No Calibration ID response\n");
   calib_buffer[0] = '\0';  // Пустая строка в случае ошибки
   return false;
 }
@@ -210,12 +210,12 @@ bool OBD2::getCalibrationVerificationNumbers(uint32_t* cvn_buffer, size_t buffer
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос CVN
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x06) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x06) {
       // Пропускаем заголовок и обрабатываем данные
       // Формат ответа: 49 06 [CVN данные в формате 4 байта каждый]
       size_t data_start = 3;  // Пропускаем 49 06
@@ -228,13 +228,13 @@ bool OBD2::getCalibrationVerificationNumbers(uint32_t* cvn_buffer, size_t buffer
       }
 
       if (*count > 0) {
-        log_print("CVNs count: %d", *count);
+        log_print("CVNs count: %d\n", *count);
         return true;
       }
     }
   }
 
-  log_print("No CVN response");
+  log_print("No CVN response\n");
   *count = 0;
   return false;
 }
@@ -279,12 +279,12 @@ bool OBD2::getPerformanceTrackingSparkIgnition(uint16_t* tracking_buffer, size_t
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос отслеживания производительности
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x08) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x08) {
       // Пропускаем заголовок и обрабатываем данные
       // Формат ответа: 49 08 [данные отслеживания в формате 2 байта на значение]
       size_t data_start = 3;  // Пропускаем 49 08
@@ -297,13 +297,13 @@ bool OBD2::getPerformanceTrackingSparkIgnition(uint16_t* tracking_buffer, size_t
       }
 
       if (*count > 0) {
-        log_print("Spark ignition tracking values count: %d", *count);
+        log_print("Spark ignition tracking values count: %d\n", *count);
         return true;
       }
     }
   }
 
-  log_print("No spark ignition tracking response");
+  log_print("No spark ignition tracking response\n");
   *count = 0;
   return false;
 }
@@ -341,12 +341,12 @@ bool OBD2::getEcuName(char* ecu_buffer, size_t buffer_size) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос ECU name
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x0A) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x0A) {
       // Очищаем буфер
       memset(ecu_buffer, 0, buffer_size);
 
@@ -363,13 +363,13 @@ bool OBD2::getEcuName(char* ecu_buffer, size_t buffer_size) {
 
       if (ecu_index > 0) {
         ecu_buffer[ecu_index] = '\0';  // Гарантируем нулевое завершение строки
-        log_print("ECU Name: %s", ecu_buffer);
+        log_print("ECU Name: %s\n", ecu_buffer);
         return true;
       }
     }
   }
 
-  log_print("No ECU name response");
+  log_print("No ECU name response\n");
   ecu_buffer[0] = '\0';  // Пустая строка в случае ошибки
   return false;
 }
@@ -395,12 +395,12 @@ bool OBD2::getPerformanceTrackingCompressionIgnition(uint16_t* tracking_buffer, 
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      log_print("OBD2 negative response received: service=0x%02X, error=0x%02X", msg.data[1], msg.data[2]);
+      log_print("OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
       return false;
     }
 
     // Проверяем, что это правильный ответ на запрос отслеживания производительности
-    if (msg.len >= 4 && msg.data[1] == 0x49 && msg.data[2] == 0x0B) {
+    if (msg.len >= 4 && msg.data[0] == 0x49 && msg.data[1] == 0x0B) {
       // Пропускаем заголовок и обрабатываем данные
       // Формат ответа: 49 0B [данные отслеживания в формате 2 байта на значение]
       size_t data_start = 3;  // Пропускаем 49 0B
@@ -413,13 +413,13 @@ bool OBD2::getPerformanceTrackingCompressionIgnition(uint16_t* tracking_buffer, 
       }
 
       if (*count > 0) {
-        log_print("Compression ignition tracking values count: %d", *count);
+        log_print("Compression ignition tracking values count: %d\n", *count);
         return true;
       }
     }
   }
 
-  log_print("No compression ignition tracking response");
+  log_print("No compression ignition tracking response\n");
   *count = 0;
   return false;
 }

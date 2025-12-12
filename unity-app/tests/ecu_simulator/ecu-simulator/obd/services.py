@@ -24,6 +24,7 @@ SERVICES = [
     {"id": 0x01, "description": "Show current data", "response": lambda: None,
      "pids": [
          {"id": 0x05, "description": "Engine coolant temperature", "response": lambda: responses.get_engine_temperature()},
+         {"id": 0x0C, "description": "RPM", "response": lambda: responses.get_rpm()},
          {"id": 0x0D, "description": "Vehicle speed", "response": lambda: responses.get_vehicle_speed()},
          {"id": 0x2F, "description": "Fuel tank level input", "response": lambda: responses.get_fuel_level()},
          {"id": 0x51, "description": "Fuel type", "response": lambda: FUEL_TYPE}

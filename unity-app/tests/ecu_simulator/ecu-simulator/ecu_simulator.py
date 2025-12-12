@@ -22,16 +22,7 @@ def main():
 
 
 def set_up_can_interface():
-    interface_type = ecu_config.get_can_interface_type()
     can_interface = ecu_config.get_can_interface()
-    isotp_ko_file_path = ecu_config.get_isotp_ko_file_path()
-    if interface_type == "virtual":
-        logger_app.logger.info("Setting up virtual CAN interface: " + can_interface)
-        os.system("sh " + SETUP_VCAN_FILE + " " + can_interface + " " + isotp_ko_file_path)
-    elif interface_type == "hardware":
-        logger_app.logger.info("Setting up CAN interface: " + can_interface)
-        logger_app.logger.info("Loading ISO-TP module from: " + isotp_ko_file_path)
-        os.system("sh " + SETUP_CAN_FILE + " " + can_interface + " " + ecu_config.get_can_bitrate() + " " + isotp_ko_file_path)
 
 
 def star_can_logger_thread():

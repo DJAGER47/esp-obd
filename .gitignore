@@ -1,6 +1,5 @@
-__pycache__/*
+**/__pycache__/**
 build/*
-test/__pycache__/*
 unity-app/build/*
 managed_components/lvgl__lvgl/*
 clang_tidy_results/*

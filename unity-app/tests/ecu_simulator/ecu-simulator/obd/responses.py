@@ -29,6 +29,11 @@ ENGINE_TEMP_MAX = 150  # 110 C - 40
 
 MAX_NUMBER_OF_DTCS_IN_RESPONSE = 255
 
+
+RPM_MIN = 1500
+
+RPM_MAX = 1501
+
 BIG_ENDIAN = "big"
 
 vehicle_speed = 0
@@ -45,6 +50,8 @@ def increment_vehicle_speed():
     global vehicle_speed
     vehicle_speed = (vehicle_speed + VEHICLE_SPEED_ACCELERATION) % (VEHICLE_SPEED_MAX + 1)
 
+def get_rpm():
+    return random.randrange(RPM_MIN, RPM_MAX).to_bytes(2, BIG_ENDIAN)
 
 def get_engine_temperature():
     return random.randrange(ENGINE_TEMP_MIN, ENGINE_TEMP_MAX).to_bytes(1, BIG_ENDIAN)

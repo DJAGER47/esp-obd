@@ -35,19 +35,7 @@
     "description": "11-Bit physical address the ECU uses to receive and response to an UDS request (physical addressing). The target address is: uds_ecu_address + 0x8. The UDS module does not use functional addressing"
   },
   "can_interface": {
-    "value": "can0",
+    "value": "slcan0",
     "description": "CAN Interface used by the ECU simulator"
-  },
-  "can_interface_type": {
-    "value": "hardware",
-    "description": "Two types are possible: virtual and hardware. If any other value is provided, the ecu-simulator does not set up the CAN interface and ISO-TP linux kernel module"
-  },
-  "can_bitrate": {
-    "value": "500000",
-    "description": "CAN bitrate (refer to the specification of your CAN hardware). Only applicable for can_interface_type: hardware"
-  },
-  "isotp_ko_file_path": {
-    "value": "/lib/modules/6.8.0-87-generic/kernel/net/can/can-isotp.ko",
-    "description": "File path of the ISO-TP Kernel module (see https://github.com/hartkopp/can-isotp)"
   }
 }
