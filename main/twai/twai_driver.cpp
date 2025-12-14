@@ -58,12 +58,11 @@ void TwaiDriver::InstallStart() {
   }
 
   // Регистрация обратных вызовов
-  twai_event_callbacks_t callbacks = {
-      .on_tx_done      = TxCallback,
-      .on_rx_done      = RxCallback,
-      .on_state_change = nullptr,  // Не используется
-      .on_error        = nullptr   // Не используется
-  };
+  twai_event_callbacks_t callbacks = {.on_tx_done      = TxCallback,
+                                      .on_rx_done      = RxCallback,
+                                      .on_state_change = StateChangeCallback,
+                                      .on_error        = ErrorCallback};
+
   err = twai_node_register_event_callbacks(node_handle_, &callbacks, this);
   if (err != ESP_OK) {
     ESP_LOGI(TAG, "TWAI callback registration failed. Restarting in 5 seconds...");
@@ -91,7 +90,9 @@ void TwaiDriver::InstallStart() {
 }
 
 // Статическая функция обратного вызова для передачи
-bool TwaiDriver::TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx) {
+bool IRAM_ATTR TwaiDriver::TxCallback(twai_node_handle_t handle,
+                                      const twai_tx_done_event_data_t* edata,
+                                      void* user_ctx) {
   TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
   if (driver && driver->node_handle_ == handle) {
     // Проверяем, есть ли сообщения в очереди
@@ -131,7 +132,9 @@ bool TwaiDriver::TxCallback(twai_node_handle_t handle, const twai_tx_done_event_
 }
 
 // Статическая функция обратного вызова для приема
-bool TwaiDriver::RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx) {
+bool IRAM_ATTR TwaiDriver::RxCallback(twai_node_handle_t handle,
+                                      const twai_rx_done_event_data_t* edata,
+                                      void* user_ctx) {
   TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
   if (driver && driver->node_handle_ == handle) {
     // Получение принятого фрейма
@@ -160,12 +163,25 @@ bool TwaiDriver::RxCallback(twai_node_handle_t handle, const twai_rx_done_event_
   return false;  // Не требуется переключение контекста
 }
 
-IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms timeout_ms) {
-  if (node_handle_ == nullptr) {
-    ESP_LOGE(TAG, "Driver not initialized");
-    return IPhyInterface::TwaiError::NOT_INITIALIZED;
-  }
+// Реализация обработчика изменения состояния TWAI
+bool IRAM_ATTR TwaiDriver::StateChangeCallback(twai_node_handle_t handle,
+                                               const twai_state_change_event_data_t* edata,
+                                               void* user_ctx) {
+  ESP_DRAM_LOGE(TAG, "TWAI state changed from %d to %d", edata->old_sta, edata->new_sta);
+  // Здесь можно добавить дополнительную логику обработки изменения состояния
+  return true;
+}
 
+// Реализация обработчика ошибок TWAI
+bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
+                                         const twai_error_event_data_t* edata,
+                                         void* user_ctx) {
+  ESP_DRAM_LOGE(TAG, "TWAI error occurred: info=0x%08x", edata->err_flags.val);
+  // Здесь можно добавить дополнительную логику обработки ошибок
+  return true;
+}
+
+IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms timeout_ms) {
   // Проверяем, идет ли передача и пуста ли очередь
   UBaseType_t messages_waiting = uxQueueMessagesWaiting(tx_queue_);
 
@@ -180,12 +196,12 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
     frame.header.fdf   = message.is_fd;
     frame.header.brs   = message.brs;
     frame.header.dlc   = message.data_length;
-    frame.buffer       = const_cast<uint8_t*>(message.data);  // twai_node_transmit не изменяет данные
+    frame.buffer       = const_cast<uint8_t*>(message.data);
     frame.buffer_len   = message.data_length;
 
     esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
     if (err != ESP_OK) {
-      ESP_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
+      ESP_DRAM_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
       if (err == ESP_ERR_TIMEOUT) {
         return IPhyInterface::TwaiError::TIMEOUT;
       }
@@ -197,7 +213,7 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
   } else {
     // Передача идет или очередь не пуста, добавляем пакет в очередь
     if (xQueueSend(tx_queue_, &message, pdMS_TO_TICKS(timeout_ms)) != pdTRUE) {
-      ESP_LOGE(TAG, "Failed to add frame to TX queue: queue full or timeout");
+      ESP_DRAM_LOGE(TAG, "Failed to add frame to TX queue: queue full or timeout");
       return IPhyInterface::TwaiError::TIMEOUT;
     }
 
@@ -219,7 +235,7 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
 
         esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
         if (err != ESP_OK) {
-          ESP_LOGE(TAG, "Failed to transmit frame from queue: %s", esp_err_to_name(err));
+          ESP_DRAM_LOGE(TAG, "Failed to transmit frame from queue: %s", esp_err_to_name(err));
           // Возвращаем сообщение в начало очереди
           xQueueSendToFront(tx_queue_, &next_frame, 0);
           if (err == ESP_ERR_TIMEOUT) {

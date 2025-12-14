@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+// #include <atomic>
 
 #include "driver/gpio.h"
 #include "esp_twai.h"
@@ -20,15 +21,19 @@ class TwaiDriver final : public IPhyInterface {
   static const int kTxQueueDepth   = 10;
   static const int kMaxSubscribers = 8;
 
-  static bool TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx);
-  static bool RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx);
+  static bool IRAM_ATTR TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx);
+  static bool IRAM_ATTR RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx);
+  static bool IRAM_ATTR StateChangeCallback(twai_node_handle_t handle,
+                                            const twai_state_change_event_data_t* edata,
+                                            void* user_ctx);
+  static bool IRAM_ATTR ErrorCallback(twai_node_handle_t handle, const twai_error_event_data_t* edata, void* user_ctx);
 
   void DispatchMessage(const TwaiFrame& message);
 
   const gpio_num_t tx_pin_;
   const gpio_num_t rx_pin_;
+  const uint32_t speed_kbps_;
 
-  uint32_t speed_kbps_;
   twai_node_handle_t node_handle_;
   QueueHandle_t tx_queue_;
   std::array<ITwaiSubscriber*, kMaxSubscribers> subscribers_;

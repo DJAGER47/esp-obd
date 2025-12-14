@@ -100,7 +100,7 @@ void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
 }
 
 bool IsoTp::can_receive() {
-  if (_subscriber.Receive(rxFrame, 1)) {
+  if (_subscriber.Receive(rxFrame, 10)) {
     log_print_buffer(rxFrame.id, rxFrame.data, rxFrame.data_length);
     return true;
   }

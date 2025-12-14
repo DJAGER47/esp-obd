@@ -61,7 +61,7 @@ void UI::switch_screen(int num_screen) {
     // Переключение на первый экран
     lv_screen_load(screen0_elements.screen);
     current_screen = screen0_elements.screen;
-    update_screen0();
+    // update_screen0(0.0, 0, 0);
     ESP_LOGI(TAG, "Switched to screen 1 (time display)");
   } else if (num_screen == 1 && current_screen != screen1_elements.screen) {
     // Переключение на второй экран
@@ -72,8 +72,24 @@ void UI::switch_screen(int num_screen) {
   }
 }
 
-void UI::update_screen0() {
-  // Обрабатываем сообщения из очереди
+void UI::update_screen0(float rpm, int speed, int coolant_temp) {
+  if (screen0_elements.rpm_label != NULL) {
+    char rpm_str[32];
+    snprintf(rpm_str, sizeof(rpm_str), "RPM: %.1f", rpm);
+    lv_label_set_text(screen0_elements.rpm_label, rpm_str);
+  }
+
+  if (screen0_elements.speed_label != NULL) {
+    char speed_str[32];
+    snprintf(speed_str, sizeof(speed_str), "Speed: %d km/h", speed);
+    lv_label_set_text(screen0_elements.speed_label, speed_str);
+  }
+
+  if (screen0_elements.coolant_temp_label != NULL) {
+    char coolant_str[32];
+    snprintf(coolant_str, sizeof(coolant_str), "Coolant: %d°C", coolant_temp);
+    lv_label_set_text(screen0_elements.coolant_temp_label, coolant_str);
+  }
 }
 
 void UI::update_screen1() {
@@ -192,6 +208,19 @@ void UI::create_ui0() {
 
   // Создание первого экрана
   screen0_elements.screen = lv_obj_create(NULL);
+
+  // Создание меток для отображения данных OBD2
+  screen0_elements.rpm_label = lv_label_create(screen0_elements.screen);
+  lv_label_set_text(screen0_elements.rpm_label, "RPM: --");
+  lv_obj_align(screen0_elements.rpm_label, LV_ALIGN_TOP_MID, 0, 20);
+
+  screen0_elements.speed_label = lv_label_create(screen0_elements.screen);
+  lv_label_set_text(screen0_elements.speed_label, "Speed: -- km/h");
+  lv_obj_align(screen0_elements.speed_label, LV_ALIGN_TOP_MID, 0, 60);
+
+  screen0_elements.coolant_temp_label = lv_label_create(screen0_elements.screen);
+  lv_label_set_text(screen0_elements.coolant_temp_label, "Coolant: --°C");
+  lv_obj_align(screen0_elements.coolant_temp_label, LV_ALIGN_TOP_MID, 0, 100);
 }
 
 void UI::create_ui1() {
@@ -243,7 +272,7 @@ void UI::update_screen(void *arg) {
   if (ui_instance) {
     while (1) {
       if (ui_instance->current_screen == ui_instance->screen0_elements.screen) {
-        ui_instance->update_screen0();
+        // ui_instance->update_screen0(0.0, 0, 0);
       }
 
       if (ui_instance->current_screen == ui_instance->screen1_elements.screen) {

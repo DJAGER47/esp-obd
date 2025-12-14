@@ -24,7 +24,7 @@ class UI final {
 
   // Управление экранами
   void switch_screen(int num_screen);
-  void update_screen0();
+  void update_screen0(float rpm, int speed, int coolant_temp);
   void update_screen1();
 
   // Добавление CAN сообщения в очередь для отображения
@@ -36,6 +36,9 @@ class UI final {
  private:
   struct Screen0Elements {
     lv_obj_t *screen{nullptr};
+    lv_obj_t *rpm_label{nullptr};
+    lv_obj_t *speed_label{nullptr};
+    lv_obj_t *coolant_temp_label{nullptr};
   };
 
   struct Screen1Elements {
