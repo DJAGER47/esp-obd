@@ -93,8 +93,6 @@ extern "C" void app_main() {
 
     // Запрос данных OBD2 каждые 5 секунд
     if (++obd_query_counter >= 5) {
-      ESP_LOGI(TAG, "Querying OBD2 data...");
-
       // Запрашиваем обороты двигателя
       auto rpm        = obd2.rpm();
       float rpm_value = 0.0;
