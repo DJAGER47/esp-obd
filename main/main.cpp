@@ -69,7 +69,7 @@ extern "C" void app_main() {
   for (const auto& range : pid_ranges) {
     auto pids = range.query_func();
     if (pids.has_value()) {
-      ESP_LOGI(TAG, "Supported PIDs %s: 0x%08X (binary: %08b)", range.name, pids.value(), pids.value());
+      ESP_LOGI(TAG, "Supported PIDs %s: 0x%08X", range.name, pids.value());
     } else {
       ESP_LOGW(TAG, "Failed to read supported PIDs %s", range.name);
     }
@@ -78,8 +78,10 @@ extern "C" void app_main() {
   // Пример использования OBD2 для чтения данных с автомобиля
   // uint8_t screen_state        = 0;
   // uint32_t stack_info_counter = 0;
-  uint32_t obd_query_counter = 0;
 
+  float rpm_value        = 0.0;
+  int speed_value        = 0;
+  int coolant_temp_value = 0;
   while (1) {
     // ui_instance.switch_screen(screen_state);
     // screen_state = (screen_state + 1) % 2;
@@ -91,44 +93,33 @@ extern "C" void app_main() {
     //   stack_info_counter = 0;
     // }
 
-    // Запрос данных OBD2 каждые 5 секунд
-    if (++obd_query_counter >= 5) {
-      // Запрашиваем обороты двигателя
-      auto rpm        = obd2.rpm();
-      float rpm_value = 0.0;
-      if (rpm.has_value()) {
-        rpm_value = rpm.value();
-        // ESP_LOGI(TAG, "Engine RPM: %.1f", rpm_value);
-      } else {
-        ESP_LOGW(TAG, "Failed to read engine RPM");
-      }
-
-      // Запрашиваем скорость автомобиля
-      auto speed      = obd2.kph();
-      int speed_value = 0;
-      if (speed.has_value()) {
-        speed_value = speed.value();
-        // ESP_LOGI(TAG, "Vehicle speed: %d km/h", speed_value);
-      } else {
-        ESP_LOGW(TAG, "Failed to read vehicle speed");
-      }
-
-      // Запрашиваем температуру охлаждающей жидкости
-      auto coolant_temp      = obd2.engineCoolantTemp();
-      int coolant_temp_value = 0;
-      if (coolant_temp.has_value()) {
-        coolant_temp_value = coolant_temp.value();
-        // ESP_LOGI(TAG, "Coolant temperature: %d°C", coolant_temp_value);
-      } else {
-        ESP_LOGW(TAG, "Failed to read coolant temperature");
-      }
-
-      // Обновляем экран с данными OBD2
-      ui_instance.update_screen0(rpm_value, speed_value, coolant_temp_value);
-
-      obd_query_counter = 0;
+    // Запрашиваем обороты двигателя
+    auto rpm = obd2.rpm();
+    if (rpm.has_value()) {
+      rpm_value = rpm.value();
+    } else {
+      ESP_LOGW(TAG, "Failed to read engine RPM");
     }
 
-    vTaskDelay(pdMS_TO_TICKS(1000));
+    // Запрашиваем скорость автомобиля
+    auto speed = obd2.kph();
+    if (speed.has_value()) {
+      speed_value = speed.value();
+    } else {
+      ESP_LOGW(TAG, "Failed to read vehicle speed");
+    }
+
+    // Запрашиваем температуру охлаждающей жидкости
+    auto coolant_temp = obd2.engineCoolantTemp();
+    if (coolant_temp.has_value()) {
+      coolant_temp_value = coolant_temp.value();
+    } else {
+      ESP_LOGW(TAG, "Failed to read coolant temperature");
+    }
+
+    // Обновляем экран с данными OBD2
+    ui_instance.update_screen0(rpm_value, speed_value, coolant_temp_value);
+
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
 }
