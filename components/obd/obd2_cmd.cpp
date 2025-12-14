@@ -101,7 +101,7 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
     const uint8_t response_service = service + 0x40;
     if ((msg.data[0] == response_service) && (msg.data[1] == pid)) {
       // Проверяем, что в ответе достаточно данных для копирования
-      size_t data_len = msg.len - 2;  // Вычитаем 3 байта заголовка
+      size_t data_len = msg.len - 2;  // Вычитаем 2 байта заголовка (service + pid)
       if (data_len > response.size()) {
         ESP_LOGW(TAG, "processPID: trim data\n");
         data_len = response.size();  // Ограничиваем размером response

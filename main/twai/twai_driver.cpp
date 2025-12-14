@@ -177,6 +177,40 @@ bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
                                          const twai_error_event_data_t* edata,
                                          void* user_ctx) {
   ESP_DRAM_LOGE(TAG, "TWAI error occurred: info=0x%08x", edata->err_flags.val);
+
+  // Добавляем более подробную информацию об ошибках
+  if (edata->err_flags.arb_lost) {
+    ESP_DRAM_LOGE(TAG, "TWAI error: Arbitration lost error");
+  }
+  if (edata->err_flags.bit_err) {
+    ESP_DRAM_LOGE(TAG, "TWAI error: Bit error detected");
+  }
+  if (edata->err_flags.form_err) {
+    ESP_DRAM_LOGE(TAG, "TWAI error: Form error detected");
+  }
+  if (edata->err_flags.stuff_err) {
+    ESP_DRAM_LOGE(TAG, "TWAI error: Stuff error detected");
+  }
+  if (edata->err_flags.ack_err) {
+    ESP_DRAM_LOGE(TAG, "TWAI error: ACK error (no ack)");
+  }
+
+  // Получаем информацию о состоянии узла
+  twai_node_status_t status;
+  twai_node_record_t statistics;
+  esp_err_t err = twai_node_get_info(handle, &status, &statistics);
+
+  if (err == ESP_OK) {
+    ESP_DRAM_LOGE(TAG, "TWAI Node Status:");
+    ESP_DRAM_LOGE(TAG, "  Error State: %d", status.state);
+    ESP_DRAM_LOGE(TAG, "  TX Error Count: %d", status.tx_error_count);
+    ESP_DRAM_LOGE(TAG, "  RX Error Count: %d", status.rx_error_count);
+    ESP_DRAM_LOGE(TAG, "TWAI Node Statistics:");
+    ESP_DRAM_LOGE(TAG, "  Bus Error Count: %d", statistics.bus_err_num);
+  } else {
+    ESP_DRAM_LOGE(TAG, "Failed to get TWAI node info: %s", esp_err_to_name(err));
+  }
+
   // Здесь можно добавить дополнительную логику обработки ошибок
   return true;
 }

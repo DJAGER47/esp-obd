@@ -120,6 +120,6 @@ extern "C" void app_main() {
     // Обновляем экран с данными OBD2
     ui_instance.update_screen0(rpm_value, speed_value, coolant_temp_value);
 
-    vTaskDelay(pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(100));
   }
 }
