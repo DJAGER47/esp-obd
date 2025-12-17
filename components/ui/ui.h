@@ -27,12 +27,6 @@ class UI final {
   void update_screen0(float rpm, int speed, int coolant_temp);
   void update_screen1();
 
-  // Добавление CAN сообщения в очередь для отображения
-  void addCanMessageToQueue(const TwaiFrame &frame);
-
-  // Обработка сообщений из очереди и обновление экрана
-  void processCanMessages();
-
  private:
   struct Screen0Elements {
     lv_obj_t *screen{nullptr};
