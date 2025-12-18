@@ -29,6 +29,8 @@ class TwaiDriver final : public IPhyInterface {
   static bool IRAM_ATTR ErrorCallback(twai_node_handle_t handle, const twai_error_event_data_t* edata, void* user_ctx);
 
   void DispatchMessage(const TwaiFrame& message);
+  twai_frame_t ConvertToTwaiFrame(const TwaiFrame& message);
+  IPhyInterface::TwaiError TransmitFrame(const twai_frame_t& frame, Time_ms timeout_ms);
 
   const gpio_num_t tx_pin_;
   const gpio_num_t rx_pin_;

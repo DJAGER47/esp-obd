@@ -215,35 +215,43 @@ bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
   return true;
 }
 
+twai_frame_t TwaiDriver::ConvertToTwaiFrame(const TwaiFrame& message) {
+  twai_frame_t frame = {};
+  frame.header.id    = message.id;
+  frame.header.ide   = message.is_extended;
+  frame.header.rtr   = message.is_rtr;
+  frame.header.fdf   = message.is_fd;
+  frame.header.brs   = message.brs;
+  frame.header.dlc   = message.data_length;
+  frame.buffer       = const_cast<uint8_t*>(message.data);
+  frame.buffer_len   = message.data_length;
+  return frame;
+}
+
+IPhyInterface::TwaiError TwaiDriver::TransmitFrame(const twai_frame_t& frame, Time_ms timeout_ms) {
+  esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
+  if (err != ESP_OK) {
+    ESP_DRAM_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
+    if (err == ESP_ERR_TIMEOUT) {
+      return IPhyInterface::TwaiError::TIMEOUT;
+    }
+    return IPhyInterface::TwaiError::TRANSMIT_FAILED;
+  }
+  return IPhyInterface::TwaiError::OK;
+}
+
 IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms timeout_ms) {
   // Проверяем, идет ли передача и пуста ли очередь
   UBaseType_t messages_waiting = uxQueueMessagesWaiting(tx_queue_);
 
   if (!is_transmitting_ && messages_waiting == 0) {
     // Передача не идет и очередь пуста, отправляем пакет напрямую
-
-    // Преобразование в twai_frame_t
-    twai_frame_t frame = {};
-    frame.header.id    = message.id;
-    frame.header.ide   = message.is_extended;
-    frame.header.rtr   = message.is_rtr;
-    frame.header.fdf   = message.is_fd;
-    frame.header.brs   = message.brs;
-    frame.header.dlc   = message.data_length;
-    frame.buffer       = const_cast<uint8_t*>(message.data);
-    frame.buffer_len   = message.data_length;
-
-    esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
-    if (err != ESP_OK) {
-      ESP_DRAM_LOGE(TAG, "Failed to transmit frame: %s", esp_err_to_name(err));
-      if (err == ESP_ERR_TIMEOUT) {
-        return IPhyInterface::TwaiError::TIMEOUT;
-      }
-      return IPhyInterface::TwaiError::TRANSMIT_FAILED;
+    twai_frame_t frame              = ConvertToTwaiFrame(message);
+    IPhyInterface::TwaiError result = TransmitFrame(frame, timeout_ms);
+    if (result == IPhyInterface::TwaiError::OK) {
+      is_transmitting_ = true;
     }
-
-    // Устанавливаем флаг, что передача идет
-    is_transmitting_ = true;
+    return result;
   } else {
     // Передача идет или очередь не пуста, добавляем пакет в очередь
     if (xQueueSend(tx_queue_, &message, pdMS_TO_TICKS(timeout_ms)) != pdTRUE) {
@@ -256,30 +264,15 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
     if (!is_transmitting_ && messages_waiting > 0) {
       TwaiFrame next_frame;
       if (xQueueReceive(tx_queue_, &next_frame, 0) == pdTRUE) {
-        // Преобразование в twai_frame_t
-        twai_frame_t frame = {};
-        frame.header.id    = next_frame.id;
-        frame.header.ide   = next_frame.is_extended;
-        frame.header.rtr   = next_frame.is_rtr;
-        frame.header.fdf   = next_frame.is_fd;
-        frame.header.brs   = next_frame.brs;
-        frame.header.dlc   = next_frame.data_length;
-        frame.buffer       = const_cast<uint8_t*>(next_frame.data);
-        frame.buffer_len   = next_frame.data_length;
-
-        esp_err_t err = twai_node_transmit(node_handle_, &frame, timeout_ms);
-        if (err != ESP_OK) {
-          ESP_DRAM_LOGE(TAG, "Failed to transmit frame from queue: %s", esp_err_to_name(err));
-          // Возвращаем сообщение в начало очереди
+        twai_frame_t frame              = ConvertToTwaiFrame(next_frame);
+        IPhyInterface::TwaiError result = TransmitFrame(frame, timeout_ms);
+        if (result == IPhyInterface::TwaiError::OK) {
+          is_transmitting_ = true;
+        } else {
+          // Возвращаем сообщение в начало очереди при ошибке
           xQueueSendToFront(tx_queue_, &next_frame, 0);
-          if (err == ESP_ERR_TIMEOUT) {
-            return IPhyInterface::TwaiError::TIMEOUT;
-          }
-          return IPhyInterface::TwaiError::TRANSMIT_FAILED;
         }
-
-        // Устанавливаем флаг, что передача идет
-        is_transmitting_ = true;
+        return result;
       }
     }
   }
