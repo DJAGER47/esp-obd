@@ -79,7 +79,7 @@ class IPhyInterface {
    * @param subscriber Ссылка на подписчика
    * @return TwaiError::OK при успешной регистрации
    */
-  virtual TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber) = 0;
+  virtual void RegisterSubscriber(ITwaiSubscriber& subscriber) = 0;
 
  protected:
   ~IPhyInterface() = default;

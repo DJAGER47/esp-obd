@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-// #include <atomic>
+#include <atomic>
 
 #include "driver/gpio.h"
 #include "esp_twai.h"
@@ -15,11 +15,11 @@ class TwaiDriver final : public IPhyInterface {
   TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps);
   void InstallStart() override;
   TwaiError Transmit(const TwaiFrame& message, Time_ms timeout_ms) override;
-  TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber);
+  void RegisterSubscriber(ITwaiSubscriber& subscriber);
 
  private:
   static const int kTxQueueDepth   = 10;
-  static const int kMaxSubscribers = 8;
+  static const int kMaxSubscribers = 2;
 
   static bool IRAM_ATTR TxCallback(twai_node_handle_t handle, const twai_tx_done_event_data_t* edata, void* user_ctx);
   static bool IRAM_ATTR RxCallback(twai_node_handle_t handle, const twai_rx_done_event_data_t* edata, void* user_ctx);
@@ -29,15 +29,15 @@ class TwaiDriver final : public IPhyInterface {
   static bool IRAM_ATTR ErrorCallback(twai_node_handle_t handle, const twai_error_event_data_t* edata, void* user_ctx);
 
   void DispatchMessage(const TwaiFrame& message);
-  twai_frame_t ConvertToTwaiFrame(const TwaiFrame& message);
-  IPhyInterface::TwaiError TransmitFrame(const twai_frame_t& frame, Time_ms timeout_ms);
 
   const gpio_num_t tx_pin_;
   const gpio_num_t rx_pin_;
   const uint32_t speed_kbps_;
 
+  bool init_;
+
   twai_node_handle_t node_handle_;
   QueueHandle_t tx_queue_;
   std::array<ITwaiSubscriber*, kMaxSubscribers> subscribers_;
-  volatile bool is_transmitting_;  // Флаг, указывающий, идет ли передача в данный момент
+  std::atomic_bool is_transmitting_;  // Флаг, указывающий, идет ли передача в данный момент
 };
