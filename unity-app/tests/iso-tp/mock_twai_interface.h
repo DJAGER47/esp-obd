@@ -18,9 +18,8 @@ class MockTwaiInterface : public IPhyInterface {
     return transmit_result;
   }
 
-  TwaiError RegisterSubscriber(ITwaiSubscriber& subscriber) override {
+  void RegisterSubscriber(ITwaiSubscriber& subscriber) override {
     subscribers.push_back(&subscriber);
-    return TwaiError::OK;
   }
 
   // Методы для управления состоянием мока

@@ -1,1 +1,0 @@
-clear && ./build_with_sanitizers.sh --asan && ./build_sanitizers/unity_app

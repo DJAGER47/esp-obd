@@ -1,1 +1,0 @@
-clear && ./build_with_sanitizers.sh --ubsan && ./build_sanitizers/unity_app
