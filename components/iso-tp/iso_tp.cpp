@@ -161,7 +161,7 @@ void IsoTp::rcv_sf(Message_t& msg) {
 
   uint16_t copy_len = msg.len;
   if (msg.len > msg.max_len) {
-    ESP_LOGW(TAG, "Buffer too small for SF (need %ld, have %ld), truncating\n", msg.len, msg.max_len);
+    ESP_LOGW(TAG, "Buffer too small for SF (need %ld, have %ld), truncating", msg.len, msg.max_len);
     copy_len = msg.max_len;
   }
 
@@ -208,7 +208,7 @@ void IsoTp::rcv_cf(Message_t& msg) {
   const uint32_t delta = millis() - wait_cf;
 
   if ((delta >= TIMEOUT_FC) && msg.seq_id > 1) {
-    ESP_LOGW(TAG, "CF frame timeout during receive wait_cf=%u delta=%u\n", wait_cf, delta);
+    ESP_LOGW(TAG, "CF frame timeout during receive wait_cf=%u delta=%u", wait_cf, delta);
 
     msg.tp_state = ISOTP_IDLE;
     return;
@@ -227,11 +227,11 @@ void IsoTp::rcv_cf(Message_t& msg) {
   if (received_seq_id != expected_seq_id) {
     if (received_seq_id < expected_seq_id) {
       // Дублированный кадр - игнорируем
-      ESP_LOGW(TAG, "Duplicate CF ignored: Got sequence ID: %d Expected: %d\n", received_seq_id, expected_seq_id);
+      ESP_LOGW(TAG, "Duplicate CF ignored: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
       return;
     } else {
       // Пропущен кадр - ошибка
-      ESP_LOGW(TAG, "Missing CF detected: Got sequence ID: %d Expected: %d\n", received_seq_id, expected_seq_id);
+      ESP_LOGW(TAG, "Missing CF detected: Got sequence ID: %d Expected: %d", received_seq_id, expected_seq_id);
       msg.tp_state = ISOTP_IDLE;
       msg.seq_id   = 1;
       return;
@@ -247,7 +247,7 @@ void IsoTp::rcv_cf(Message_t& msg) {
       memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);  // 6 Bytes in FF + 7
     }
     if (copy_len < rest) {
-      ESP_LOGW(TAG, "Truncated last CF frame (needed %d, had %ld space)\n", rest, available_space);
+      ESP_LOGW(TAG, "Truncated last CF frame (needed %d, had %ld space)", rest, available_space);
     }
     msg.tp_state = ISOTP_FINISHED;  // per CF skip PCI
     log_print("Last CF received with seq. ID: %d\n", msg.seq_id);
@@ -257,7 +257,7 @@ void IsoTp::rcv_cf(Message_t& msg) {
       memcpy(msg.buffer + offset, rxFrame.data + 1, copy_len);
     }
     if (copy_len < 7) {
-      ESP_LOGW(TAG, "Truncated CF frame (needed 7, had %ld space)\n", available_space);
+      ESP_LOGW(TAG, "Truncated CF frame (needed 7, had %ld space)", available_space);
     }
     rest -= 7;  // Got another 7 Bytes of Data;
     log_print("CF received with seq. ID: %d\n", msg.seq_id);
@@ -298,7 +298,7 @@ bool IsoTp::rcv_fc(Message_t& msg) {
       break;
 
     case ISOTP_FC_OVFLW:
-      ESP_LOGW(TAG, "Overflow in receiver side\n");
+      ESP_LOGW(TAG, "Overflow in receiver side");
       // fall through
     default:
       return false;
@@ -357,7 +357,7 @@ bool IsoTp::send(Message& msg) {
 
         const uint32_t delta = millis() - wait_fc;
         if (delta >= TIMEOUT_FC) {
-          ESP_LOGW(TAG, "FC timeout during receive wait_fc=%u delta=%u\n", wait_fc, delta);
+          ESP_LOGW(TAG, "FC timeout during receive wait_fc=%u delta=%u", wait_fc, delta);
           return false;
         }
       } break;
@@ -430,7 +430,7 @@ bool IsoTp::receive(Message& msg, size_t size_buffer) {
   while (internalMsg.tp_state != ISOTP_FINISHED) {
     delta = millis() - wait_session;
     if (delta >= TIMEOUT_SESSION) {
-      ESP_LOGW(TAG, "ISO-TP Session timeout wait_session=%u delta=%u\n", wait_session, delta);
+      ESP_LOGW(TAG, "ISO-TP Session timeout wait_session=%u delta=%u", wait_session, delta);
       return false;
     }
 

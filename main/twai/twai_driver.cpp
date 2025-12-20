@@ -51,7 +51,7 @@ void TwaiDriver::InstallStart() {
   // Создание узла TWAI
   esp_err_t err = twai_new_node_onchip(&node_config, &node_handle_);
   if (err != ESP_OK) {
-    ESP_LOGI(TAG, "TWAI initialization failed. Restarting in 5 seconds...\n");
+    ESP_LOGI(TAG, "TWAI initialization failed. Restarting in 5 seconds...");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
@@ -64,7 +64,7 @@ void TwaiDriver::InstallStart() {
 
   err = twai_node_register_event_callbacks(node_handle_, &callbacks, this);
   if (err != ESP_OK) {
-    ESP_LOGI(TAG, "TWAI callback registration failed. Restarting in 5 seconds...\n");
+    ESP_LOGI(TAG, "TWAI callback registration failed. Restarting in 5 seconds...");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
@@ -72,7 +72,7 @@ void TwaiDriver::InstallStart() {
   // Создание очередей FreeRTOS
   tx_queue_ = xQueueCreate(kTxQueueDepth, sizeof(TwaiFrame));
   if (tx_queue_ == nullptr) {
-    ESP_LOGI(TAG, "Failed to create TX queue. Restarting in 5 seconds...\n");
+    ESP_LOGI(TAG, "Failed to create TX queue. Restarting in 5 seconds...");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
@@ -82,12 +82,12 @@ void TwaiDriver::InstallStart() {
   // Включение узла
   err = twai_node_enable(node_handle_);
   if (err != ESP_OK) {
-    ESP_LOGI(TAG, "Failed to enable TWAI node. Restarting in 5 seconds...\n");
+    ESP_LOGI(TAG, "Failed to enable TWAI node. Restarting in 5 seconds...");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
 
-  ESP_LOGI(TAG, "TWAI driver installed and started successfully\n");
+  ESP_LOGI(TAG, "TWAI driver installed and started successfully");
 }
 
 bool IRAM_ATTR TwaiDriver::TxCallback(twai_node_handle_t handle,
@@ -215,7 +215,7 @@ bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
 
 IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms timeout_ms) {
   if (xQueueSend(tx_queue_, &message, pdMS_TO_TICKS(timeout_ms)) != pdTRUE) {
-    ESP_LOGW(TAG, "Failed to add frame to TX queue: queue full or timeout\n");
+    ESP_LOGW(TAG, "Failed to add frame to TX queue: queue full or timeout");
     return IPhyInterface::TwaiError::TIMEOUT;
   }
 
@@ -256,7 +256,7 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
 
 void TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
   if (init_) {
-    ESP_LOGI(TAG, "RegisterSubscriber: restart, becose add subscriber after init\n");
+    ESP_LOGI(TAG, "RegisterSubscriber: restart, becose add subscriber after init");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
@@ -271,7 +271,7 @@ void TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
   }
 
   if (!has_free_slot) {
-    ESP_LOGE(TAG, "RegisterSubscriber: restart, becose not free slot\n");
+    ESP_LOGE(TAG, "RegisterSubscriber: restart, becose not free slot");
     esp_rom_delay_us(5000000);
     esp_restart();
   }
@@ -287,7 +287,7 @@ void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
           // Помещаем сообщение в очередь подписчика
           BaseType_t xHigherPriorityTaskWoken = pdFALSE;
           if (xQueueSendToBackFromISR(queue, &message, &xHigherPriorityTaskWoken) != pdTRUE) {
-            ESP_LOGW(TAG, "Failed to send message to subscriber queue: queue full\n");
+            ESP_LOGW(TAG, "Failed to send message to subscriber queue: queue full");
           }
         }
       }

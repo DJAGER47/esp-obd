@@ -95,7 +95,7 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
   if (iso_tp_.receive(msg, sizeof(payload))) {
     if (msg.len >= 3 && msg.data[0] == 0x7F) {
-      ESP_LOGW(TAG, "OBD2 negative response received: service=0x%02X, pid=0x%02X\n", msg.data[0], msg.data[1]);
+      ESP_LOGW(TAG, "OBD2 negative response received: service=0x%02X, pid=0x%02X", msg.data[0], msg.data[1]);
     }
 
     const uint8_t response_service = service + 0x40;
@@ -103,7 +103,7 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
       // Проверяем, что в ответе достаточно данных для копирования
       size_t data_len = msg.len - 2;  // Вычитаем 2 байта заголовка (service + pid)
       if (data_len > response.size()) {
-        ESP_LOGW(TAG, "processPID: trim data\n");
+        ESP_LOGW(TAG, "processPID: trim data");
         data_len = response.size();  // Ограничиваем размером response
       }
       std::copy(msg.data + 2, msg.data + 2 + data_len, response.begin());
