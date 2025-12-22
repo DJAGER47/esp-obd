@@ -4,6 +4,7 @@ idf_component_register(SRCS "main.cpp"
                             "twai/twai_driver.cpp"
                             "FreeRTOS-openocd.c"
                             "debug.c"
+                            "reset_handler.cpp"
 
                        INCLUDE_DIRS "."
                                     "twai/"
