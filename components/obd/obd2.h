@@ -16,7 +16,7 @@ class OBD2 final {
   // pid
   bool isPidSupported(uint8_t pid);
 
-  // 1 - 20
+#if 1  // 1 - 20
   std::optional<uint32_t> supportedPIDs_1_20();
   std::optional<uint32_t> monitorStatus();
   std::optional<uint16_t> freezeDTC();
@@ -37,48 +37,49 @@ class OBD2 final {
   std::optional<float> throttle();
   std::optional<uint8_t> commandedSecAirStatus();
   std::optional<uint8_t> oxygenSensorsPresent_2banks();
-  std::optional<float> oxygenSensor1Voltage();
-  std::optional<float> oxygenSensor1FuelTrim();
-  std::optional<float> oxygenSensor2Voltage();
-  std::optional<float> oxygenSensor2FuelTrim();
-  std::optional<float> oxygenSensor3Voltage();
-  std::optional<float> oxygenSensor3FuelTrim();
-  std::optional<float> oxygenSensor4Voltage();
-  std::optional<float> oxygenSensor4FuelTrim();
-  std::optional<float> oxygenSensor5Voltage();
-  std::optional<float> oxygenSensor5FuelTrim();
-  std::optional<float> oxygenSensor6Voltage();
-  std::optional<float> oxygenSensor6FuelTrim();
-  std::optional<float> oxygenSensor7Voltage();
-  std::optional<float> oxygenSensor7FuelTrim();
-  std::optional<float> oxygenSensor8Voltage();
-  std::optional<float> oxygenSensor8FuelTrim();
+  std::optional<float> oxygenSensor1Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor1FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor2Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor2FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor3Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor3FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor4Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor4FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor5Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor5FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor6Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor6FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor7Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor7FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor8Voltage();   // ❌ НЕ РЕАЛИЗОВАН
+  std::optional<float> oxygenSensor8FuelTrim();  // ❌ НЕ РЕАЛИЗОВАН
   std::optional<uint8_t> obdStandards();
   std::optional<uint8_t> oxygenSensorsPresent_4banks();
   std::optional<bool> auxInputStatus();
   std::optional<uint16_t> runTime();
+#endif
 
-  // 21 - 40
+#if 1  // 21 - 40
   std::optional<uint32_t> supportedPIDs_21_40();
   std::optional<uint16_t> distTravelWithMIL();
   std::optional<float> fuelRailPressure();
   std::optional<uint32_t> fuelRailGuagePressure();
-  std::optional<float> oxygenSensor1Lambda();
-  std::optional<float> oxygenSensor1VoltageWide();
-  std::optional<float> oxygenSensor2Lambda();
-  std::optional<float> oxygenSensor2VoltageWide();
-  std::optional<float> oxygenSensor3Lambda();
-  std::optional<float> oxygenSensor3VoltageWide();
-  std::optional<float> oxygenSensor4Lambda();
-  std::optional<float> oxygenSensor4VoltageWide();
-  std::optional<float> oxygenSensor5Lambda();
-  std::optional<float> oxygenSensor5VoltageWide();
-  std::optional<float> oxygenSensor6Lambda();
-  std::optional<float> oxygenSensor6VoltageWide();
-  std::optional<float> oxygenSensor7Lambda();
-  std::optional<float> oxygenSensor7VoltageWide();
-  std::optional<float> oxygenSensor8Lambda();
-  std::optional<float> oxygenSensor8VoltageWide();
+  // std::optional<float> oxygenSensor1Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor1VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor2Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor2VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor3Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor3VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor4Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor4VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor5Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor5VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor6Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor6VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor7Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor7VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor8Lambda();       // ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor8VoltageWide();  // ❌ НЕ РЕАЛИЗОВАН
   std::optional<float> commandedEGR();
   std::optional<float> egrError();
   std::optional<float> commandedEvapPurge();
@@ -87,20 +88,21 @@ class OBD2 final {
   std::optional<uint16_t> distSinceCodesCleared();
   std::optional<float> evapSysVapPressure();
   std::optional<uint8_t> absBaroPressure();
-  std::optional<float> oxygenSensor1Current();
-  std::optional<float> oxygenSensor2Current();
-  std::optional<float> oxygenSensor3Current();
-  std::optional<float> oxygenSensor4Current();
-  std::optional<float> oxygenSensor5Current();
-  std::optional<float> oxygenSensor6Current();
-  std::optional<float> oxygenSensor7Current();
-  std::optional<float> oxygenSensor8Current();
+  // std::optional<float> oxygenSensor1Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor2Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor3Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor4Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor5Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor6Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor7Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
+  // std::optional<float> oxygenSensor8Current();  // - V % ❌ НЕ РЕАЛИЗОВАН
   std::optional<float> catTempB1S1();
   std::optional<float> catTempB2S1();
   std::optional<float> catTempB1S2();
   std::optional<float> catTempB2S2();
+#endif
 
-  // 41 - 60
+#if 1  // 41 - 60
   std::optional<uint32_t> supportedPIDs_41_60();
   std::optional<uint32_t> monitorDriveCycleStatus();
   std::optional<float> ctrlModVoltage();
@@ -116,10 +118,6 @@ class OBD2 final {
   std::optional<float> commandedThrottleActuator();
   std::optional<uint16_t> timeRunWithMIL();
   std::optional<uint16_t> timeSinceCodesCleared();
-  std::optional<uint8_t> maxEquivalenceRatio();
-  std::optional<uint8_t> maxOxygenSensorVoltage();
-  std::optional<uint8_t> maxOxygenSensorCurrent();
-  std::optional<uint16_t> maxManifoldPressure();
   std::optional<uint16_t> maxMafRate();
   std::optional<uint8_t> fuelType();
   std::optional<float> ethanolPercent();
@@ -136,20 +134,19 @@ class OBD2 final {
   std::optional<float> fuelInjectTiming();
   std::optional<float> fuelRate();
   std::optional<uint8_t> emissionRqmts();
+#endif
 
-  // 61 - 80
+#if 1  // 61 - 80
   std::optional<uint32_t> supportedPIDs_61_80();
   std::optional<int16_t> demandedTorque();
   std::optional<int16_t> torque();
   std::optional<uint16_t> referenceTorque();
   std::optional<std::array<int16_t, 5>> enginePercentTorqueData();
   std::optional<uint16_t> auxSupported();
+#endif
 
+#if 1  // 81-100
   std::optional<uint32_t> supportedPIDs81_100();
-  std::optional<uint32_t> supportedPIDs101_120();
-  std::optional<uint32_t> supportedPIDs121_140();
-
-  // PIDs 81-100
   std::optional<uint32_t> engineRunTimeAECD1_2();
   std::optional<uint32_t> engineRunTimeAECD3_4();
   std::optional<std::array<uint16_t, 2>> noxSensor();
@@ -178,6 +175,10 @@ class OBD2 final {
   std::optional<float> engineFuelRate();
   std::optional<float> engineExhaustFlowRate();
   std::optional<std::array<float, 4>> fuelSystemPercentageUse();
+#endif
+
+  std::optional<uint32_t> supportedPIDs101_120();
+  std::optional<uint32_t> supportedPIDs121_140();
 
   // PIDs 101-120
   // std::optional<uint16_t> auxInputOutputSupported();
