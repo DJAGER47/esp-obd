@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cstdint>
+#include <memory>
 #include <optional>
 
 #include "esp_err.h"
@@ -241,6 +242,53 @@ class OBD2 final {
  private:
   using ResponseType = std::array<uint8_t, 8>;
 
+  /**
+   * @brief Коды отрицательных ответов OBD2 (ISO 14229 UDS)
+   */
+  enum class NegativeResponseCode : uint8_t {
+    GENERAL_REJECT                                 = 0x10,
+    SERVICE_NOT_SUPPORTED                          = 0x11,
+    SUB_FUNCTION_NOT_SUPPORTED                     = 0x12,
+    INCORRECT_MESSAGE_LENGTH_OR_INVALID_FORMAT     = 0x13,
+    RESPONSE_TOO_LONG                              = 0x14,
+    BUSY_REPEAT_REQUEST                            = 0x21,
+    CONDITIONS_NOT_CORRECT                         = 0x22,
+    REQUEST_SEQUENCE_ERROR                         = 0x24,
+    NO_RESPONSE_FROM_SUBNET_COMPONENT              = 0x25,
+    FAILURE_PREVENTS_EXECUTION_OF_REQUESTED_ACTION = 0x26,
+    REQUEST_OUT_OF_RANGE                           = 0x31,
+    SECURITY_ACCESS_DENIED                         = 0x33,
+    INVALID_KEY                                    = 0x35,
+    EXCEEDED_NUMBER_OF_ATTEMPTS                    = 0x36,
+    REQUIRED_TIME_DELAY_NOT_EXPIRED                = 0x37,
+    UPLOAD_DOWNLOAD_NOT_ACCEPTED                   = 0x70,
+    TRANSFER_DATA_SUSPENDED                        = 0x71,
+    GENERAL_PROGRAMMING_FAILURE                    = 0x72,
+    WRONG_BLOCK_SEQUENCE_NUMBER                    = 0x73,
+    REQUEST_CORRECTLY_RECEIVED_RESPONSE_PENDING    = 0x78,
+    SUB_FUNCTION_NOT_SUPPORTED_IN_ACTIVE_SESSION   = 0x7E,
+    SERVICE_NOT_SUPPORTED_IN_ACTIVE_SESSION        = 0x7F,
+    RPM_TOO_HIGH                                   = 0x81,
+    RPM_TOO_LOW                                    = 0x82,
+    ENGINE_IS_RUNNING                              = 0x83,
+    ENGINE_IS_NOT_RUNNING                          = 0x84,
+    ENGINE_RUN_TIME_TOO_LOW                        = 0x85,
+    TEMPERATURE_TOO_HIGH                           = 0x86,
+    TEMPERATURE_TOO_LOW                            = 0x87,
+    VEHICLE_SPEED_TOO_HIGH                         = 0x88,
+    VEHICLE_SPEED_TOO_LOW                          = 0x89,
+    THROTTLE_PEDAL_TOO_HIGH                        = 0x8A,
+    THROTTLE_PEDAL_TOO_LOW                         = 0x8B,
+    TRANSMISSION_RANGE_NOT_IN_NEUTRAL              = 0x8C,
+    TRANSMISSION_RANGE_NOT_IN_GEAR                 = 0x8D,
+    BRAKE_SWITCHES_NOT_CLOSED                      = 0x8F,
+    SHIFTER_LEVER_NOT_IN_PARK                      = 0x90,
+    TORQUE_CONVERTER_CLUTCH_LOCKED                 = 0x91,
+    VOLTAGE_TOO_HIGH                               = 0x92,
+    VOLTAGE_TOO_LOW                                = 0x93,
+    MANUFACTURER_SPECIFIC_CONDITIONS_NOT_CORRECT   = 0xF0  // Начало диапазона 0xF0-0xFE
+  };
+
   // Вспомогательный метод для получения поддерживаемых PID
   std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
 
@@ -271,6 +319,8 @@ class OBD2 final {
   // UDS >= 0x10
 
   static const uint8_t PID_INTERVAL_OFFSET = 0x20;
+
+#if 1  // PIDs
 
   // Full set of PIDs
   static const uint8_t SUPPORTED_PIDS_1_20              = 0x00;  // - bit encoded
@@ -472,9 +522,13 @@ class OBD2 final {
   static const uint8_t SERVICE_09_ECU_NAME_MESSAGE_COUNT           = 0x09;  // - count
   static const uint8_t SERVICE_09_ECU_NAME                         = 0x0A;  // - 20-char ASCII
   static const uint8_t SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION  = 0x0B;  // - 4-byte values
+#endif
 
   void queryPID(uint8_t service, uint8_t pid);
   bool processPID(uint8_t service, uint16_t pid, ResponseType& response);
+
+  const char* getErrorDescription(NegativeResponseCode error_code) const;
+  bool isTemporaryError(NegativeResponseCode error_code) const;
 
   void log_print(const char* format, ...);
   void log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len);
