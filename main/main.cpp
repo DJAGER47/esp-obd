@@ -35,6 +35,49 @@ UI* ui_instance_ptr = &ui_instance;
 // Дескриптор задачи опроса данных OBD2
 static TaskHandle_t obd_polling_task_handle = nullptr;
 
+struct PidRange {
+  const char* name;
+  std::function<std::optional<uint32_t>()> query_func;
+};
+
+// clang-format off
+  PidRange pid_ranges[] = {
+    {"    1-20", [&]() { return obd2.supportedPIDs_1_20(); }},
+    {"   21-40", [&]() { return obd2.supportedPIDs_21_40(); }},
+    {"   41-60", [&]() { return obd2.supportedPIDs_41_60(); }},
+    {"   61-80", [&]() { return obd2.supportedPIDs_61_80(); }},
+    {"  81-100", [&]() { return obd2.supportedPIDs81_100(); }},
+    {" 101-120", [&]() { return obd2.supportedPIDs101_120(); }},
+    {" 121-140", [&]() { return obd2.supportedPIDs121_140(); }},
+    {"Service9", [&]() { return obd2.supportedPIDs_Service09(); }}
+  };
+// clang-format on
+constexpr size_t kPidRangesCount = sizeof(pid_ranges) / sizeof(pid_ranges[0]);
+uint32_t pids_cache[kPidRangesCount];
+void ServicesPoolingTask() {
+  // Массив функций для запроса поддерживаемых PID в разных диапазонах
+
+  while (1) {
+    size_t count = 0;
+    // Запрашиваем поддерживаемые PID в цикле
+    for (size_t i = 0; i < kPidRangesCount; ++i) {
+      auto pids = pid_ranges[i].query_func();
+      if (pids.has_value()) {
+        pids_cache = pids.value();
+        ESP_LOGI(TAG, "Supported PIDs %s: 0x%08X", range.name, pids.value());
+      } else {
+        ESP_LOGW(TAG, "Failed to read supported PIDs %s", range.name);
+      }
+    }
+
+    if (count == kPidRangesCount) {
+      ESP_LOGI(TAG, "All supported PIDs read successfully");
+      break;
+    }
+    vTaskDelay(pdMS_TO_TICKS(5000));
+  }
+}
+
 extern "C" void app_main() {
   // Проверяем причину перезагрузки
   // if (!check_reset_reason()) {
@@ -65,34 +108,7 @@ extern "C" void app_main() {
   // Запрашиваем все поддерживаемые PID и выводим в бинарном виде
   ESP_LOGI(TAG, "Querying all supported PIDs...");
 
-  // Массив функций для запроса поддерживаемых PID в разных диапазонах
-  struct PidRange {
-    const char* name;
-    std::function<std::optional<uint32_t>()> query_func;
-  };
-
-  // clang-format off
-  PidRange pid_ranges[] = {
-    {"    1-20", [&]() { return obd2.supportedPIDs_1_20(); }},
-    {"   21-40", [&]() { return obd2.supportedPIDs_21_40(); }},
-    {"   41-60", [&]() { return obd2.supportedPIDs_41_60(); }},
-    {"   61-80", [&]() { return obd2.supportedPIDs_61_80(); }},
-    {"  81-100", [&]() { return obd2.supportedPIDs81_100(); }},
-    {" 101-120", [&]() { return obd2.supportedPIDs101_120(); }},
-    {" 121-140", [&]() { return obd2.supportedPIDs121_140(); }},
-    {"Service9", [&]() { return obd2.supportedPIDs_Service09(); }}
-  };
-  // clang-format on
-
-  // Запрашиваем поддерживаемые PID в цикле
-  for (const auto& range : pid_ranges) {
-    auto pids = range.query_func();
-    if (pids.has_value()) {
-      ESP_LOGI(TAG, "Supported PIDs %s: 0x%08X", range.name, pids.value());
-    } else {
-      ESP_LOGW(TAG, "Failed to read supported PIDs %s", range.name);
-    }
-  }
+  ServicesPoolingTask();
 
   // Запускаем задачу опроса данных OBD2
   BaseType_t result = xTaskCreate(obd_polling_task,         // Функция задачи
