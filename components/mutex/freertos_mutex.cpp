@@ -27,15 +27,16 @@ bool FreeRtosMutex::UnLock() {
   if (xSemaphoreGive(mutex_handle_) == pdTRUE) {
     return true;
   } else {
-    return true;
+    return false;
   }
+}
 
-  FreeRtosLockGuard::FreeRtosLockGuard(FreeRtosMutex & mutex, TickType_t timeout) :
-      mutex_handle_(mutex),
-      locked_(mutex.lock(timeout)) {}
+FreeRtosLockGuard::FreeRtosLockGuard(FreeRtosMutex& mutex, TickType_t timeout) :
+    mutex_(mutex),
+    locked_(mutex.Lock(timeout)) {}
 
-  FreeRtosLockGuard::~FreeRtosLockGuard() {
-    if (locked_) {
-      mutex_handle_.unlock();
-    }
+FreeRtosLockGuard::~FreeRtosLockGuard() {
+  if (locked_) {
+    mutex_.UnLock();
   }
+}

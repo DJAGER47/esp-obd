@@ -199,12 +199,12 @@ bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
   esp_err_t err = twai_node_get_info(handle, &status, &statistics);
 
   if (err == ESP_OK) {
-    ESP_DRAM_LOGE(TAG, "TWAI Node Status:");
-    ESP_DRAM_LOGE(TAG, "  Error State: %d", status.state);
-    ESP_DRAM_LOGE(TAG, "  TX Error Count: %d", status.tx_error_count);
-    ESP_DRAM_LOGE(TAG, "  RX Error Count: %d", status.rx_error_count);
-    ESP_DRAM_LOGE(TAG, "TWAI Node Statistics:");
-    ESP_DRAM_LOGE(TAG, "  Bus Error Count: %d", statistics.bus_err_num);
+    ESP_DRAM_LOGE(TAG,
+                  "TWAI Node Status: Error State: %d | TX Error Count: %d | RX Error Count: %d",
+                  status.state,
+                  status.tx_error_count,
+                  status.rx_error_count);
+    ESP_DRAM_LOGE(TAG, "TWAI Node Statistics: Bus Error Count: %d", statistics.bus_err_num);
   } else {
     ESP_DRAM_LOGE(TAG, "Failed to get TWAI node info: %s", esp_err_to_name(err));
   }

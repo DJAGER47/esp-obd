@@ -7,4 +7,4 @@ warnings.txt
 html_report/*
 report.json
 unity-app/build_sanitizers/*
-unity-app/tests/ecu_simulator/*.log.*
+unity-app/tests/ecu-simulator/ecu_simulator.log*

@@ -29,14 +29,14 @@ static OBD2 obd2(iso_tp);                                   // OBD2 поверх
 
 extern "C" void app_main() {
   // Проверяем причину перезагрузки
-  if (!check_reset_reason()) {
-    ESP_LOGE(TAG, "System reset due to error detected. Entering error loop.");
-    while (1) {
-      ESP_LOGE(TAG, "ERROR LOOP: System was reset due to a fault. Manual reset required.");
-      vTaskDelay(pdMS_TO_TICKS(5000));
-    }
-    return;
-  }
+  // if (!check_reset_reason()) {
+  //   ESP_LOGE(TAG, "System reset due to error detected. Entering error loop.");
+  //   while (1) {
+  //     ESP_LOGE(TAG, "ERROR LOOP: System was reset due to a fault. Manual reset required.");
+  //     vTaskDelay(pdMS_TO_TICKS(5000));
+  //   }
+  //   return;
+  // }
 
   ESP_LOGI("APP", "Starting application");
 

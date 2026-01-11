@@ -7,6 +7,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/timers.h"
+#include "freertos_mutex.h"
 #include "lvgl.h"
 #include "phy_interface.h"
 
@@ -59,6 +60,9 @@ class UI final {
 
   // Размер буфера LVGL
   static constexpr uint32_t DISP_BUF_SIZE = (ST7789_LCD_H_RES * 10);
+
+  // Мьютекс для защиты доступа к UI
+  FreeRtosMutex ui_mutex_;  // не уверен что он нужен
 
   // Дескрипторы для LCD и LVGL
   lv_display_t *display;
