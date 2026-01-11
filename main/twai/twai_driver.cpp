@@ -18,7 +18,8 @@ TwaiDriver::TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps
     init_(false),
     node_handle_(nullptr),
     tx_queue_(nullptr),
-    is_transmitting_(false) {}
+    is_transmitting_(false),
+    error_count_(0) {}
 
 void TwaiDriver::InstallStart() {
   twai_onchip_node_config_t node_config = {.io_cfg =
@@ -143,6 +144,8 @@ bool IRAM_ATTR TwaiDriver::RxCallback(twai_node_handle_t handle,
       received_frame.is_fd       = frame.header.fdf;
       received_frame.brs         = frame.header.brs;
       received_frame.data_length = frame.header.dlc;
+
+      driver->error_count_.store(0, std::memory_order_relaxed);
       driver->DispatchMessage(received_frame);
       return true;
     } else {
@@ -174,39 +177,44 @@ bool IRAM_ATTR TwaiDriver::StateChangeCallback(twai_node_handle_t handle,
 bool IRAM_ATTR TwaiDriver::ErrorCallback(twai_node_handle_t handle,
                                          const twai_error_event_data_t* edata,
                                          void* user_ctx) {
-  ESP_DRAM_LOGE(TAG, "\nTWAI error occurred: info=0x%08x", edata->err_flags.val);
+  TwaiDriver* driver = static_cast<TwaiDriver*>(user_ctx);
+  if (driver && driver->node_handle_ == handle) {
+    driver->error_count_.fetch_add(1, std::memory_order_relaxed);
 
-  // Добавляем более подробную информацию об ошибках
-  if (edata->err_flags.arb_lost) {
-    ESP_DRAM_LOGE(TAG, "TWAI error: Arbitration lost error");
-  }
-  if (edata->err_flags.bit_err) {
-    ESP_DRAM_LOGE(TAG, "TWAI error: Bit error detected");
-  }
-  if (edata->err_flags.form_err) {
-    ESP_DRAM_LOGE(TAG, "TWAI error: Form error detected");
-  }
-  if (edata->err_flags.stuff_err) {
-    ESP_DRAM_LOGE(TAG, "TWAI error: Stuff error detected");
-  }
-  if (edata->err_flags.ack_err) {
-    ESP_DRAM_LOGE(TAG, "TWAI error: ACK error (no ack)");
-  }
+    ESP_DRAM_LOGE(TAG, "\nTWAI error occurred: info=0x%08x", edata->err_flags.val);
 
-  // Получаем информацию о состоянии узла
-  twai_node_status_t status;
-  twai_node_record_t statistics;
-  esp_err_t err = twai_node_get_info(handle, &status, &statistics);
+    // Добавляем более подробную информацию об ошибках
+    if (edata->err_flags.arb_lost) {
+      ESP_DRAM_LOGE(TAG, "TWAI error: Arbitration lost error");
+    }
+    if (edata->err_flags.bit_err) {
+      ESP_DRAM_LOGE(TAG, "TWAI error: Bit error detected");
+    }
+    if (edata->err_flags.form_err) {
+      ESP_DRAM_LOGE(TAG, "TWAI error: Form error detected");
+    }
+    if (edata->err_flags.stuff_err) {
+      ESP_DRAM_LOGE(TAG, "TWAI error: Stuff error detected");
+    }
+    if (edata->err_flags.ack_err) {
+      ESP_DRAM_LOGE(TAG, "TWAI error: ACK error (no ack)");
+    }
 
-  if (err == ESP_OK) {
-    ESP_DRAM_LOGE(TAG,
-                  "TWAI Node Status: Error State: %d | TX Error Count: %d | RX Error Count: %d",
-                  status.state,
-                  status.tx_error_count,
-                  status.rx_error_count);
-    ESP_DRAM_LOGE(TAG, "TWAI Node Statistics: Bus Error Count: %d", statistics.bus_err_num);
-  } else {
-    ESP_DRAM_LOGE(TAG, "Failed to get TWAI node info: %s", esp_err_to_name(err));
+    // Получаем информацию о состоянии узла
+    twai_node_status_t status;
+    twai_node_record_t statistics;
+    esp_err_t err = twai_node_get_info(handle, &status, &statistics);
+
+    if (err == ESP_OK) {
+      ESP_DRAM_LOGE(TAG,
+                    "TWAI Node Status: Error State: %d | TX Error Count: %d | RX Error Count: %d",
+                    status.state,
+                    status.tx_error_count,
+                    status.rx_error_count);
+      ESP_DRAM_LOGE(TAG, "TWAI Node Statistics: Bus Error Count: %d", statistics.bus_err_num);
+    } else {
+      ESP_DRAM_LOGE(TAG, "Failed to get TWAI node info: %s", esp_err_to_name(err));
+    }
   }
 
   // Здесь можно добавить дополнительную логику обработки ошибок
@@ -293,4 +301,12 @@ void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
       }
     }
   }
+}
+
+uint32_t TwaiDriver::GetErrorCount() const {
+  return error_count_.load(std::memory_order_relaxed);
+}
+
+void TwaiDriver::ResetErrorCount() {
+  error_count_.store(0, std::memory_order_relaxed);
 }

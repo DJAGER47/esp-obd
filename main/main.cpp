@@ -15,6 +15,7 @@
 #include "io.h"
 #include "iso_tp.h"
 #include "obd2.h"
+#include "obd_data_polling.h"
 #include "reset_handler.h"
 #include "twai_driver.h"
 #include "ui.h"
@@ -26,6 +27,13 @@ static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_C
 static TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
 static IsoTp iso_tp(can_driver);                            // ISO-TP протокол поверх CAN
 static OBD2 obd2(iso_tp);                                   // OBD2 поверх ISO-TP
+
+// Глобальные переменные для доступа из задачи опроса OBD2
+OBD2* obd2_instance = &obd2;
+UI* ui_instance_ptr = &ui_instance;
+
+// Дескриптор задачи опроса данных OBD2
+static TaskHandle_t obd_polling_task_handle = nullptr;
 
 extern "C" void app_main() {
   // Проверяем причину перезагрузки
@@ -86,13 +94,26 @@ extern "C" void app_main() {
     }
   }
 
-  // Пример использования OBD2 для чтения данных с автомобиля
+  // Запускаем задачу опроса данных OBD2
+  BaseType_t result = xTaskCreate(obd_polling_task,         // Функция задачи
+                                  "obd_poll",               // Имя задачи
+                                  4096,                     // Размер стека
+                                  nullptr,                  // Параметр задачи
+                                  5,                        // Приоритет
+                                  &obd_polling_task_handle  // Дескриптор задачи
+  );
+
+  if (result != pdPASS) {
+    ESP_LOGE(TAG, "Failed to create OBD polling task");
+    return;
+  }
+
+  ESP_LOGI(TAG, "OBD polling task started successfully");
+
+  // Основной цикл приложения
   // uint8_t screen_state        = 0;
   // uint32_t stack_info_counter = 0;
 
-  float rpm_value        = 0.0;
-  int speed_value        = 0;
-  int coolant_temp_value = 0;
   while (1) {
     // ui_instance.switch_screen(screen_state);
     // screen_state = (screen_state + 1) % 2;
@@ -104,33 +125,7 @@ extern "C" void app_main() {
     //   stack_info_counter = 0;
     // }
 
-    // Запрашиваем обороты двигателя
-    auto rpm = obd2.rpm();
-    if (rpm.has_value()) {
-      rpm_value = rpm.value();
-    } else {
-      ESP_LOGW(TAG, "Failed to read engine RPM");
-    }
-
-    // Запрашиваем скорость автомобиля
-    auto speed = obd2.kph();
-    if (speed.has_value()) {
-      speed_value = speed.value();
-    } else {
-      ESP_LOGW(TAG, "Failed to read vehicle speed");
-    }
-
-    // Запрашиваем температуру охлаждающей жидкости
-    auto coolant_temp = obd2.engineCoolantTemp();
-    if (coolant_temp.has_value()) {
-      coolant_temp_value = coolant_temp.value();
-    } else {
-      ESP_LOGW(TAG, "Failed to read coolant temperature");
-    }
-
-    // Обновляем экран с данными OBD2
-    ui_instance.update_screen0(rpm_value, speed_value, coolant_temp_value);
-
-    vTaskDelay(pdMS_TO_TICKS(10));
+    // Задержка в основном цикле
+    vTaskDelay(pdMS_TO_TICKS(5000));
   }
 }
