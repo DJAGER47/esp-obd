@@ -15,4 +15,5 @@ idf_component_register(SRCS "main.cpp"
                                 iso-tp
                                 obd
                                 lib
-                                ui)
+                                ui
+                                ui2)

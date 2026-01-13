@@ -1,4 +1,4 @@
-#include "ui.h"
+#include "ui2.h"
 
 #include <inttypes.h>
 #include <stdio.h>
@@ -16,21 +16,22 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "ld7138.h"
 
-static const char *TAG = "ui_class";
+static const char *TAG = "ui2_class";
 
-UI::UI(gpio_num_t sclk_pin,
-       gpio_num_t mosi_pin,
-       gpio_num_t lcd_rst_pin,
-       gpio_num_t lcd_dc_pin,
-       gpio_num_t lcd_cs_pin,
-       gpio_num_t bk_light_pin) :
-    st7789_pin_num_sclk(sclk_pin),
-    st7789_pin_num_mosi(mosi_pin),
-    st7789_pin_num_lcd_rst(lcd_rst_pin),
-    st7789_pin_num_lcd_dc(lcd_dc_pin),
-    st7789_pin_num_lcd_cs(lcd_cs_pin),
-    st7789_pin_num_bk_light(bk_light_pin),
+UI2::UI2(gpio_num_t sclk_pin,
+         gpio_num_t mosi_pin,
+         gpio_num_t lcd_rst_pin,
+         gpio_num_t lcd_dc_pin,
+         gpio_num_t lcd_cs_pin,
+         gpio_num_t bk_light_pin) :
+    ld7138_pin_num_sclk(sclk_pin),
+    ld7138_pin_num_mosi(mosi_pin),
+    ld7138_pin_num_lcd_rst(lcd_rst_pin),
+    ld7138_pin_num_lcd_dc(lcd_dc_pin),
+    ld7138_pin_num_lcd_cs(lcd_cs_pin),
+    ld7138_pin_num_bk_light(bk_light_pin),
     display(nullptr),
     panel_handle(nullptr),
     buf1(nullptr),
@@ -40,10 +41,10 @@ UI::UI(gpio_num_t sclk_pin,
   ui_mutex_.Create();
 }
 
-esp_err_t UI::init() {
-  ESP_LOGI(TAG, "Initializing UI");
+esp_err_t UI2::init() {
+  ESP_LOGI(TAG, "Initializing UI2");
 
-  esp_err_t ret = init_st7789();
+  esp_err_t ret = init_ld7138();
   if (ret != ESP_OK) {
     return ret;
   }
@@ -59,7 +60,7 @@ esp_err_t UI::init() {
   return ESP_OK;
 }
 
-void UI::switch_screen(int num_screen) {
+void UI2::switch_screen(int num_screen) {
   FreeRtosLockGuard lock(ui_mutex_);
 
   if (num_screen == 0 && current_screen != screen0_elements.screen) {
@@ -77,7 +78,7 @@ void UI::switch_screen(int num_screen) {
   }
 }
 
-void UI::update_screen0(float rpm, int speed, int coolant_temp) {
+void UI2::update_screen0(float rpm, int speed, int coolant_temp) {
   FreeRtosLockGuard lock(ui_mutex_);
 
   if (screen0_elements.rpm_label != NULL) {
@@ -99,7 +100,7 @@ void UI::update_screen0(float rpm, int speed, int coolant_temp) {
   }
 }
 
-void UI::update_screen1() {
+void UI2::update_screen1() {
   FreeRtosLockGuard lock(ui_mutex_);
 
   if (screen1_elements.heap_label != NULL) {
@@ -109,14 +110,14 @@ void UI::update_screen1() {
   }
 }
 
-esp_err_t UI::init_st7789() {
-  ESP_LOGI(TAG, "Initializing ST7789 LCD display");
+esp_err_t UI2::init_ld7138() {
+  ESP_LOGI(TAG, "Initializing LD7138 LCD display");
 
-  if (st7789_pin_num_bk_light != GPIO_NUM_NC) {
+  if (ld7138_pin_num_bk_light != GPIO_NUM_NC) {
     // Инициализация GPIO для подсветки
     gpio_config_t bk_gpio_config;
     memset(&bk_gpio_config, 0, sizeof(bk_gpio_config));
-    bk_gpio_config.pin_bit_mask = 1ULL << st7789_pin_num_bk_light;
+    bk_gpio_config.pin_bit_mask = 1ULL << ld7138_pin_num_bk_light;
     bk_gpio_config.mode         = GPIO_MODE_OUTPUT;
     bk_gpio_config.pull_up_en   = GPIO_PULLUP_DISABLE;
     bk_gpio_config.pull_down_en = GPIO_PULLDOWN_DISABLE;
@@ -124,18 +125,18 @@ esp_err_t UI::init_st7789() {
     ESP_ERROR_CHECK(gpio_config(&bk_gpio_config));
 
     // Включаем подсветку
-    gpio_set_level(st7789_pin_num_bk_light, 1);
+    gpio_set_level(ld7138_pin_num_bk_light, 1);
   }
 
   // Конфигурация SPI шины
   spi_bus_config_t bus_config;
   memset(&bus_config, 0, sizeof(bus_config));
-  bus_config.sclk_io_num     = st7789_pin_num_sclk;
-  bus_config.mosi_io_num     = st7789_pin_num_mosi;
+  bus_config.sclk_io_num     = ld7138_pin_num_sclk;
+  bus_config.mosi_io_num     = ld7138_pin_num_mosi;
   bus_config.miso_io_num     = -1;  // MISO не используется
   bus_config.quadwp_io_num   = -1;
   bus_config.quadhd_io_num   = -1;
-  bus_config.max_transfer_sz = ST7789_LCD_H_RES * ST7789_LCD_V_RES * sizeof(uint16_t);
+  bus_config.max_transfer_sz = LD7138_LCD_H_RES * LD7138_LCD_V_RES * sizeof(uint16_t);
 
   // Инициализация SPI шины
   ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &bus_config, SPI_DMA_CH_AUTO));
@@ -143,8 +144,8 @@ esp_err_t UI::init_st7789() {
   // Конфигурация интерфейса панели
   esp_lcd_panel_io_spi_config_t io_config;
   memset(&io_config, 0, sizeof(io_config));
-  io_config.dc_gpio_num       = st7789_pin_num_lcd_dc;
-  io_config.cs_gpio_num       = st7789_pin_num_lcd_cs;
+  io_config.dc_gpio_num       = ld7138_pin_num_lcd_dc;
+  io_config.cs_gpio_num       = ld7138_pin_num_lcd_cs;
   io_config.pclk_hz           = 80000000;
   io_config.lcd_cmd_bits      = 8;
   io_config.lcd_param_bits    = 8;
@@ -155,16 +156,17 @@ esp_err_t UI::init_st7789() {
   esp_lcd_panel_io_handle_t io_handle = NULL;
   ESP_ERROR_CHECK(esp_lcd_new_panel_io_spi((esp_lcd_spi_bus_handle_t)SPI2_HOST, &io_config, &io_handle));
 
-  // Конфигурация панели ST7789
+  // Конфигурация панели LD7138
   esp_lcd_panel_dev_config_t panel_config;
   memset(&panel_config, 0, sizeof(panel_config));
-  panel_config.reset_gpio_num = st7789_pin_num_lcd_rst;
+  panel_config.reset_gpio_num = ld7138_pin_num_lcd_rst;
   panel_config.rgb_ele_order  = LCD_RGB_ELEMENT_ORDER_RGB;
   panel_config.data_endian    = LCD_RGB_DATA_ENDIAN_LITTLE;
   panel_config.bits_per_pixel = 16;
 
-  // Создание панели ST7789
-  ESP_ERROR_CHECK(esp_lcd_new_panel_st7789(io_handle, &panel_config, &panel_handle));
+  // Создание панели LD7138
+  // Используем наш упрощенный драйвер LD7138 на основе ST7789
+  ESP_ERROR_CHECK(esp_lcd_new_panel_ld7138(io_handle, &panel_config, &panel_handle));
 
   // Инициализация и сброс панели
   ESP_ERROR_CHECK(esp_lcd_panel_reset(panel_handle));
@@ -186,7 +188,7 @@ esp_err_t UI::init_st7789() {
   return ESP_OK;
 }
 
-void UI::init_lvgl() {
+void UI2::init_lvgl() {
   ESP_LOGI(TAG, "Initializing LVGL");
 
   // Инициализация LVGL
@@ -199,7 +201,7 @@ void UI::init_lvgl() {
   assert(buf2);
 
   // Создание дисплея LVGL
-  display = lv_display_create(ST7789_LCD_H_RES, ST7789_LCD_V_RES);
+  display = lv_display_create(LD7138_LCD_H_RES, LD7138_LCD_V_RES);
 
   // Устанавливаем указатель на экземпляр класса как пользовательские данные
   lv_display_set_user_data(display, this);
@@ -212,7 +214,7 @@ void UI::init_lvgl() {
   lv_display_set_flush_cb(display, lvgl_flush_cb);
 }
 
-void UI::create_ui0() {
+void UI2::create_ui0() {
   ESP_LOGI(TAG, "Creating UI elements");
 
   // Создание первого экрана
@@ -232,7 +234,7 @@ void UI::create_ui0() {
   lv_obj_align(screen0_elements.coolant_temp_label, LV_ALIGN_TOP_MID, 0, 100);
 }
 
-void UI::create_ui1() {
+void UI2::create_ui1() {
   ESP_LOGI(TAG, "Creating second UI screen with chip info");
 
   // Создание второго экрана
@@ -240,7 +242,7 @@ void UI::create_ui1() {
 
   // Создание фона
   screen1_elements.bg = lv_obj_create(screen1_elements.screen);
-  lv_obj_set_size(screen1_elements.bg, ST7789_LCD_H_RES, ST7789_LCD_V_RES);
+  lv_obj_set_size(screen1_elements.bg, LD7138_LCD_H_RES, LD7138_LCD_V_RES);
   lv_obj_set_pos(screen1_elements.bg, 0, 0);
   lv_obj_set_style_bg_color(screen1_elements.bg, lv_color_make(0, 0, 0), LV_PART_MAIN);
   lv_obj_set_style_border_width(screen1_elements.bg, 0, LV_PART_MAIN);
@@ -257,9 +259,9 @@ void UI::create_ui1() {
   lv_obj_align(screen1_elements.heap_label, LV_ALIGN_BOTTOM_MID, 0, -30);
 }
 
-void UI::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
+void UI2::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_map) {
   // Получаем указатель на экземпляр из пользовательских данных дисплея
-  UI *ui_instance = (UI *)lv_display_get_user_data(disp);
+  UI2 *ui_instance = (UI2 *)lv_display_get_user_data(disp);
   if (ui_instance && ui_instance->panel_handle) {
     int offsetx1 = area->x1;
     int offsetx2 = area->x2;
@@ -276,8 +278,8 @@ void UI::lvgl_flush_cb(lv_display_t *disp, const lv_area_t *area, uint8_t *px_ma
   lv_display_flush_ready(disp);
 }
 
-void UI::update_screen(void *arg) {
-  UI *ui_instance = (UI *)arg;
+void UI2::update_screen(void *arg) {
+  UI2 *ui_instance = (UI2 *)arg;
   if (ui_instance) {
     while (1) {
       if (ui_instance->current_screen == ui_instance->screen0_elements.screen) {
@@ -298,7 +300,7 @@ void UI::update_screen(void *arg) {
   }
 }
 
-void UI::lvgl_task(void *arg) {
+void UI2::lvgl_task(void *arg) {
   while (1) {
     // Вызываем обработчик таймеров LVGL
     lv_timer_handler();
