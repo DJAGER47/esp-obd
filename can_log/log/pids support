@@ -1,0 +1,35 @@
+BE3FB803
+10111110001111111011100000000011
+
+01	Monitor status since DTCs cleared	Yes
+02	Freeze DTC	No
+03	Fuel system status	Yes
+04	Calculated engine load	Yes
+05	Engine coolant temperature	Yes
+06	Short term fuel trim (bank 1)	Yes
+07	Long term fuel trim (bank 1)	Yes
+08	Short term fuel trim (bank 2)	No
+09	Long term fuel trim (bank 2)	No
+0A	Fuel pressure (gauge pressure)	No
+0B	Intake manifold absolute pressure	Yes
+0C	Engine speed	Yes
+0D	Vehicle speed	Yes
+0E	Timing advance	Yes
+0F	Intake air temperature	Yes
+10	Mass air flow sensor air flow rate	Yes
+11	Throttle position	Yes
+12	Commanded secondary air status	No
+13	Oxygen sensors present (2 banks)	Yes
+14	Oxygen sensor 1 (voltage)	Yes
+15	Oxygen sensor 2 (voltage)	Yes
+16	Oxygen sensor 3 (voltage)	No
+17	Oxygen sensor 4 (voltage)	No
+18	Oxygen sensor 5 (voltage)	No
+19	Oxygen sensor 6 (voltage)	No
+1A	Oxygen sensor 7 (voltage)	No
+1B	Oxygen sensor 8 (voltage)	No
+1C	OBD standards the vehicle conforms to	No
+1D	Oxygen sensors present (4 banks)	No
+1E	Auxiliary input status	No
+1F	Run time since engine start	Yes
+20	PIDs supported [21 - 40]	Yes
