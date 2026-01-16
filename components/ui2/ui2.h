@@ -20,8 +20,7 @@ class UI2 final {
       gpio_num_t lcd_cs_pin   = GPIO_NUM_9,
       gpio_num_t bk_light_pin = GPIO_NUM_10);
 
-  // Инициализация
-  esp_err_t init();
+  void Init();
 
   // Управление экранами
   void switch_screen(int num_screen);

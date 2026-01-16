@@ -17,8 +17,9 @@ class TwaiDriver final : public IPhyInterface {
   TwaiError Transmit(const TwaiFrame& message, Time_ms timeout_ms) override;
   void RegisterSubscriber(ITwaiSubscriber& subscriber);
 
-  uint32_t GetErrorCount() const;
   void ResetErrorCount();
+  uint32_t GetRxErrorCount() const;
+  uint32_t GetTxErrorCount() const;
 
  private:
   static const int kTxQueueDepth   = 10;
@@ -43,5 +44,6 @@ class TwaiDriver final : public IPhyInterface {
   QueueHandle_t tx_queue_;
   std::array<ITwaiSubscriber*, kMaxSubscribers> subscribers_;
   std::atomic_bool is_transmitting_;  // Флаг, указывающий, идет ли передача в данный момент
-  std::atomic_uint32_t error_count_;  // Счетчик ошибок CAN шины
+  std::atomic_uint32_t rx_error_count_;  // Счетчик ошибок приема CAN шины
+  std::atomic_uint32_t tx_error_count_;  // Счетчик ошибок отправки CAN шины
 };

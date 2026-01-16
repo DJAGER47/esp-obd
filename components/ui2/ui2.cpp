@@ -41,12 +41,13 @@ UI2::UI2(gpio_num_t sclk_pin,
   ui_mutex_.Create();
 }
 
-esp_err_t UI2::init() {
+void UI2::Init() {
   ESP_LOGI(TAG, "Initializing UI2");
 
-  esp_err_t ret = init_ld7138();
-  if (ret != ESP_OK) {
-    return ret;
+  if (init_ld7138() != ESP_OK) {
+    ESP_LOGI(TAG, "init_ld7138 initialization failed. Restarting in 5 seconds...");
+    esp_rom_delay_us(5000000);
+    esp_restart();
   }
 
   init_lvgl();
@@ -57,7 +58,6 @@ esp_err_t UI2::init() {
 
   xTaskCreate(lvgl_task, "lvgl_task", 8192, this, 5, NULL);
   xTaskCreate(update_screen, "update_time", 8192, this, 4, NULL);
-  return ESP_OK;
 }
 
 void UI2::switch_screen(int num_screen) {

@@ -60,7 +60,7 @@ CanSubscriber can_subscriber(can_message_callback);
 extern "C" void app_main() {
   ESP_LOGI("APP", "Starting application");
 
-  esp_err_t ret = ui_instance.init();
+  esp_err_t ret = ui_instance.Init();
   if (ret != ESP_OK) {
     ESP_LOGE(TAG, "Failed to initialize UI: %s", esp_err_to_name(ret));
     return;

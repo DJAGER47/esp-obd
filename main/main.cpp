@@ -18,8 +18,6 @@
 #include "obd_data_polling.h"
 #include "reset_handler.h"
 #include "twai_driver.h"
-#include "ui.h"
-#include "ui2.h"
 
 static const char* const TAG = "main";
 
@@ -27,9 +25,11 @@ static const char* const TAG = "main";
 #define USE_LD7138_DISPLAY 0
 
 #if USE_LD7138_DISPLAY
+#include "ui2.h"
 // LCD_BK_LIGHT_PIN для LD7138
 static UI2 ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
 #else
+#include "ui.h"
 // LCD_BK_LIGHT_PIN для ST7789
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
 #endif
@@ -105,58 +105,50 @@ extern "C" void app_main() {
   // }
 
   ESP_LOGI("APP", "Starting application");
-
-  esp_err_t ret = ui_instance.init();
-  if (ret != ESP_OK) {
-    ESP_LOGE(TAG, "Failed to initialize UI: %s", esp_err_to_name(ret));
-    return;
-  }
-
-  // Инициализация CAN драйвера
+  ui_instance.Init();
   can_driver.InstallStart();
-
   ESP_LOGI(TAG, "Application initialized successfully");
-
-  // Даем время на инициализацию CAN шины
   vTaskDelay(pdMS_TO_TICKS(2000));
 
-  // Запрашиваем все поддерживаемые PID и выводим в бинарном виде
-  ESP_LOGI(TAG, "Querying all supported PIDs...");
-
-  ServicesPoolingTask();
-
-  // Запускаем задачу опроса данных OBD2
-  BaseType_t result = xTaskCreate(obd_polling_task,         // Функция задачи
-                                  "obd_poll",               // Имя задачи
-                                  4096,                     // Размер стека
-                                  nullptr,                  // Параметр задачи
-                                  5,                        // Приоритет
-                                  &obd_polling_task_handle  // Дескриптор задачи
-  );
-
-  if (result != pdPASS) {
-    ESP_LOGE(TAG, "Failed to create OBD polling task");
-    return;
-  }
-
-  ESP_LOGI(TAG, "OBD polling task started successfully");
-
-  // Основной цикл приложения
-  // uint8_t screen_state        = 0;
-  // uint32_t stack_info_counter = 0;
-
   while (1) {
-    // ui_instance.switch_screen(screen_state);
-    // screen_state = (screen_state + 1) % 2;
+    ESP_LOGI(TAG, "Querying all supported PIDs...");
+    ServicesPoolingTask();
 
-    // if (++stack_info_counter >= 5000) {
-    //   print_debug_info();
-    //   print_runtime_stats();
-    //   ESP_LOGI(TAG, "\n\n\n");
-    //   stack_info_counter = 0;
-    // }
+    // Запускаем задачу опроса данных OBD2
+    BaseType_t result = xTaskCreate(obd_polling_task,         // Функция задачи
+                                    "obd_poll",               // Имя задачи
+                                    4096,                     // Размер стека
+                                    nullptr,                  // Параметр задачи
+                                    5,                        // Приоритет
+                                    &obd_polling_task_handle  // Дескриптор задачи
+    );
 
-    // Задержка в основном цикле
-    vTaskDelay(pdMS_TO_TICKS(5000));
+    if (result != pdPASS) {
+      ESP_LOGE(TAG, "Failed to create OBD polling task");
+      return;
+    }
+
+    ESP_LOGI(TAG, "OBD polling task started successfully");
+
+    // Основной цикл приложения
+    uint32_t can_error_rx = 0;
+    uint32_t can_error_tx = 0;
+    while (1) {
+      const uint32_t can_error_rx_now  = can_driver.GetRxErrorCount();
+      const uint32_t can_error_tx_now  = can_driver.GetTxErrorCount();
+      const uint32_t can_error_rx_diff = can_error_rx_now - can_error_rx;
+      const uint32_t can_error_tx_diff = can_error_tx_now - can_error_tx;
+      const uint32_t can_error_diff    = can_error_rx_diff + can_error_tx_diff;
+      if (can_error_diff > 5) {
+        ESP_LOGE(
+            TAG, "CAN error detected: diff %d (rx: %d, tx: %d)", can_error_diff, can_error_rx_diff, can_error_tx_diff);
+        break;
+      }
+
+      ESP_LOGW(TAG, "CAN drop (rx: %d, tx: %d)", can_error_rx_now, can_error_tx_now);
+      can_error_rx = can_error_rx_now;
+      can_error_tx = can_error_tx_now;
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
   }
 }
