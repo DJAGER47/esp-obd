@@ -28,26 +28,21 @@ static const char* const TAG = "main";
 #include "ui2.h"
 // LCD_BK_LIGHT_PIN для LD7138
 static UI2 ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
+UI2* ui_instance_ptr = &ui_instance;
 #else
 #include "ui.h"
 // LCD_BK_LIGHT_PIN для ST7789
 static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
-#endif
-
-static TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
-static IsoTp iso_tp(can_driver);                            // ISO-TP протокол поверх CAN
-static OBD2 obd2(iso_tp);                                   // OBD2 поверх ISO-TP
-
-// Глобальные переменные для доступа из задачи опроса OBD2
-OBD2* obd2_instance = &obd2;
-#if USE_LD7138_DISPLAY
-UI2* ui_instance_ptr = &ui_instance;
-#else
 UI* ui_instance_ptr = &ui_instance;
 #endif
 
+static TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
+
 // Дескриптор задачи опроса данных OBD2
-static TaskHandle_t obd_polling_task_handle = nullptr;
+static constexpr uint32_t kObdPollingTaskStackSize = 4096;
+static TaskHandle_t obd_polling_task_handle        = nullptr;
+static StackType_t obd_polling_task_stack[kObdPollingTaskStackSize];
+static StaticTask_t obd_polling_task_tcb;
 
 struct PidRange {
   const char* name;
@@ -55,6 +50,10 @@ struct PidRange {
 };
 
 void ServicesPoolingTask() {
+  // Создаем временные объекты для опроса PID
+  IsoTp iso_tp(can_driver);  // ISO-TP протокол поверх CAN
+  OBD2 obd2(iso_tp);         // OBD2 поверх ISO-TP
+
   // Массив функций для запроса поддерживаемых PID в разных диапазонах
   // clang-format off
   PidRange pid_ranges[] = {
@@ -69,15 +68,15 @@ void ServicesPoolingTask() {
   };
   // clang-format on
   constexpr size_t kPidRangesCount = sizeof(pid_ranges) / sizeof(pid_ranges[0]);
-  uint32_t pids_cache[kPidRangesCount];
+  // uint32_t pids_cache[kPidRangesCount];
 
   while (1) {
     size_t count = 0;
     // Запрашиваем поддерживаемые PID в цикле
     for (size_t i = 0; i < kPidRangesCount; ++i) {
-      auto pids = pid_ranges[i].query_func(obd2_instance);
+      auto pids = pid_ranges[i].query_func(&obd2);
       if (pids.has_value()) {
-        pids_cache[i] = pids.value();
+        // pids_cache[i] = pids.value();
         ESP_LOGI(TAG, "Supported PIDs %s: 0x%08X", pid_ranges[i].name, pids.value());
         count++;
       } else {
@@ -114,21 +113,19 @@ extern "C" void app_main() {
     ESP_LOGI(TAG, "Querying all supported PIDs...");
     ServicesPoolingTask();
 
-    // Запускаем задачу опроса данных OBD2
-    BaseType_t result = xTaskCreate(obd_polling_task,         // Функция задачи
-                                    "obd_poll",               // Имя задачи
-                                    4096,                     // Размер стека
-                                    nullptr,                  // Параметр задачи
-                                    5,                        // Приоритет
-                                    &obd_polling_task_handle  // Дескриптор задачи
+    obd_polling_task_handle = xTaskCreateStatic(obd_polling_task,          // Функция задачи
+                                                "obd_poll",                // Имя задачи
+                                                kObdPollingTaskStackSize,  // Размер стека
+                                                &can_driver,  // Параметр задачи - адрес can_driver
+                                                5,            // Приоритет
+                                                obd_polling_task_stack,  // Буфер стека
+                                                &obd_polling_task_tcb    // Структура TCB
     );
-
-    if (result != pdPASS) {
-      ESP_LOGE(TAG, "Failed to create OBD polling task");
-      return;
+    if (obd_polling_task_handle == nullptr) {
+      ESP_LOGI(TAG, "obd_polling_task not created. Restarting in 5 seconds...");
+      esp_rom_delay_us(5000000);
+      esp_restart();
     }
-
-    ESP_LOGI(TAG, "OBD polling task started successfully");
 
     // Основной цикл приложения
     uint32_t can_error_rx = 0;
@@ -139,15 +136,17 @@ extern "C" void app_main() {
       const uint32_t can_error_rx_diff = can_error_rx_now - can_error_rx;
       const uint32_t can_error_tx_diff = can_error_tx_now - can_error_tx;
       const uint32_t can_error_diff    = can_error_rx_diff + can_error_tx_diff;
-      if (can_error_diff > 5) {
-        ESP_LOGE(
-            TAG, "CAN error detected: diff %d (rx: %d, tx: %d)", can_error_diff, can_error_rx_diff, can_error_tx_diff);
-        break;
-      }
 
       ESP_LOGW(TAG, "CAN drop (rx: %d, tx: %d)", can_error_rx_now, can_error_tx_now);
       can_error_rx = can_error_rx_now;
       can_error_tx = can_error_tx_now;
+
+      if (can_error_diff > 5) {
+        vTaskDelete(obd_polling_task_handle);
+        ESP_LOGE(
+            TAG, "CAN error detected: diff %d (rx: %d, tx: %d)", can_error_diff, can_error_rx_diff, can_error_tx_diff);
+        break;
+      }
       vTaskDelay(pdMS_TO_TICKS(1000));
     }
   }

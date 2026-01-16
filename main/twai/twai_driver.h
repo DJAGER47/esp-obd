@@ -15,7 +15,8 @@ class TwaiDriver final : public IPhyInterface {
   TwaiDriver(gpio_num_t tx_pin, gpio_num_t rx_pin, uint32_t speed_kbps);
   void InstallStart() override;
   TwaiError Transmit(const TwaiFrame& message, Time_ms timeout_ms) override;
-  void RegisterSubscriber(ITwaiSubscriber& subscriber);
+  void RegisterSubscriber(ITwaiSubscriber& subscriber) override;
+  void UnRegisterSubscriber(ITwaiSubscriber& subscriber) override;
 
   void ResetErrorCount();
   uint32_t GetRxErrorCount() const;

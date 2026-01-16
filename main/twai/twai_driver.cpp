@@ -301,6 +301,27 @@ void TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
   }
 }
 
+void TwaiDriver::UnRegisterSubscriber(ITwaiSubscriber& subscriber) {
+  if (init_) {
+    ESP_LOGI(TAG, "UnRegisterSubscriber: restart, because remove subscriber after init");
+    esp_rom_delay_us(5000000);
+    esp_restart();
+  }
+
+  bool found_subscriber = false;
+  for (size_t i = 0; i < subscribers_.size(); ++i) {
+    if (subscribers_[i] == &subscriber) {
+      subscribers_[i]  = nullptr;
+      found_subscriber = true;
+      break;
+    }
+  }
+
+  if (!found_subscriber) {
+    ESP_LOGW(TAG, "UnRegisterSubscriber: subscriber not found");
+  }
+}
+
 void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
   for (size_t i = 0; i < subscribers_.size() && subscribers_[i] != nullptr; ++i) {
     ITwaiSubscriber* subscriber = subscribers_[i];

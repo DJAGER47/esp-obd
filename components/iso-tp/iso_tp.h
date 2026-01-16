@@ -16,6 +16,8 @@ class IsoTp : public IIsoTp {
   static const bool ISO_TP_DEBUG = false;
 
   IsoTp(IPhyInterface &bus);
+  ~IsoTp();
+
   bool send(Message &msg) override;
   bool receive(Message &msg, size_t size_buffer) override;
 

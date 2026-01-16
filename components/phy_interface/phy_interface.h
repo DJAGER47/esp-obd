@@ -77,9 +77,14 @@ class IPhyInterface {
   /**
    * @brief Регистрация подписчика на сообщения
    * @param subscriber Ссылка на подписчика
-   * @return TwaiError::OK при успешной регистрации
    */
   virtual void RegisterSubscriber(ITwaiSubscriber& subscriber) = 0;
+
+  /**
+   * @brief Отмена регистрации подписчика на сообщения
+   * @param subscriber Ссылка на подписчика
+   */
+  virtual void UnRegisterSubscriber(ITwaiSubscriber& subscriber) = 0;
 
  protected:
   ~IPhyInterface() = default;

@@ -84,6 +84,10 @@ IsoTp::IsoTp(IPhyInterface& bus) :
   bus.RegisterSubscriber(_subscriber);
 }
 
+IsoTp::~IsoTp() {
+  _bus.UnRegisterSubscriber(_subscriber);
+}
+
 void IsoTp::can_send(uint32_t id, uint8_t len, uint8_t* data) {
   log_print_buffer(id, data, len);
   TwaiFrame message;
