@@ -279,12 +279,6 @@ IPhyInterface::TwaiError TwaiDriver::Transmit(const TwaiFrame& message, Time_ms 
 }
 
 void TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
-  if (init_) {
-    ESP_LOGI(TAG, "RegisterSubscriber: restart, becose add subscriber after init");
-    esp_rom_delay_us(5000000);
-    esp_restart();
-  }
-
   bool has_free_slot = false;
   for (size_t i = 0; i < subscribers_.size(); ++i) {
     if (subscribers_[i] == nullptr) {
@@ -302,12 +296,6 @@ void TwaiDriver::RegisterSubscriber(ITwaiSubscriber& subscriber) {
 }
 
 void TwaiDriver::UnRegisterSubscriber(ITwaiSubscriber& subscriber) {
-  if (init_) {
-    ESP_LOGI(TAG, "UnRegisterSubscriber: restart, because remove subscriber after init");
-    esp_rom_delay_us(5000000);
-    esp_restart();
-  }
-
   bool found_subscriber = false;
   for (size_t i = 0; i < subscribers_.size(); ++i) {
     if (subscribers_[i] == &subscriber) {

@@ -18,6 +18,7 @@
 #include "obd_data_polling.h"
 #include "reset_handler.h"
 #include "twai_driver.h"
+#include "vehicle_params.h"
 
 static const char* const TAG = "main";
 
@@ -37,6 +38,8 @@ UI* ui_instance_ptr = &ui_instance;
 #endif
 
 static TwaiDriver can_driver(CAN_TX_PIN, CAN_RX_PIN, 500);  // TX, RX, 500 кбит/с
+
+VehicleParams vehicle_params;
 
 // Дескриптор задачи опроса данных OBD2
 static constexpr uint32_t kObdPollingTaskStackSize = 4096;
@@ -147,7 +150,7 @@ extern "C" void app_main() {
             TAG, "CAN error detected: diff %d (rx: %d, tx: %d)", can_error_diff, can_error_rx_diff, can_error_tx_diff);
         break;
       }
-      vTaskDelay(pdMS_TO_TICKS(1000));
+      vTaskDelay(pdMS_TO_TICKS(5000));
     }
   }
 }

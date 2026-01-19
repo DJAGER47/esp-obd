@@ -8,7 +8,6 @@
 #include "driver/gpio.h"
 #include "driver/spi_master.h"
 #include "esp_chip_info.h"
-#include "esp_flash.h"
 #include "esp_lcd_panel_io_interface.h"
 #include "esp_lcd_panel_ops.h"
 #include "esp_lcd_panel_vendor.h"
@@ -16,8 +15,11 @@
 #include "esp_system.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "vehicle_params.h"
 
 static const char *TAG = "ui_class";
+
+extern VehicleParams vehicle_params;
 
 UI::UI(gpio_num_t sclk_pin,
        gpio_num_t mosi_pin,
@@ -35,10 +37,7 @@ UI::UI(gpio_num_t sclk_pin,
     panel_handle(nullptr),
     buf1(nullptr),
     buf2(nullptr),
-    current_screen(nullptr) {
-  // Инициализируем мьютекс для защиты доступа к UI
-  ui_mutex_.Create();
-}
+    current_screen(nullptr) {}
 
 void UI::Init() {
   ESP_LOGI(TAG, "Initializing UI");
@@ -60,8 +59,6 @@ void UI::Init() {
 }
 
 void UI::switch_screen(int num_screen) {
-  FreeRtosLockGuard lock(ui_mutex_);
-
   if (num_screen == 0 && current_screen != screen0_elements.screen) {
     // Переключение на первый экран
     lv_screen_load(screen0_elements.screen);
@@ -78,8 +75,6 @@ void UI::switch_screen(int num_screen) {
 }
 
 void UI::update_screen0(float rpm, int speed, int coolant_temp) {
-  FreeRtosLockGuard lock(ui_mutex_);
-
   if (screen0_elements.rpm_label != NULL) {
     char rpm_str[32];
     snprintf(rpm_str, sizeof(rpm_str), "RPM: %.1f", rpm);
@@ -100,8 +95,6 @@ void UI::update_screen0(float rpm, int speed, int coolant_temp) {
 }
 
 void UI::update_screen1() {
-  FreeRtosLockGuard lock(ui_mutex_);
-
   if (screen1_elements.heap_label != NULL) {
     char heap_str[64];
     snprintf(heap_str, sizeof(heap_str), "Free heap: %" PRIu32 " bytes", esp_get_minimum_free_heap_size());
@@ -281,7 +274,9 @@ void UI::update_screen(void *arg) {
   if (ui_instance) {
     while (1) {
       if (ui_instance->current_screen == ui_instance->screen0_elements.screen) {
-        // ui_instance->update_screen0(0.0, 0, 0);
+        // Получаем параметры из vehicle_params и обновляем экран
+        auto params = vehicle_params.getBasicParams();
+        ui_instance->update_screen0(params.rpm, params.speed, params.coolant_temp);
       }
 
       if (ui_instance->current_screen == ui_instance->screen1_elements.screen) {

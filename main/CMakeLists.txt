@@ -6,13 +6,18 @@ idf_component_register(SRCS "main.cpp"
                             "FreeRTOS-openocd.c"
                             "debug.c"
                             "reset_handler.cpp"
+                            "critical_section.cpp"
+                            "vehicle_params.cpp"
+                            "ui/ui.cpp"
 
                        INCLUDE_DIRS "."
                                     "twai/"
+                                    "ui/"
 
                        REQUIRES driver
                                 phy_interface
                                 iso-tp
                                 obd
                                 lib
-                                ui)
+                                esp_lcd
+                                )
