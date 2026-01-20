@@ -52,6 +52,6 @@ void obd_polling_task(void* arg) {
     }
 
     // Задержка перед следующим опросом
-    vTaskDelay(pdMS_TO_TICKS(10));
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }

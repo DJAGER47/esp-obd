@@ -85,6 +85,7 @@ void ServicesPoolingTask() {
       } else {
         ESP_LOGW(TAG, "Failed to read supported PIDs %s", pid_ranges[i].name);
       }
+      vTaskDelay(pdMS_TO_TICKS(500));
     }
 
     if (count == kPidRangesCount) {
