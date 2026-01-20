@@ -54,9 +54,9 @@ class IsoTp : public IIsoTp {
   static const uint8_t ISOTP_FC_OVFLW = 2;  // overflow
 
   // Timeout values
-  static const uint32_t TIMEOUT_SESSION = 500;  // Timeout between successfull send and receive
-  static const uint32_t TIMEOUT_FC      = 250;  // Timeout between FF and FC or Block CF and FC
-  static const uint32_t TIMEOUT_CF      = 250;  // Timeout between CFs
+  static const uint32_t TIMEOUT_SESSION = 2000;  // Timeout between successfull send and receive
+  static const uint32_t TIMEOUT_FC      = 500;   // Timeout between FF and FC or Block CF and FC
+  static const uint32_t TIMEOUT_CF      = 500;   // Timeout between CFs
   static const uint8_t MAX_FCWAIT_FRAME = 10;
 
   // N_PCI type values in bits 7-4 of N_PCI bytes
