@@ -27,7 +27,7 @@ std::optional<uint32_t> OBD2::supportedPIDs_61_80() {
  */
 std::optional<int16_t> OBD2::demandedTorque() {
   ResponseType response;
-  if (processPID(SERVICE_01, DEMANDED_ENGINE_PERCENT_TORQUE, response)) {
+  if (ProcessPid(SERVICE_01, DEMANDED_ENGINE_PERCENT_TORQUE, response)) {
     return {static_cast<int16_t>(response[A]) - 125.0};
   }
   return std::nullopt;
@@ -40,7 +40,7 @@ std::optional<int16_t> OBD2::demandedTorque() {
  */
 std::optional<int16_t> OBD2::torque() {
   ResponseType response;
-  if (processPID(SERVICE_01, ACTUAL_ENGINE_TORQUE, response)) {
+  if (ProcessPid(SERVICE_01, ACTUAL_ENGINE_TORQUE, response)) {
     return {static_cast<int16_t>(response[A]) - 125.0};
   }
   return std::nullopt;
@@ -53,7 +53,7 @@ std::optional<int16_t> OBD2::torque() {
  */
 std::optional<uint16_t> OBD2::referenceTorque() {
   ResponseType response;
-  if (processPID(SERVICE_01, ENGINE_REFERENCE_TORQUE, response)) {
+  if (ProcessPid(SERVICE_01, ENGINE_REFERENCE_TORQUE, response)) {
     return {(response[A] << 8) | response[B]};
   }
   return std::nullopt;
@@ -73,7 +73,7 @@ std::optional<uint16_t> OBD2::referenceTorque() {
  */
 std::optional<std::array<int16_t, 5>> OBD2::enginePercentTorqueData() {
   ResponseType response;
-  if (processPID(SERVICE_01, ENGINE_PERCENT_TORQUE_DATA, response)) {
+  if (ProcessPid(SERVICE_01, ENGINE_PERCENT_TORQUE_DATA, response)) {
     std::array<int16_t, 5> result;
     for (size_t i = 0; i < 5; ++i) {
       result[i] = static_cast<int16_t>(response[i]) - 125;
@@ -90,7 +90,7 @@ std::optional<std::array<int16_t, 5>> OBD2::enginePercentTorqueData() {
  */
 std::optional<uint16_t> OBD2::auxSupported() {
   ResponseType response;
-  if (processPID(SERVICE_01, AUX_INPUT_OUTPUT_SUPPORTED, response)) {
+  if (ProcessPid(SERVICE_01, AUX_INPUT_OUTPUT_SUPPORTED, response)) {
     return {(response[A] << 8) | response[B]};
   }
   return std::nullopt;

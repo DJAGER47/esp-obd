@@ -81,14 +81,30 @@ void OBD2::queryPID(uint8_t service, uint8_t pid) {
 }
 
 /**
- * @brief Запрашивает и обрабатывает данные телеметрии автомобиля
+ * @brief Безопасно запрашивает PID с предварительной проверкой поддержки через кэш
  *
  * @param service ID диагностического сервиса
  * @param pid Parameter ID (PID)
  * @param[out] response Буфер для записи ответа
  * @return bool True если данные успешно получены и обработаны, иначе False
  */
-bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
+bool OBD2::ProcessPid(uint8_t service, uint16_t pid, ResponseType& response) {
+  if (!IsPidSupported(pid)) {
+    ESP_LOGW(TAG, "PID 0x%02X is not supported by the vehicle, skipping request", pid);
+    return false;
+  }
+  return ProcessPidWithoutCheck(service, pid, response);
+}
+
+/**
+ * @brief Внутренний метод для обработки PID с возможностью отключения проверки поддержки
+ *
+ * @param service ID диагностического сервиса
+ * @param pid Parameter ID (PID)
+ * @param[out] response Буфер для записи ответа
+ * @return bool True если данные успешно получены и обработаны, иначе False
+ */
+bool OBD2::ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& response) {
   int attempt_count      = 0;
   const int max_attempts = 3;
 
@@ -141,7 +157,7 @@ bool OBD2::processPID(uint8_t service, uint16_t pid, ResponseType& response) {
       if ((msg.data[0] == response_service) && (msg.data[1] == pid)) {
         size_t data_len = msg.len - 2;
         if (data_len > response.size()) {
-          ESP_LOGW(TAG, "processPID: trim data");
+          ESP_LOGW(TAG, "ProcessPid: trim data");
           data_len = response.size();
         }
         std::copy(msg.data + 2, msg.data + 2 + data_len, response.begin());

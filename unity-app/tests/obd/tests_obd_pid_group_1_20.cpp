@@ -61,8 +61,7 @@ void test_pid_00_supported_pids_1_20_valid_data() {
 
   // Создаем ответ с битовой маской 0xBE1FA813
   // Биты: 10111110 00011111 10101000 00010011
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
+  MockMessage response = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -73,10 +72,6 @@ void test_pid_00_supported_pids_1_20_valid_data() {
   // Проверяем результат: 0xBE1FA813 = 3188893715
   TEST_ASSERT_EQUAL_UINT32_MESSAGE(
       0xBE1FA813, supported.value(), "supportedPIDs_1_20 должен вернуть правильную битовую маску");
-
-  // Очищаем память
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 2: supportedPIDs_1_20 - проверка конкретных битов
@@ -84,8 +79,7 @@ void test_pid_00_supported_pids_bit_check() {
   g_mock_iso_tp.reset();
 
   // Маска 0xBE1FA813: PID 01, 04, 05, 0C, 0D, 0F, 10, 11, 13, 14 поддерживаются
-  IIsoTp::Message response =
-      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
+  MockMessage response = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xBE, 0x1F, 0xA8, 0x13);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -103,9 +97,6 @@ void test_pid_00_supported_pids_bit_check() {
   TEST_ASSERT_TRUE_MESSAGE(pid_04_supported, "PID 04 должен быть поддержан");
   TEST_ASSERT_TRUE_MESSAGE(pid_0C_supported, "PID 0C должен быть поддержан");
   TEST_ASSERT_TRUE_MESSAGE(pid_13_supported, "PID 13 должен быть поддержан");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -114,35 +105,31 @@ void test_pid_00_supported_pids_bit_check() {
 
 // Тест 3: monitorStatus - валидные данные
 void test_pid_01_monitor_status_valid_data() {
-  g_mock_iso_tp.reset();
+  // Настраиваем мок для поддержки всех PID
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Статус мониторинга: A7 80 00 00 (MIL включен, 7 DTC)
-  IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
+  MockMessage response =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto status = obd2.monitorStatus();
   TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "monitorStatus должен вернуть значение");
 
   // Проверяем результат: 0xA7800000 = 2812608512
-  TEST_ASSERT_EQUAL_UINT32_MESSAGE(
-      0xA7800000, status.value(), "monitorStatus должен вернуть правильный статус");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT32_MESSAGE(0xA7800000, status.value(), "monitorStatus должен вернуть правильный статус");
 }
 
 // Тест 4: monitorStatus - проверка битовых полей
 void test_pid_01_monitor_status_bit_fields() {
-  g_mock_iso_tp.reset();
+  // Настраиваем мок для поддержки всех PID
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // A7 = 10100111: MIL=1, DTC_count=7, готовность тестов
-  IIsoTp::Message response = create_obd_response_4_bytes(
-      0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
+  MockMessage response =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, MONITOR_STATUS_SINCE_DTC_CLEARED, 0xA7, 0x80, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto status = obd2.monitorStatus();
@@ -154,9 +141,6 @@ void test_pid_01_monitor_status_bit_fields() {
 
   TEST_ASSERT_TRUE_MESSAGE(mil_on, "MIL должен быть включен");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x27, dtc_count, "Количество DTC должно быть 39");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -165,43 +149,35 @@ void test_pid_01_monitor_status_bit_fields() {
 
 // Тест 5: freezeDTC - валидные данные
 void test_pid_02_freeze_dtc_valid_data() {
-  g_mock_iso_tp.reset();
+  // Настраиваем мок для поддержки всех PID
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Freeze DTC: P0301 (цилиндр 1 пропуски зажигания)
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0x03, 0x01);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0x03, 0x01);
   g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto freeze_dtc = obd2.freezeDTC();
   TEST_ASSERT_TRUE_MESSAGE(freeze_dtc.has_value(), "freezeDTC должен вернуть значение");
 
   // Проверяем результат: 0x0301 = 769
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0x0301, freeze_dtc.value(), "freezeDTC должен вернуть правильный код DTC");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(0x0301, freeze_dtc.value(), "freezeDTC должен вернуть правильный код DTC");
 }
 
 // Тест 6: freezeDTC - граничные значения
 void test_pid_02_freeze_dtc_boundary_values() {
-  g_mock_iso_tp.reset();
+  // Настраиваем мок для поддержки всех PID
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Максимальное значение: 0xFFFF
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0xFF, 0xFF);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FREEZE_DTC, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
-  g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto freeze_dtc = obd2.freezeDTC();
   TEST_ASSERT_TRUE_MESSAGE(freeze_dtc.has_value(), "freezeDTC должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      0xFFFF, freeze_dtc.value(), "freezeDTC должен обрабатывать максимальные значения");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(0xFFFF, freeze_dtc.value(), "freezeDTC должен обрабатывать максимальные значения");
 }
 
 // ============================================================================
@@ -210,11 +186,10 @@ void test_pid_02_freeze_dtc_boundary_values() {
 
 // Тест 7: fuelSystemStatus - нормальная работа
 void test_pid_03_fuel_system_status_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Статус: 02 00 (система 1 в замкнутом контуре, система 2 не используется)
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x02, 0x00);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x02, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -224,18 +199,14 @@ void test_pid_03_fuel_system_status_normal() {
 
   TEST_ASSERT_EQUAL_UINT16_MESSAGE(
       0x0200, fuel_status.value(), "fuelSystemStatus должен вернуть статус замкнутого контура");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 8: fuelSystemStatus - различные статусы
 void test_pid_03_fuel_system_status_various() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Статус: 01 08 (система 1 открытый контур, система 2 отключена)
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x01, 0x08);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, FUEL_SYSTEM_STATUS, 0x01, 0x08);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -249,9 +220,6 @@ void test_pid_03_fuel_system_status_various() {
 
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x01, system1, "Система 1 должна быть в открытом контуре");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x08, system2, "Система 2 должна быть отключена");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -260,11 +228,11 @@ void test_pid_03_fuel_system_status_various() {
 
 // Тест 9: engineLoad - валидные данные
 void test_pid_04_engine_load_valid_data() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Нагрузка: 0x80 (128) = 50.2%
   // Формула: A * 100 / 255
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x80);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -275,42 +243,32 @@ void test_pid_04_engine_load_valid_data() {
   // 128 * 100 / 255 = 50.196%
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 50.196f, (float)load.value(), "engineLoad должен вернуть правильный процент нагрузки");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 10: engineLoad - граничные значения
 void test_pid_04_engine_load_boundary_values() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Минимальная нагрузка: 0x00 = 0%
-  IIsoTp::Message response1 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x00);
+  MockMessage response1 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x00);
   g_mock_iso_tp.add_receive_message(response1);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto min_load = obd2.engineLoad();
   TEST_ASSERT_TRUE_MESSAGE(min_load.has_value(), "engineLoad должен вернуть значение");
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.01f, 0.0f, (float)min_load.value(), "Минимальная нагрузка должна быть 0%");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 0.0f, (float)min_load.value(), "Минимальная нагрузка должна быть 0%");
 
   // Максимальная нагрузка: 0xFF = 100%
-  g_mock_iso_tp.reset();
-  IIsoTp::Message response2 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0xFF);
+  setup_mock_for_all_pids(g_mock_iso_tp);
+  MockMessage response2 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0xFF);
   g_mock_iso_tp.add_receive_message(response2);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2_max(g_mock_iso_tp);
   auto max_load = obd2_max.engineLoad();
   TEST_ASSERT_TRUE_MESSAGE(max_load.has_value(), "engineLoad должен вернуть значение");
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.01f, 100.0f, (float)max_load.value(), "Максимальная нагрузка должна быть 100%");
-
-  if (response1.data)
-    delete[] response1.data;
-  if (response2.data)
-    delete[] response2.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f, 100.0f, (float)max_load.value(), "Максимальная нагрузка должна быть 100%");
 }
 
 // ============================================================================
@@ -319,12 +277,11 @@ void test_pid_04_engine_load_boundary_values() {
 
 // Тест 11: engineCoolantTemp - нормальная температура
 void test_pid_05_coolant_temp_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Температура: 0x5A (90) = 50°C
   // Формула: A - 40
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x5A);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x5A);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -335,44 +292,32 @@ void test_pid_05_coolant_temp_normal() {
   // 90 - 40 = 50°C
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 50.0f, (float)temp.value(), "engineCoolantTemp должен вернуть правильную температуру");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 12: engineCoolantTemp - экстремальные температуры
 void test_pid_05_coolant_temp_extreme() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Минимальная температура: 0x00 = -40°C
-  IIsoTp::Message response1 =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x00);
+  MockMessage response1 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0x00);
   g_mock_iso_tp.add_receive_message(response1);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2_min(g_mock_iso_tp);
   auto min_temp = obd2_min.engineCoolantTemp();
   TEST_ASSERT_TRUE_MESSAGE(min_temp.has_value(), "engineCoolantTemp должен вернуть значение");
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, -40.0f, (float)min_temp.value(), "Минимальная температура должна быть -40°C");
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, -40.0f, (float)min_temp.value(), "Минимальная температура должна быть -40°C");
 
   // Максимальная температура: 0xFF (255) = 215°C
-  g_mock_iso_tp.reset();
-  IIsoTp::Message response2 =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0xFF);
+  setup_mock_for_all_pids(g_mock_iso_tp);
+  MockMessage response2 = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_COOLANT_TEMP, 0xFF);
   g_mock_iso_tp.add_receive_message(response2);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2_max(g_mock_iso_tp);
   auto max_temp = obd2_max.engineCoolantTemp();
   TEST_ASSERT_TRUE_MESSAGE(max_temp.has_value(), "engineCoolantTemp должен вернуть значение");
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, 215.0f, (float)max_temp.value(), "Максимальная температура должна быть 215°C");
-
-  if (response1.data)
-    delete[] response1.data;
-  if (response2.data)
-    delete[] response2.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, 215.0f, (float)max_temp.value(), "Максимальная температура должна быть 215°C");
 }
 
 // ============================================================================
@@ -381,12 +326,11 @@ void test_pid_05_coolant_temp_extreme() {
 
 // Тест 13: shortTermFuelTrimBank_1 - нормальные значения
 void test_pid_06_short_term_fuel_trim_bank1() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Коррекция: 0x80 (128) = 0%
   // Формула: (A * 100 / 128) - 100
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_1, 0x80);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_1, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -394,22 +338,16 @@ void test_pid_06_short_term_fuel_trim_bank1() {
   auto trim = obd2.shortTermFuelTrimBank_1();
   TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermFuelTrimBank_1 должен вернуть значение");
   // (128 * 100 / 128) - 100 = 0%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f,
-                                   0.0f,
-                                   (float)trim.value(),
-                                   "shortTermFuelTrimBank_1 должен вернуть 0% при значении 0x80");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1f, 0.0f, (float)trim.value(), "shortTermFuelTrimBank_1 должен вернуть 0% при значении 0x80");
 }
 
 // Тест 14: longTermFuelTrimBank_1 - положительная коррекция
 void test_pid_07_long_term_fuel_trim_bank1_positive() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Коррекция: 0x90 (144) = +12.5%
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_1, 0x90);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_1, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -417,20 +355,15 @@ void test_pid_07_long_term_fuel_trim_bank1_positive() {
   auto trim = obd2.longTermFuelTrimBank_1();
   TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermFuelTrimBank_1 должен вернуть значение");
   // (144 * 100 / 128) - 100 = 12.5%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, 12.5f, (float)trim.value(), "longTermFuelTrimBank_1 должен вернуть +12.5%");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, 12.5f, (float)trim.value(), "longTermFuelTrimBank_1 должен вернуть +12.5%");
 }
 
 // Тест 15: shortTermFuelTrimBank_2 - отрицательная коррекция
 void test_pid_08_short_term_fuel_trim_bank2_negative() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Коррекция: 0x70 (112) = -12.5%
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_2, 0x70);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, SHORT_TERM_FUEL_TRIM_BANK_2, 0x70);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -438,20 +371,15 @@ void test_pid_08_short_term_fuel_trim_bank2_negative() {
   auto trim = obd2.shortTermFuelTrimBank_2();
   TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "shortTermFuelTrimBank_2 должен вернуть значение");
   // (112 * 100 / 128) - 100 = -12.5%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, -12.5f, (float)trim.value(), "shortTermFuelTrimBank_2 должен вернуть -12.5%");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, -12.5f, (float)trim.value(), "shortTermFuelTrimBank_2 должен вернуть -12.5%");
 }
 
 // Тест 16: longTermFuelTrimBank_2 - экстремальные значения
 void test_pid_09_long_term_fuel_trim_bank2_extreme() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Минимальная коррекция: 0x00 = -100%
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_2, 0x00);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, LONG_TERM_FUEL_TRIM_BANK_2, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -460,13 +388,7 @@ void test_pid_09_long_term_fuel_trim_bank2_extreme() {
   TEST_ASSERT_TRUE_MESSAGE(trim.has_value(), "longTermFuelTrimBank_2 должен вернуть значение");
   // (0 * 100 / 128) - 100 = -100%
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f,
-      -100.0f,
-      (float)trim.value(),
-      "longTermFuelTrimBank_2 должен вернуть -100% при минимальном значении");
-
-  if (response.data)
-    delete[] response.data;
+      0.1f, -100.0f, (float)trim.value(), "longTermFuelTrimBank_2 должен вернуть -100% при минимальном значении");
 }
 
 // ============================================================================
@@ -475,11 +397,11 @@ void test_pid_09_long_term_fuel_trim_bank2_extreme() {
 
 // Тест 17: fuelPressure - нормальное давление
 void test_pid_0a_fuel_pressure_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Давление: 0x50 (80) = 240 kPa
   // Формула: A * 3
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0x50);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0x50);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -490,17 +412,14 @@ void test_pid_0a_fuel_pressure_normal() {
   // 80 * 3 = 240 kPa
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 240.0f, (float)pressure.value(), "fuelPressure должен вернуть правильное давление");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 18: fuelPressure - максимальное давление
 void test_pid_0a_fuel_pressure_maximum() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Максимальное давление: 0xFF (255) = 765 kPa
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0xFF);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, FUEL_PRESSURE, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -509,13 +428,8 @@ void test_pid_0a_fuel_pressure_maximum() {
   TEST_ASSERT_TRUE_MESSAGE(pressure.has_value(), "fuelPressure должен вернуть значение");
 
   // 255 * 3 = 765 kPa
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f,
-                                   765.0f,
-                                   (float)pressure.value(),
-                                   "fuelPressure должен обрабатывать максимальные значения");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1f, 765.0f, (float)pressure.value(), "fuelPressure должен обрабатывать максимальные значения");
 }
 
 // ============================================================================
@@ -524,42 +438,32 @@ void test_pid_0a_fuel_pressure_maximum() {
 
 // Тест 19: manifoldPressure - нормальное давление
 void test_pid_0b_manifold_pressure_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Давление: 0x65 (101) = 101 kPa (атмосферное)
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x65);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x65);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto pressure = obd2.manifoldPressure();
   TEST_ASSERT_TRUE_MESSAGE(pressure.has_value(), "manifoldPressure должен вернуть значение");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      101, pressure.value(), "manifoldPressure должен вернуть атмосферное давление");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(101, pressure.value(), "manifoldPressure должен вернуть атмосферное давление");
 }
 
 // Тест 20: manifoldPressure - вакуум
 void test_pid_0b_manifold_pressure_vacuum() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Вакуум: 0x30 (48) = 48 kPa
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x30);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_MANIFOLD_ABS_PRESSURE, 0x30);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto pressure = obd2.manifoldPressure();
   TEST_ASSERT_TRUE_MESSAGE(pressure.has_value(), "manifoldPressure должен вернуть значение");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      48, pressure.value(), "manifoldPressure должен обрабатывать вакуум");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(48, pressure.value(), "manifoldPressure должен обрабатывать вакуум");
 }
 
 // ============================================================================
@@ -568,11 +472,11 @@ void test_pid_0b_manifold_pressure_vacuum() {
 
 // Тест 21: rpm - холостой ход
 void test_pid_0c_rpm_idle() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // RPM: 0x0C 0x1C (3100) = 775 rpm
   // Формула: ((A * 256) + B) / 4
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x0C, 0x1C);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x0C, 0x1C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -580,21 +484,16 @@ void test_pid_0c_rpm_idle() {
   auto rpm_value = obd2.rpm();
   TEST_ASSERT_TRUE_MESSAGE(rpm_value.has_value(), "rpm должен вернуть значение");
   // ((12 * 256) + 28) / 4 = 3100 / 4 = 775 rpm
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f,
-                                   775.0f,
-                                   (float)rpm_value.value(),
-                                   "rpm должен вернуть правильные обороты холостого хода");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1f, 775.0f, (float)rpm_value.value(), "rpm должен вернуть правильные обороты холостого хода");
 }
 
 // Тест 22: rpm - высокие обороты
 void test_pid_0c_rpm_high() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // RPM: 0x1A 0xF8 (6904) = 1726 rpm
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x1A, 0xF8);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x1A, 0xF8);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -604,9 +503,6 @@ void test_pid_0c_rpm_high() {
   // ((26 * 256) + 248) / 4 = 6904 / 4 = 1726 rpm
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 1726.0f, (float)rpm_value.value(), "rpm должен вернуть правильные высокие обороты");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -615,29 +511,25 @@ void test_pid_0c_rpm_high() {
 
 // Тест 23: kph - городская скорость
 void test_pid_0d_kph_city_speed() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Скорость: 0x3C (60) = 60 km/h
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0x3C);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0x3C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto speed = obd2.kph();
   TEST_ASSERT_TRUE_MESSAGE(speed.has_value(), "kph должен вернуть значение");
-  TEST_ASSERT_EQUAL_INT32_MESSAGE(
-      60, speed.value(), "kph должен вернуть правильную городскую скорость");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(60, speed.value(), "kph должен вернуть правильную городскую скорость");
 }
 
 // Тест 24: kph - максимальная скорость
 void test_pid_0d_kph_maximum() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Максимальная скорость: 0xFF (255) = 255 km/h
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0xFF);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, VEHICLE_SPEED, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -645,11 +537,7 @@ void test_pid_0d_kph_maximum() {
   auto speed = obd2.kph();
   TEST_ASSERT_TRUE_MESSAGE(speed.has_value(), "kph должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_INT32_MESSAGE(
-      255, speed.value(), "kph должен обрабатывать максимальную скорость");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_INT32_MESSAGE(255, speed.value(), "kph должен обрабатывать максимальную скорость");
 }
 
 // ============================================================================
@@ -658,11 +546,11 @@ void test_pid_0d_kph_maximum() {
 
 // Тест 25: timingAdvance - нормальный угол
 void test_pid_0e_timing_advance_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Угол: 0x80 (128) = 0°
   // Формула: (A / 2) - 64
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x80);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x80);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -673,17 +561,14 @@ void test_pid_0e_timing_advance_normal() {
   // (128 / 2) - 64 = 64 - 64 = 0°
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 0.0f, (float)advance.value(), "timingAdvance должен вернуть 0° при значении 0x80");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 26: timingAdvance - опережение зажигания
 void test_pid_0e_timing_advance_positive() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Угол: 0x90 (144) = 8°
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x90);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, TIMING_ADVANCE, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -692,13 +577,8 @@ void test_pid_0e_timing_advance_positive() {
   TEST_ASSERT_TRUE_MESSAGE(advance.has_value(), "timingAdvance должен вернуть значение");
 
   // (144 / 2) - 64 = 72 - 64 = 8°
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f,
-                                   8.0f,
-                                   (float)advance.value(),
-                                   "timingAdvance должен вернуть положительный угол опережения");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.1f, 8.0f, (float)advance.value(), "timingAdvance должен вернуть положительный угол опережения");
 }
 
 // ============================================================================
@@ -707,11 +587,11 @@ void test_pid_0e_timing_advance_positive() {
 
 // Тест 27: intakeAirTemp - комнатная температура
 void test_pid_0f_intake_air_temp_room() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Температура: 0x3C (60) = 20°C
   // Формула: A - 40
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x3C);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x3C);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -722,17 +602,14 @@ void test_pid_0f_intake_air_temp_room() {
   // 60 - 40 = 20°C
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 20.0f, (float)temp.value(), "intakeAirTemp должен вернуть комнатную температуру");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 28: intakeAirTemp - горячий воздух
 void test_pid_0f_intake_air_temp_hot() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Горячий воздух: 0x78 (120) = 80°C
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x78);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, INTAKE_AIR_TEMP, 0x78);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -743,9 +620,6 @@ void test_pid_0f_intake_air_temp_hot() {
   // 120 - 40 = 80°C
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.1f, 80.0f, (float)temp.value(), "intakeAirTemp должен обрабатывать горячий воздух");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -754,12 +628,11 @@ void test_pid_0f_intake_air_temp_hot() {
 
 // Тест 29: mafRate - нормальный расход
 void test_pid_10_maf_rate_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // MAF: 0x01 0x90 (400) = 4.0 g/s
   // Формула: ((A * 256) + B) / 100
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x01, 0x90);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x01, 0x90);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -768,20 +641,15 @@ void test_pid_10_maf_rate_normal() {
   TEST_ASSERT_TRUE_MESSAGE(maf.has_value(), "mafRate должен вернуть значение");
 
   // ((1 * 256) + 144) / 100 = 400 / 100 = 4.0 g/s
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, 4.0f, (float)maf.value(), "mafRate должен вернуть правильный расход воздуха");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, 4.0f, (float)maf.value(), "mafRate должен вернуть правильный расход воздуха");
 }
 
 // Тест 30: mafRate - высокий расход
 void test_pid_10_maf_rate_high() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Высокий MAF: 0x0A 0x00 (2560) = 25.6 g/s
-  IIsoTp::Message response =
-      create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x0A, 0x00);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, MAF_FLOW_RATE, 0x0A, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -790,11 +658,7 @@ void test_pid_10_maf_rate_high() {
   TEST_ASSERT_TRUE_MESSAGE(maf.has_value(), "mafRate должен вернуть значение");
 
   // ((10 * 256) + 0) / 100 = 2560 / 100 = 25.6 g/s
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
-      0.1f, 25.6f, (float)maf.value(), "mafRate должен обрабатывать высокий расход");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.1f, 25.6f, (float)maf.value(), "mafRate должен обрабатывать высокий расход");
 }
 
 // ============================================================================
@@ -803,11 +667,11 @@ void test_pid_10_maf_rate_high() {
 
 // Тест 31: throttle - закрытая заслонка
 void test_pid_11_throttle_closed() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Заслонка: 0x00 (0) = 0%
   // Формула: A * 100 / 255
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0x00);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -816,17 +680,14 @@ void test_pid_11_throttle_closed() {
   TEST_ASSERT_TRUE_MESSAGE(throttle_pos.has_value(), "throttle должен вернуть значение");
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.01f, 0.0f, (float)throttle_pos.value(), "throttle должен вернуть 0% для закрытой заслонки");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 32: throttle - полностью открытая заслонка
 void test_pid_11_throttle_wide_open() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Заслонка: 0xFF (255) = 100%
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0xFF);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, THROTTLE_POSITION, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -834,13 +695,8 @@ void test_pid_11_throttle_wide_open() {
   auto throttle_pos = obd2.throttle();
   TEST_ASSERT_TRUE_MESSAGE(throttle_pos.has_value(), "throttle должен вернуть значение");
   // 255 * 100 / 255 = 100%
-  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(0.01f,
-                                   100.0f,
-                                   (float)throttle_pos.value(),
-                                   "throttle должен вернуть 100% для полностью открытой заслонки");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
+      0.01f, 100.0f, (float)throttle_pos.value(), "throttle должен вернуть 100% для полностью открытой заслонки");
 }
 
 // ============================================================================
@@ -849,11 +705,10 @@ void test_pid_11_throttle_wide_open() {
 
 // Тест 33: commandedSecAirStatus - система выключена
 void test_pid_12_secondary_air_status_off() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Статус: 0x00 = система выключена
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x00);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -862,18 +717,14 @@ void test_pid_12_secondary_air_status_off() {
   TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "commandedSecAirStatus должен вернуть значение");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(
       0x00, status.value(), "commandedSecAirStatus должен вернуть статус выключенной системы");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 34: commandedSecAirStatus - система включена
 void test_pid_12_secondary_air_status_on() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Статус: 0x01 = система включена
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x01);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, COMMANDED_SECONDARY_AIR_STATUS, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -882,9 +733,6 @@ void test_pid_12_secondary_air_status_on() {
   TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "commandedSecAirStatus должен вернуть значение");
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(
       0x01, status.value(), "commandedSecAirStatus должен вернуть статус включенной системы");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -893,39 +741,31 @@ void test_pid_12_secondary_air_status_on() {
 
 // Тест 35: oxygenSensorsPresent_2banks - все датчики присутствуют
 void test_pid_13_oxygen_sensors_all_present() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Датчики: 0xFF = все 8 датчиков присутствуют
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0xFF);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto sensors = obd2.oxygenSensorsPresent_2banks();
-  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
-                           "oxygenSensorsPresent_2banks должен вернуть значение");
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0xFF, sensors.value(), "oxygenSensorsPresent_2banks должен показать все датчики");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(), "oxygenSensorsPresent_2banks должен вернуть значение");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xFF, sensors.value(), "oxygenSensorsPresent_2banks должен показать все датчики");
 }
 
 // Тест 36: oxygenSensorsPresent_2banks - частичное присутствие
 void test_pid_13_oxygen_sensors_partial() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Датчики: 0x0F = только банк 1 (датчики 1-4)
-  IIsoTp::Message response =
-      create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0x0F);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, OXYGEN_SENSORS_PRESENT_2_BANKS, 0x0F);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto sensors = obd2.oxygenSensorsPresent_2banks();
-  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
-                           "oxygenSensorsPresent_2banks должен вернуть значение");
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(), "oxygenSensorsPresent_2banks должен вернуть значение");
 
   // Проверяем биты банка 1
   uint8_t sensors_val = sensors.value();
@@ -940,9 +780,6 @@ void test_pid_13_oxygen_sensors_partial() {
   TEST_ASSERT_TRUE_MESSAGE(bank1_sensor3, "Банк 1 датчик 3 должен присутствовать");
   TEST_ASSERT_TRUE_MESSAGE(bank1_sensor4, "Банк 1 датчик 4 должен присутствовать");
   TEST_ASSERT_FALSE_MESSAGE(bank2_sensor1, "Банк 2 датчик 1 не должен присутствовать");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -955,10 +792,10 @@ void test_pid_13_oxygen_sensors_partial() {
 
 // Тест 37: obdStandards - валидные данные
 void test_pid_1c_obd_standards_valid_data() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // OBD Standards: 0x07 = OBD-II as defined by CARB
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x07);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x07);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -966,19 +803,15 @@ void test_pid_1c_obd_standards_valid_data() {
   auto standards = obd2.obdStandards();
   TEST_ASSERT_TRUE_MESSAGE(standards.has_value(), "obdStandards должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x07, standards.value(), "obdStandards должен вернуть правильный код стандарта");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x07, standards.value(), "obdStandards должен вернуть правильный код стандарта");
 }
 
 // Тест 38: obdStandards - различные стандарты
 void test_pid_1c_obd_standards_various() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // OBD Standards: 0x01 = OBD-II as defined by EPA
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x01);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1C, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -986,11 +819,7 @@ void test_pid_1c_obd_standards_various() {
   auto standards = obd2.obdStandards();
   TEST_ASSERT_TRUE_MESSAGE(standards.has_value(), "obdStandards должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0x01, standards.value(), "obdStandards должен поддерживать различные стандарты");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0x01, standards.value(), "obdStandards должен поддерживать различные стандарты");
 }
 
 // ============================================================================
@@ -999,44 +828,35 @@ void test_pid_1c_obd_standards_various() {
 
 // Тест 39: oxygenSensorsPresent_4banks - все датчики присутствуют
 void test_pid_1d_oxygen_sensors_4banks_all_present() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Все датчики присутствуют: 0xFF
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0xFF);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto sensors = obd2.oxygenSensorsPresent_4banks();
-  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
-                           "oxygenSensorsPresent_4banks должен вернуть значение");
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(), "oxygenSensorsPresent_4banks должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      0xFF, sensors.value(), "oxygenSensorsPresent_4banks должен показать все датчики");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(0xFF, sensors.value(), "oxygenSensorsPresent_4banks должен показать все датчики");
 }
 
 // Тест 40: oxygenSensorsPresent_4banks - частичное присутствие
 void test_pid_1d_oxygen_sensors_4banks_partial() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Только первые 4 датчика: 0x0F (B1S1, B1S2, B2S1, B2S2)
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0x0F);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1D, 0x0F);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
   OBD2 obd2(g_mock_iso_tp);
   auto sensors = obd2.oxygenSensorsPresent_4banks();
-  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(),
-                           "oxygenSensorsPresent_4banks должен вернуть значение");
+  TEST_ASSERT_TRUE_MESSAGE(sensors.has_value(), "oxygenSensorsPresent_4banks должен вернуть значение");
 
   TEST_ASSERT_EQUAL_UINT8_MESSAGE(
       0x0F, sensors.value(), "oxygenSensorsPresent_4banks должен показать частичное присутствие");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -1045,10 +865,10 @@ void test_pid_1d_oxygen_sensors_4banks_partial() {
 
 // Тест 41: auxInputStatus - PTO активен
 void test_pid_1e_aux_input_status_active() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // PTO активен: 0x01
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x01);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x01);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1057,17 +877,14 @@ void test_pid_1e_aux_input_status_active() {
   TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "auxInputStatus должен вернуть значение");
 
   TEST_ASSERT_TRUE_MESSAGE(status.value(), "auxInputStatus должен показать активный статус");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // Тест 42: auxInputStatus - PTO неактивен
 void test_pid_1e_aux_input_status_inactive() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // PTO неактивен: 0x00
-  IIsoTp::Message response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x00);
+  MockMessage response = create_obd_response_1_byte(0x7E8, SERVICE_01, 0x1E, 0x00);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1076,9 +893,6 @@ void test_pid_1e_aux_input_status_inactive() {
   TEST_ASSERT_TRUE_MESSAGE(status.has_value(), "auxInputStatus должен вернуть значение");
 
   TEST_ASSERT_FALSE_MESSAGE(status.value(), "auxInputStatus должен показать неактивный статус");
-
-  if (response.data)
-    delete[] response.data;
 }
 
 // ============================================================================
@@ -1087,10 +901,10 @@ void test_pid_1e_aux_input_status_inactive() {
 
 // Тест 43: runTime - нормальное время работы
 void test_pid_1f_run_time_normal() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Время работы: 0x0258 = 600 секунд (10 минут)
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0x02, 0x58);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0x02, 0x58);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1098,19 +912,15 @@ void test_pid_1f_run_time_normal() {
   auto runtime = obd2.runTime();
   TEST_ASSERT_TRUE_MESSAGE(runtime.has_value(), "runTime должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      600, runtime.value(), "runTime должен вернуть правильное время в секундах");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(600, runtime.value(), "runTime должен вернуть правильное время в секундах");
 }
 
 // Тест 44: runTime - максимальное время
 void test_pid_1f_run_time_max() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Максимальное время: 0xFFFF = 65535 секунд
-  IIsoTp::Message response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0xFF, 0xFF);
+  MockMessage response = create_obd_response_2_bytes(0x7E8, SERVICE_01, 0x1F, 0xFF, 0xFF);
   g_mock_iso_tp.add_receive_message(response);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1118,18 +928,13 @@ void test_pid_1f_run_time_max() {
   auto runtime = obd2.runTime();
   TEST_ASSERT_TRUE_MESSAGE(runtime.has_value(), "runTime должен вернуть значение");
 
-  TEST_ASSERT_EQUAL_UINT16_MESSAGE(
-      65535, runtime.value(), "runTime должен обрабатывать максимальные значения");
-
-  if (response.data)
-    delete[] response.data;
+  TEST_ASSERT_EQUAL_UINT16_MESSAGE(65535, runtime.value(), "runTime должен обрабатывать максимальные значения");
 }
 
 // Тест 45: oxygenSensor1 - проверка существования константы
 void test_pid_14_oxygen_sensor_1_constant() {
   // Проверяем, что константа определена правильно
-  TEST_ASSERT_EQUAL_UINT8_MESSAGE(
-      20, OXYGEN_SENSOR_1_A, "OXYGEN_SENSOR_1_A должен иметь значение 20 (0x14)");
+  TEST_ASSERT_EQUAL_UINT8_MESSAGE(20, OXYGEN_SENSOR_1_A, "OXYGEN_SENSOR_1_A должен иметь значение 20 (0x14)");
 }
 
 // ============================================================================
@@ -1139,10 +944,10 @@ void test_pid_14_oxygen_sensor_1_constant() {
 // Тест 38: Проверка всех формул с реальными данными автомобиля
 void test_real_car_data_formulas() {
   // Реальные данные с Toyota Camry 2018
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // ENGINE_LOAD: 45% (0x73 = 115)
-  IIsoTp::Message load_msg = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x73);
+  MockMessage load_msg = create_obd_response_1_byte(0x7E8, SERVICE_01, ENGINE_LOAD, 0x73);
   g_mock_iso_tp.add_receive_message(load_msg);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1153,17 +958,14 @@ void test_real_car_data_formulas() {
   // 115 * 100 / 255 = 45.1%
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.5f, 45.1f, (float)load.value(), "Реальные данные: нагрузка двигателя должна быть ~45%");
-
-  if (load_msg.data)
-    delete[] load_msg.data;
 }
 
 // Тест 39: Проверка обработки ошибок и нулевых значений
 void test_error_handling_and_zero_values() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Тест с нулевыми значениями для RPM
-  IIsoTp::Message rpm_zero = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x00, 0x00);
+  MockMessage rpm_zero = create_obd_response_2_bytes(0x7E8, SERVICE_01, ENGINE_RPM, 0x00, 0x00);
   g_mock_iso_tp.add_receive_message(rpm_zero);
   g_mock_iso_tp.set_receive_result(true);
 
@@ -1173,14 +975,11 @@ void test_error_handling_and_zero_values() {
 
   TEST_ASSERT_FLOAT_WITHIN_MESSAGE(
       0.01f, 0.0f, (float)rpm_value.value(), "RPM должен корректно обрабатывать нулевые значения");
-
-  if (rpm_zero.data)
-    delete[] rpm_zero.data;
 }
 
 // Тест 40: Комплексный тест всех PID группы 1-20
 void test_comprehensive_pid_group_1_20() {
-  g_mock_iso_tp.reset();
+  setup_mock_for_all_pids(g_mock_iso_tp);
 
   // Создаем объект OBD2
   OBD2 obd2(g_mock_iso_tp);

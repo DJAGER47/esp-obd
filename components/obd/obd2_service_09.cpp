@@ -20,7 +20,7 @@ static const char* const TAG = "OBD2_VIN";
  */
 std::optional<uint32_t> OBD2::supportedPIDs_Service09() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_SUPPORTED_PIDS_01_20, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_SUPPORTED_PIDS_01_20, response)) {
     return {(response[A] << 24) | (response[B] << 16) | (response[C] << 8) | response[D]};
   }
   return std::nullopt;
@@ -36,7 +36,7 @@ std::optional<uint32_t> OBD2::supportedPIDs_Service09() {
  */
 std::optional<uint8_t> OBD2::vinMessageCount() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_VIN_MESSAGE_COUNT, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_VIN_MESSAGE_COUNT, response)) {
     return response[A];
   }
   return std::nullopt;
@@ -111,7 +111,7 @@ bool OBD2::getVIN(char* vin_buffer, size_t buffer_size) {
  */
 std::optional<uint8_t> OBD2::calibrationIdMessageCount() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_CALIB_ID_MESSAGE_COUNT, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_CALIB_ID_MESSAGE_COUNT, response)) {
     return response[A];
   }
   return std::nullopt;
@@ -180,7 +180,7 @@ bool OBD2::getCalibrationId(char* calib_buffer, size_t buffer_size) {
  */
 std::optional<uint8_t> OBD2::cvnMessageCount() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_CVN_MESSAGE_COUNT, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_CVN_MESSAGE_COUNT, response)) {
     return response[A];
   }
   return std::nullopt;
@@ -252,7 +252,7 @@ bool OBD2::getCalibrationVerificationNumbers(uint32_t* cvn_buffer, size_t buffer
  */
 std::optional<uint8_t> OBD2::performanceTrackingMessageCount() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_PERF_TRACK_MESSAGE_COUNT, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_PERF_TRACK_MESSAGE_COUNT, response)) {
     return response[A];
   }
   return std::nullopt;
@@ -315,7 +315,7 @@ bool OBD2::getPerformanceTrackingSparkIgnition(uint16_t* tracking_buffer, size_t
  */
 std::optional<uint8_t> OBD2::ecuNameMessageCount() {
   ResponseType response;
-  if (processPID(SERVICE_09, SERVICE_09_ECU_NAME_MESSAGE_COUNT, response)) {
+  if (ProcessPid(SERVICE_09, SERVICE_09_ECU_NAME_MESSAGE_COUNT, response)) {
     return response[A];
   }
   return std::nullopt;

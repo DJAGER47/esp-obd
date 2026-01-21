@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstring>
 #include <queue>
 #include <vector>
@@ -114,6 +115,44 @@ static const uint8_t ENGINE_REFERENCE_TORQUE        = 99;   // 0x63 - Nm
 static const uint8_t ENGINE_PERCENT_TORQUE_DATA     = 100;  // 0x64 - %
 static const uint8_t AUX_INPUT_OUTPUT_SUPPORTED     = 101;  // 0x65 - bit encoded
 
+// Дополнительные константы для PID 81-140
+static const uint8_t SUPPORTED_PIDS_81_100  = 128;  // 0x80 - bit encoded
+static const uint8_t SUPPORTED_PIDS_101_120 = 160;  // 0xA0 - bit encoded
+static const uint8_t SUPPORTED_PIDS_121_140 = 192;  // 0xC0 - bit encoded
+
+// Структура для хранения сообщения с использованием std::array вместо динамической памяти
+struct MockMessage {
+  uint32_t tx_id              = 0;
+  uint32_t rx_id              = 0;
+  size_t len                  = 0;
+  std::array<uint8_t, 8> data = {0};  // Максимальный размер для OBD2 сообщений
+
+  // Конструктор по умолчанию
+  MockMessage() = default;
+
+  // Конструктор преобразования из IIsoTp::Message
+  MockMessage(const IIsoTp::Message& msg) :
+      tx_id(msg.tx_id),
+      rx_id(msg.rx_id),
+      len(msg.len) {
+    if (msg.data && msg.len > 0) {
+      size_t copy_len = std::min(msg.len, data.size());
+      std::copy(msg.data, msg.data + copy_len, data.begin());
+    }
+  }
+
+  // Оператор преобразования в IIsoTp::Message
+  operator IIsoTp::Message() const {
+    IIsoTp::Message msg;
+    msg.tx_id = tx_id;
+    msg.rx_id = rx_id;
+    msg.len   = len;
+    // Важно: не освобождаем эту память, так как она будет использоваться в receive
+    msg.data = const_cast<uint8_t*>(data.data());
+    return msg;
+  }
+};
+
 // Мок-класс для IsoTp для тестирования OBD2 протокола
 // Наследуется от IIsoTp и полностью мокает поведение IsoTp
 class MockIsoTp : public IIsoTp {
@@ -133,7 +172,18 @@ class MockIsoTp : public IIsoTp {
   bool receive(Message& message, size_t size_buffer) override {
     receive_called = true;
     if (!receive_messages.empty()) {
-      message = receive_messages.front();
+      // Копируем данные из MockMessage в Message
+      const MockMessage& mock_msg = receive_messages.front();
+      message.tx_id               = mock_msg.tx_id;
+      message.rx_id               = mock_msg.rx_id;
+      message.len                 = mock_msg.len;
+
+      // Копируем данные в предоставленный буфер
+      if (message.data && mock_msg.len > 0) {
+        size_t copy_len = std::min(mock_msg.len, size_buffer);
+        std::copy(mock_msg.data.begin(), mock_msg.data.begin() + copy_len, message.data);
+      }
+
       receive_messages.pop();
       return receive_result;
     }
@@ -153,7 +203,7 @@ class MockIsoTp : public IIsoTp {
   }
 
   void add_receive_message(const Message& message) {
-    receive_messages.push(message);
+    receive_messages.push(MockMessage(message));
   }
 
   void set_send_result(bool result) {
@@ -166,7 +216,7 @@ class MockIsoTp : public IIsoTp {
 
   // Публичные поля для проверки в тестах
   std::vector<Message> sent_messages;
-  std::queue<Message> receive_messages;
+  std::queue<MockMessage> receive_messages;
   Message last_sent_message;
   bool send_called    = false;
   bool receive_called = false;
@@ -177,87 +227,120 @@ class MockIsoTp : public IIsoTp {
 // Вспомогательные функции для создания OBD2 сообщений
 
 // Создание OBD2 ответа для одного байта данных
-inline IIsoTp::Message create_obd_response_1_byte(uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data) {
-  IIsoTp::Message msg;
-  msg.tx_id   = 0x7DF;  // Стандартный OBD2 запрос ID
-  msg.rx_id   = rx_id;
-  msg.len     = 4;
-  msg.data    = new uint8_t[4];
-  msg.data[0] = service + 0x40;  // Положительный ответ
-  msg.data[1] = pid;
-  msg.data[2] = data;
-  msg.data[3] = 0x00;  // Заполнение
-  return msg;
+inline MockMessage create_obd_response_1_byte(uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data) {
+  MockMessage mock_msg;
+  mock_msg.tx_id   = 0x7DF;  // Стандартный OBD2 запрос ID
+  mock_msg.rx_id   = rx_id;
+  mock_msg.len     = 4;
+  mock_msg.data[0] = service + 0x40;  // Положительный ответ
+  mock_msg.data[1] = pid;
+  mock_msg.data[2] = data;
+  mock_msg.data[3] = 0x00;  // Заполнение
+  return mock_msg;
 }
 
 // Создание OBD2 ответа для двух байт данных
-inline IIsoTp::Message create_obd_response_2_bytes(
+inline MockMessage create_obd_response_2_bytes(
     uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data_a, uint8_t data_b) {
-  IIsoTp::Message msg;
-  msg.tx_id   = 0x7DF;
-  msg.rx_id   = rx_id;
-  msg.len     = 5;
-  msg.data    = new uint8_t[5];
-  msg.data[0] = service + 0x40;
-  msg.data[1] = pid;
-  msg.data[2] = data_a;
-  msg.data[3] = data_b;
-  msg.data[4] = 0x00;
-  return msg;
+  MockMessage mock_msg;
+  mock_msg.tx_id   = 0x7DF;
+  mock_msg.rx_id   = rx_id;
+  mock_msg.len     = 5;
+  mock_msg.data[0] = service + 0x40;
+  mock_msg.data[1] = pid;
+  mock_msg.data[2] = data_a;
+  mock_msg.data[3] = data_b;
+  mock_msg.data[4] = 0x00;
+  return mock_msg;
 }
 
 // Создание OBD2 ответа для четырех байт данных (например, для supportedPIDs)
-inline IIsoTp::Message create_obd_response_4_bytes(
+inline MockMessage create_obd_response_4_bytes(
     uint32_t rx_id, uint8_t service, uint8_t pid, uint8_t data_a, uint8_t data_b, uint8_t data_c, uint8_t data_d) {
-  IIsoTp::Message msg;
-  msg.tx_id   = 0x7DF;
-  msg.rx_id   = rx_id;
-  msg.len     = 7;
-  msg.data    = new uint8_t[7];
-  msg.data[0] = service + 0x40;
-  msg.data[1] = pid;
-  msg.data[2] = data_a;
-  msg.data[3] = data_b;
-  msg.data[4] = data_c;
-  msg.data[5] = data_d;
-  msg.data[6] = 0x00;
-  return msg;
+  MockMessage mock_msg;
+  mock_msg.tx_id   = 0x7DF;
+  mock_msg.rx_id   = rx_id;
+  mock_msg.len     = 7;
+  mock_msg.data[0] = service + 0x40;
+  mock_msg.data[1] = pid;
+  mock_msg.data[2] = data_a;
+  mock_msg.data[3] = data_b;
+  mock_msg.data[4] = data_c;
+  mock_msg.data[5] = data_d;
+  mock_msg.data[6] = 0x00;
+  return mock_msg;
 }
 
 // Создание OBD2 ответа для пяти байт данных
-inline IIsoTp::Message create_obd_response_5_bytes(uint32_t rx_id,
-                                                   uint8_t service,
-                                                   uint8_t pid,
-                                                   uint8_t data_a,
-                                                   uint8_t data_b,
-                                                   uint8_t data_c,
-                                                   uint8_t data_d,
-                                                   uint8_t data_e) {
-  IIsoTp::Message msg;
-  msg.tx_id   = 0x7DF;
-  msg.rx_id   = rx_id;
-  msg.len     = 8;
-  msg.data    = new uint8_t[8];
-  msg.data[0] = service + 0x40;
-  msg.data[1] = pid;
-  msg.data[2] = data_a;
-  msg.data[3] = data_b;
-  msg.data[4] = data_c;
-  msg.data[5] = data_d;
-  msg.data[6] = data_e;
-  msg.data[7] = 0x00;
-  return msg;
+inline MockMessage create_obd_response_5_bytes(uint32_t rx_id,
+                                               uint8_t service,
+                                               uint8_t pid,
+                                               uint8_t data_a,
+                                               uint8_t data_b,
+                                               uint8_t data_c,
+                                               uint8_t data_d,
+                                               uint8_t data_e) {
+  MockMessage mock_msg;
+  mock_msg.tx_id   = 0x7DF;
+  mock_msg.rx_id   = rx_id;
+  mock_msg.len     = 8;
+  mock_msg.data[0] = service + 0x40;
+  mock_msg.data[1] = pid;
+  mock_msg.data[2] = data_a;
+  mock_msg.data[3] = data_b;
+  mock_msg.data[4] = data_c;
+  mock_msg.data[5] = data_d;
+  mock_msg.data[6] = data_e;
+  mock_msg.data[7] = 0x00;
+  return mock_msg;
 }
 
 // Создание сообщения об ошибке OBD2
-inline IIsoTp::Message create_obd_error_response(uint32_t rx_id, uint8_t service, uint8_t error_code) {
-  IIsoTp::Message msg;
-  msg.tx_id   = 0x7DF;
-  msg.rx_id   = rx_id;
-  msg.len     = 3;
-  msg.data    = new uint8_t[3];
-  msg.data[0] = 0x7F;  // Негативный ответ
-  msg.data[1] = service;
-  msg.data[2] = error_code;
-  return msg;
+inline MockMessage create_obd_error_response(uint32_t rx_id, uint8_t service, uint8_t error_code) {
+  MockMessage mock_msg;
+  mock_msg.tx_id   = 0x7DF;
+  mock_msg.rx_id   = rx_id;
+  mock_msg.len     = 3;
+  mock_msg.data[0] = 0x7F;  // Негативный ответ
+  mock_msg.data[1] = service;
+  mock_msg.data[2] = error_code;
+  return mock_msg;
+}
+
+// Функция для настройки мока на поддержку всех PID
+inline void setup_mock_for_all_pids(MockIsoTp& mock) {
+  mock.reset();
+
+  // Настраиваем поддержку всех PID 1-20
+  MockMessage pids_1_20 = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_1_20, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_1_20);
+
+  // Настраиваем поддержку всех PID 21-40
+  MockMessage pids_21_40 = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_21_40, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_21_40);
+
+  // Настраиваем поддержку всех PID 41-60
+  MockMessage pids_41_60 = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_41_60, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_41_60);
+
+  // Настраиваем поддержку всех PID 61-80
+  MockMessage pids_61_80 = create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_61_80, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_61_80);
+
+  // Настраиваем поддержку всех PID 81-100
+  MockMessage pids_81_100 =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_81_100, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_81_100);
+
+  // Настраиваем поддержку всех PID 101-120
+  MockMessage pids_101_120 =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_101_120, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_101_120);
+
+  // Настраиваем поддержку всех PID 121-140
+  MockMessage pids_121_140 =
+      create_obd_response_4_bytes(0x7E8, SERVICE_01, SUPPORTED_PIDS_121_140, 0xFF, 0xFF, 0xFF, 0xFF);
+  mock.add_receive_message(pids_121_140);
+
+  mock.set_receive_result(true);
 }

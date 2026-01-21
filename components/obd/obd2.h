@@ -14,8 +14,7 @@ class OBD2 final {
 
   OBD2(IIsoTp& driver, uint16_t tx_id = 0x7DF, uint16_t rx_id = 0x7E8);
 
-  // pid
-  bool isPidSupported(uint8_t pid);
+  bool IsPidSupported(uint8_t pid);
 
 #if 1  // 1 - 20
   std::optional<uint32_t> supportedPIDs_1_20();
@@ -178,10 +177,8 @@ class OBD2 final {
   std::optional<std::array<float, 4>> fuelSystemPercentageUse();
 #endif
 
+#if 1  // 101-120
   std::optional<uint32_t> supportedPIDs101_120();
-  std::optional<uint32_t> supportedPIDs121_140();
-
-  // PIDs 101-120
   // std::optional<uint16_t> auxInputOutputSupported();
   // std::optional<std::array<float, 2>> massAirFlowSensor();
   // std::optional<std::array<int16_t, 2>> engineCoolantTempSensors();
@@ -202,25 +199,28 @@ class OBD2 final {
   // std::optional<std::array<int16_t, 4>> turbochargerTemperature2();
   // std::optional<int16_t> chargeAirCoolerTemp();
   // std::optional<std::array<int16_t, 2>> exhaustGasTempBank1();
+#endif
 
-  // PIDs 121-140
-  // std::optional<std::array<uint16_t, 4>> noxSensorCorrectedData();
-  // std::optional<float> cylinderFuelRate();
-  // std::optional<std::array<int16_t, 4>> evapSystemVaporPressure();
-  // std::optional<float> transmissionActualGear();
-  // std::optional<float> commandedDieselExhaustFluidDosing();
-  // std::optional<uint32_t> odometer();
-  // std::optional<std::array<uint16_t, 2>> noxSensorConcentration34();
-  // std::optional<std::array<uint16_t, 2>> noxSensorCorrectedConcentration34();
-  // std::optional<bool> absDisableSwitchState();
-  // std::optional<std::array<float, 2>> fuelLevelInputAB();
-  // std::optional<std::array<uint32_t, 2>> exhaustParticulateControlSystemDiagnostic();
-  // std::optional<std::array<uint16_t, 2>> fuelPressureAB();
-  // std::optional<std::array<uint16_t, 5>> particulateControlDriverInducementSystem();
-  // std::optional<uint16_t> distanceSinceReflashOrModuleReplacement();
-  // std::optional<uint8_t> noxParticulateControlDiagnosticWarningLamp();
+#if 1  // 121-140
+  std::optional<uint32_t> supportedPIDs121_140();
+// std::optional<std::array<uint16_t, 4>> noxSensorCorrectedData();
+// std::optional<float> cylinderFuelRate();
+// std::optional<std::array<int16_t, 4>> evapSystemVaporPressure();
+// std::optional<float> transmissionActualGear();
+// std::optional<float> commandedDieselExhaustFluidDosing();
+// std::optional<uint32_t> odometer();
+// std::optional<std::array<uint16_t, 2>> noxSensorConcentration34();
+// std::optional<std::array<uint16_t, 2>> noxSensorCorrectedConcentration34();
+// std::optional<bool> absDisableSwitchState();
+// std::optional<std::array<float, 2>> fuelLevelInputAB();
+// std::optional<std::array<uint32_t, 2>> exhaustParticulateControlSystemDiagnostic();
+// std::optional<std::array<uint16_t, 2>> fuelPressureAB();
+// std::optional<std::array<uint16_t, 5>> particulateControlDriverInducementSystem();
+// std::optional<uint16_t> distanceSinceReflashOrModuleReplacement();
+// std::optional<uint8_t> noxParticulateControlDiagnosticWarningLamp();
+#endif
 
-  // Service 09 - Request vehicle information
+#if 1  // Service 09 - Request vehicle information
   std::optional<uint32_t> supportedPIDs_Service09();
   std::optional<uint8_t> vinMessageCount();
   bool getVIN(char* vin_buffer, size_t buffer_size);
@@ -238,9 +238,19 @@ class OBD2 final {
   bool getEcuName(char* ecu_buffer, size_t buffer_size);
 
   bool getPerformanceTrackingCompressionIgnition(uint16_t* tracking_buffer, size_t buffer_size, size_t* count);
+#endif
 
  private:
   using ResponseType = std::array<uint8_t, 8>;
+
+  static const uint32_t kPidCacheTimeotMs = 60000;
+  struct PidSupportCache {
+    uint32_t supported_pids[7] = {0};
+    uint32_t last_update_time  = 0;
+    bool initialized           = false;
+  } pid_support_cache_;
+
+  void UpdatePidSupportCache();
 
   /**
    * @brief Коды отрицательных ответов OBD2 (ISO 14229 UDS)
@@ -289,9 +299,6 @@ class OBD2 final {
     MANUFACTURER_SPECIFIC_CONDITIONS_NOT_CORRECT   = 0xF0  // Начало диапазона 0xF0-0xFE
   };
 
-  // Вспомогательный метод для получения поддерживаемых PID
-  std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
-
   static constexpr size_t A = 0;
   static constexpr size_t B = 1;
   static constexpr size_t C = 2;
@@ -321,7 +328,6 @@ class OBD2 final {
   static const uint8_t PID_INTERVAL_OFFSET = 0x20;
 
 #if 1  // PIDs
-
   // Full set of PIDs
   static const uint8_t SUPPORTED_PIDS_1_20              = 0x00;  // - bit encoded
   static const uint8_t MONITOR_STATUS_SINCE_DTC_CLEARED = 0x01;  // - bit encoded
@@ -524,8 +530,10 @@ class OBD2 final {
   static const uint8_t SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION  = 0x0B;  // - 4-byte values
 #endif
 
+  std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
   void queryPID(uint8_t service, uint8_t pid);
-  bool processPID(uint8_t service, uint16_t pid, ResponseType& response);
+  bool ProcessPid(uint8_t service, uint16_t pid, ResponseType& response);
+  bool ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& response);
 
   const char* getErrorDescription(NegativeResponseCode error_code) const;
   bool isTemporaryError(NegativeResponseCode error_code) const;

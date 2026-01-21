@@ -515,7 +515,7 @@ void test_iso_tp_max_message_size_4095() {
   IsoTp iso_tp(mock_can);
 
   // Создаем максимальное сообщение 4095 байт
-  uint8_t* test_data = new uint8_t[4095];
+  uint8_t test_data[4095];
   for (int i = 0; i < 4095; i++) {
     test_data[i] = i & 0xFF;
   }
@@ -538,8 +538,6 @@ void test_iso_tp_max_message_size_4095() {
   int expected_frames = 1 + ((4095 - 6 + 6) / 7);  // FF + CF count
   TEST_ASSERT_EQUAL_INT_MESSAGE(
       expected_frames, mock_can.transmitted_frames.size(), "Should transmit correct number of frames for 4095 bytes");
-
-  delete[] test_data;
 }
 
 // Тест 6.2: Сообщения размером 4096 байт (должно быть отклонено)
@@ -549,7 +547,7 @@ void test_iso_tp_oversized_message_4096() {
   IsoTp iso_tp(mock_can);
 
   // Создаем сообщение превышающее максимум
-  uint8_t* test_data = new uint8_t[4096];
+  uint8_t test_data[4096];
   for (int i = 0; i < 4096; i++) {
     test_data[i] = i & 0xFF;
   }
@@ -566,8 +564,6 @@ void test_iso_tp_oversized_message_4096() {
   TEST_ASSERT_FALSE_MESSAGE(result, "Send should fail with 4096 byte message (oversized)");
   TEST_ASSERT_EQUAL_INT_MESSAGE(
       0, mock_can.transmitted_frames.size(), "Should not transmit any frames for oversized message");
-
-  delete[] test_data;
 }
 
 // ============================================================================

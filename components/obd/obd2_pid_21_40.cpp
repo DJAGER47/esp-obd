@@ -28,7 +28,7 @@ std::optional<uint32_t> OBD2::supportedPIDs_21_40() {
  */
 std::optional<uint16_t> OBD2::distTravelWithMIL() {
   ResponseType response;
-  if (processPID(SERVICE_01, DISTANCE_TRAVELED_WITH_MIL_ON, response)) {
+  if (ProcessPid(SERVICE_01, DISTANCE_TRAVELED_WITH_MIL_ON, response)) {
     return {(response[A] << 8) | response[B]};
   }
   return std::nullopt;
@@ -41,7 +41,7 @@ std::optional<uint16_t> OBD2::distTravelWithMIL() {
  */
 std::optional<float> OBD2::fuelRailPressure() {
   ResponseType response;
-  if (processPID(SERVICE_01, FUEL_RAIL_PRESSURE, response)) {
+  if (ProcessPid(SERVICE_01, FUEL_RAIL_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) * 0.079};
   }
   return std::nullopt;
@@ -54,7 +54,7 @@ std::optional<float> OBD2::fuelRailPressure() {
  */
 std::optional<uint32_t> OBD2::fuelRailGuagePressure() {
   ResponseType response;
-  if (processPID(SERVICE_01, FUEL_RAIL_GUAGE_PRESSURE, response)) {
+  if (ProcessPid(SERVICE_01, FUEL_RAIL_GUAGE_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) * 10};
   }
   return std::nullopt;
@@ -81,7 +81,7 @@ constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_B             = 43;  // 0x2B - 
  */
 std::optional<float> OBD2::commandedEGR() {
   ResponseType response;
-  if (processPID(SERVICE_01, COMMANDED_EGR, response)) {
+  if (ProcessPid(SERVICE_01, COMMANDED_EGR, response)) {
     return {response[A] * 100.0 / 255.0};
   }
   return std::nullopt;
@@ -94,7 +94,7 @@ std::optional<float> OBD2::commandedEGR() {
  */
 std::optional<float> OBD2::egrError() {
   ResponseType response;
-  if (processPID(SERVICE_01, EGR_ERROR, response)) {
+  if (ProcessPid(SERVICE_01, EGR_ERROR, response)) {
     return {(response[A] * 100.0 / 128.0) - 100.0};
   }
   return std::nullopt;
@@ -107,7 +107,7 @@ std::optional<float> OBD2::egrError() {
  */
 std::optional<float> OBD2::commandedEvapPurge() {
   ResponseType response;
-  if (processPID(SERVICE_01, COMMANDED_EVAPORATIVE_PURGE, response)) {
+  if (ProcessPid(SERVICE_01, COMMANDED_EVAPORATIVE_PURGE, response)) {
     return {response[A] * 100.0 / 255.0};
   }
   return std::nullopt;
@@ -120,7 +120,7 @@ std::optional<float> OBD2::commandedEvapPurge() {
  */
 std::optional<float> OBD2::fuelLevel() {
   ResponseType response;
-  if (processPID(SERVICE_01, FUEL_TANK_LEVEL_INPUT, response)) {
+  if (ProcessPid(SERVICE_01, FUEL_TANK_LEVEL_INPUT, response)) {
     return {response[A] * 100.0 / 255.0};
   }
   return std::nullopt;
@@ -133,7 +133,7 @@ std::optional<float> OBD2::fuelLevel() {
  */
 std::optional<uint8_t> OBD2::warmUpsSinceCodesCleared() {
   ResponseType response;
-  if (processPID(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, response)) {
+  if (ProcessPid(SERVICE_01, WARM_UPS_SINCE_CODES_CLEARED, response)) {
     return {response[A]};
   }
   return std::nullopt;
@@ -146,7 +146,7 @@ std::optional<uint8_t> OBD2::warmUpsSinceCodesCleared() {
  */
 std::optional<uint16_t> OBD2::distSinceCodesCleared() {
   ResponseType response;
-  if (processPID(SERVICE_01, DIST_TRAV_SINCE_CODES_CLEARED, response)) {
+  if (ProcessPid(SERVICE_01, DIST_TRAV_SINCE_CODES_CLEARED, response)) {
     return {(response[A] << 8) | response[B]};
   }
   return std::nullopt;
@@ -159,7 +159,7 @@ std::optional<uint16_t> OBD2::distSinceCodesCleared() {
  */
 std::optional<float> OBD2::evapSysVapPressure() {
   ResponseType response;
-  if (processPID(SERVICE_01, EVAP_SYSTEM_VAPOR_PRESSURE, response)) {
+  if (ProcessPid(SERVICE_01, EVAP_SYSTEM_VAPOR_PRESSURE, response)) {
     return {((response[A] << 8) | response[B]) / 4.0};
   }
   return std::nullopt;
@@ -172,7 +172,7 @@ std::optional<float> OBD2::evapSysVapPressure() {
  */
 std::optional<uint8_t> OBD2::absBaroPressure() {
   ResponseType response;
-  if (processPID(SERVICE_01, ABS_BAROMETRIC_PRESSURE, response)) {
+  if (ProcessPid(SERVICE_01, ABS_BAROMETRIC_PRESSURE, response)) {
     return {response[A]};
   }
   return std::nullopt;
@@ -199,7 +199,7 @@ constexpr std::optional<uint8_t> OXYGEN_SENSOR_8_C             = 59;  // 0x3B - 
  */
 std::optional<float> OBD2::catTempB1S1() {
   ResponseType response;
-  if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_1, response)) {
+  if (ProcessPid(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_1, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
   return std::nullopt;
@@ -212,7 +212,7 @@ std::optional<float> OBD2::catTempB1S1() {
  */
 std::optional<float> OBD2::catTempB2S1() {
   ResponseType response;
-  if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, response)) {
+  if (ProcessPid(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_1, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
   return std::nullopt;
@@ -225,7 +225,7 @@ std::optional<float> OBD2::catTempB2S1() {
  */
 std::optional<float> OBD2::catTempB1S2() {
   ResponseType response;
-  if (processPID(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, response)) {
+  if (ProcessPid(SERVICE_01, CATALYST_TEMP_BANK_1_SENSOR_2, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
   return std::nullopt;
@@ -238,7 +238,7 @@ std::optional<float> OBD2::catTempB1S2() {
  */
 std::optional<float> OBD2::catTempB2S2() {
   ResponseType response;
-  if (processPID(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, response)) {
+  if (ProcessPid(SERVICE_01, CATALYST_TEMP_BANK_2_SENSOR_2, response)) {
     return {(((response[A] << 8) | response[B]) / 10.0) - 40.0};
   }
   return std::nullopt;

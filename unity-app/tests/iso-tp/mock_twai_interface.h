@@ -22,6 +22,15 @@ class MockTwaiInterface : public IPhyInterface {
     subscribers.push_back(&subscriber);
   }
 
+  void UnRegisterSubscriber(ITwaiSubscriber& subscriber) override {
+    for (auto it = subscribers.begin(); it != subscribers.end(); ++it) {
+      if (*it == &subscriber) {
+        subscribers.erase(it);
+        break;
+      }
+    }
+  }
+
   // Методы для управления состоянием мока
   void reset() {
     transmitted_frames.clear();

@@ -15,6 +15,7 @@ add_executable(unity_app
     tests/obd/tests_obd_pid_group_41_60.cpp
     tests/obd/tests_obd_pid_group_61_80.cpp
     tests/obd/tests_obd_pid_group_81_xx.cpp
+    tests/obd/tests_obd2_cache_big_endian.cpp
     
     ../components/iso-tp/iso_tp.cpp
     ../components/iso-tp/twai_subscriber_iso_tp.cpp
@@ -29,6 +30,7 @@ add_executable(unity_app
     ../components/obd/obd2_pid_101_120.cpp
     ../components/obd/obd2_pid_121_140.cpp
     ../components/obd/obd2_pid.cpp
+    ../components/obd/obd2_cache.cpp
 
     Unity-2.6.1/src/unity.c
 )
