@@ -47,16 +47,14 @@ static TaskHandle_t obd_polling_task_handle        = nullptr;
 static StackType_t obd_polling_task_stack[kObdPollingTaskStackSize];
 static StaticTask_t obd_polling_task_tcb;
 
-struct PidRange {
-  const char* name;
-  std::function<std::optional<uint32_t>(OBD2*)> query_func;
-};
-
 void ServicesPoolingTask() {
-  // Создаем временные объекты для опроса PID
   IsoTp iso_tp(can_driver);  // ISO-TP протокол поверх CAN
   OBD2 obd2(iso_tp);         // OBD2 поверх ISO-TP
 
+  struct PidRange {
+    const char* name;
+    std::function<std::optional<uint32_t>(OBD2*)> query_func;
+  };
   // Массив функций для запроса поддерживаемых PID в разных диапазонах
   // clang-format off
   PidRange pid_ranges[] = {

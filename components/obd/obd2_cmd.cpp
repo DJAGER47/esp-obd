@@ -71,7 +71,7 @@ OBD2::OBD2(IIsoTp& driver, uint16_t tx_id, uint16_t rx_id) :
  * @param service ID диагностического сервиса (01 - "Показать текущие данные")
  * @param pid Parameter ID (PID) из сервиса
  */
-void OBD2::queryPID(uint8_t service, uint8_t pid) {
+void OBD2::QueryPid(uint8_t service, uint8_t pid) {
   log_print("Service: %d PID: %d\n", service, pid);
   uint8_t data[8]{service, pid, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
   IsoTp::Message msg{tx_id_, rx_id_, 3, data};
@@ -111,7 +111,7 @@ bool OBD2::ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& r
   while (attempt_count < max_attempts) {
     attempt_count++;
 
-    queryPID(service, pid);
+    QueryPid(service, pid);
 
     uint8_t payload[128];
     IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -120,7 +120,7 @@ bool OBD2::ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& r
       // Проверяем на отрицательный ответ
       if ((msg.len >= 3) && (msg.data[0] == 0x7F) && (msg.data[1] == pid)) {
         const NegativeResponseCode error_code = static_cast<NegativeResponseCode>(msg.data[2]);
-        auto str                              = getErrorDescription(error_code);
+        auto str                              = GetErrorDescription(error_code);
 
         ESP_LOGW(TAG,
                  "OBD2 negative response received: service=0x%02X, pid=0x%02X, Error=0x%02X, %s",
@@ -180,7 +180,7 @@ bool OBD2::ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& r
   return false;
 }
 
-const char* OBD2::getErrorDescription(NegativeResponseCode error_code) const {
+const char* OBD2::GetErrorDescription(NegativeResponseCode error_code) const {
   switch (error_code) {
     case NegativeResponseCode::GENERAL_REJECT:
       return "General reject";
@@ -269,7 +269,7 @@ const char* OBD2::getErrorDescription(NegativeResponseCode error_code) const {
   }
 }
 
-bool OBD2::isTemporaryError(NegativeResponseCode error_code) const {
+bool OBD2::IsTemporaryError(NegativeResponseCode error_code) const {
   switch (error_code) {
     case NegativeResponseCode::BUSY_REPEAT_REQUEST:
     case NegativeResponseCode::CONDITIONS_NOT_CORRECT:

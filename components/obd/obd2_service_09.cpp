@@ -60,7 +60,7 @@ bool OBD2::getVIN(char* vin_buffer, size_t buffer_size) {
   log_print("Getting VIN...\n");
 
   // Отправляем запрос для получения VIN (Service 09, PID 02)
-  queryPID(0x09, 0x02);
+  QueryPid(0x09, 0x02);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -132,7 +132,7 @@ bool OBD2::getCalibrationId(char* calib_buffer, size_t buffer_size) {
     return false;
   }
 
-  queryPID(SERVICE_09, SERVICE_09_CALIBRATION_ID);
+  QueryPid(SERVICE_09, SERVICE_09_CALIBRATION_ID);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -204,7 +204,7 @@ bool OBD2::getCalibrationVerificationNumbers(uint32_t* cvn_buffer, size_t buffer
     return false;
   }
 
-  queryPID(SERVICE_09, SERVICE_09_CALIBRATION_VERIFICATION_NUMBERS);
+  QueryPid(SERVICE_09, SERVICE_09_CALIBRATION_VERIFICATION_NUMBERS);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -273,7 +273,7 @@ bool OBD2::getPerformanceTrackingSparkIgnition(uint16_t* tracking_buffer, size_t
     return false;
   }
 
-  queryPID(SERVICE_09, SERVICE_09_PERF_TRACK_SPARK_IGNITION);
+  QueryPid(SERVICE_09, SERVICE_09_PERF_TRACK_SPARK_IGNITION);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -335,7 +335,7 @@ bool OBD2::getEcuName(char* ecu_buffer, size_t buffer_size) {
     return false;
   }
 
-  queryPID(SERVICE_09, SERVICE_09_ECU_NAME);
+  QueryPid(SERVICE_09, SERVICE_09_ECU_NAME);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};
@@ -389,7 +389,7 @@ bool OBD2::getPerformanceTrackingCompressionIgnition(uint16_t* tracking_buffer, 
     return false;
   }
 
-  queryPID(SERVICE_09, SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION);
+  QueryPid(SERVICE_09, SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION);
 
   uint8_t payload[128];
   IsoTp::Message msg{tx_id_, rx_id_, 0, payload};

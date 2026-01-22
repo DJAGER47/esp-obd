@@ -32,9 +32,7 @@ inline QueueHandle_t xQueueCreate(UBaseType_t uxQueueLength, UBaseType_t uxItemS
 }
 
 // Отправка элемента в очередь
-inline BaseType_t xQueueSend(QueueHandle_t xQueue,
-                             const void* pvItemToQueue,
-                             TickType_t xTicksToWait) {
+inline BaseType_t xQueueSend(QueueHandle_t xQueue, const void* pvItemToQueue, TickType_t xTicksToWait) {
   if (xQueue == nullptr) {
     return pdFALSE;
   }
@@ -59,16 +57,6 @@ inline BaseType_t xQueueSend(QueueHandle_t xQueue,
   queue->items.push(item);
 
   return pdTRUE;
-}
-
-// Отправка элемента в очередь из ISR
-inline BaseType_t xQueueSendFromISR(QueueHandle_t xQueue,
-                                    const void* pvItemToQueue,
-                                    BaseType_t* pxHigherPriorityTaskWoken) {
-  if (pxHigherPriorityTaskWoken != nullptr) {
-    *pxHigherPriorityTaskWoken = pdFALSE;
-  }
-  return xQueueSend(xQueue, pvItemToQueue, 0);
 }
 
 // Получение элемента из очереди
@@ -101,4 +89,29 @@ inline void vQueueDelete(QueueHandle_t xQueue) {
     auto queue = static_cast<Queue*>(xQueue);
     delete queue;
   }
+}
+
+// Отправка элемента в очередь из ISR
+inline BaseType_t xQueueSendFromISR(QueueHandle_t xQueue,
+                                    const void* pvItemToQueue,
+                                    BaseType_t* pxHigherPriorityTaskWoken) {
+  if (pxHigherPriorityTaskWoken != nullptr) {
+    *pxHigherPriorityTaskWoken = pdFALSE;
+  }
+  return xQueueSend(xQueue, pvItemToQueue, 0);
+}
+
+// Отправка элемента в конец очереди из ISR
+inline BaseType_t xQueueSendToBackFromISR(QueueHandle_t xQueue,
+                                          const void* pvItemToQueue,
+                                          BaseType_t* pxHigherPriorityTaskWoken) {
+  return xQueueSendFromISR(xQueue, pvItemToQueue, pxHigherPriorityTaskWoken);
+}
+
+// Получение элемента из очереди из ISR
+inline BaseType_t xQueueReceiveFromISR(QueueHandle_t xQueue, void* pvBuffer, BaseType_t* pxHigherPriorityTaskWoken) {
+  if (pxHigherPriorityTaskWoken != nullptr) {
+    *pxHigherPriorityTaskWoken = pdFALSE;
+  }
+  return xQueueReceive(xQueue, pvBuffer, 0);
 }

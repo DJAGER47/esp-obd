@@ -51,49 +51,49 @@ void OBD2::UpdatePidSupportCache() {
 
   // Запрашиваем поддерживаемые PID по группам
   // Группа 1-20 (PID 0x00)
-  auto pids_1_20 = getSupportedPIDs(SUPPORTED_PIDS_1_20);
+  auto pids_1_20 = GetSupportedPids(SUPPORTED_PIDS_1_20);
   if (pids_1_20.has_value()) {
     pid_support_cache_.supported_pids[0] = pids_1_20.value();
   }
 
   if (pids_1_20.has_value() && (pids_1_20.value() & 1)) {
     // Группа 21-40 (PID 0x20)
-    auto pids_21_40 = getSupportedPIDs(SUPPORTED_PIDS_21_40);
+    auto pids_21_40 = GetSupportedPids(SUPPORTED_PIDS_21_40);
     if (pids_21_40.has_value()) {
       pid_support_cache_.supported_pids[1] = pids_21_40.value();
     }
 
     if (pids_21_40.has_value() && (pids_21_40.value() & 1)) {
       // Группа 41-60 (PID 0x40)
-      auto pids_41_60 = getSupportedPIDs(SUPPORTED_PIDS_41_60);
+      auto pids_41_60 = GetSupportedPids(SUPPORTED_PIDS_41_60);
       if (pids_41_60.has_value()) {
         pid_support_cache_.supported_pids[2] = pids_41_60.value();
       }
 
       if (pids_41_60.has_value() && (pids_41_60.value() & 1)) {
         // Группа 61-80 (PID 0x60)
-        auto pids_61_80 = getSupportedPIDs(SUPPORTED_PIDS_61_80);
+        auto pids_61_80 = GetSupportedPids(SUPPORTED_PIDS_61_80);
         if (pids_61_80.has_value()) {
           pid_support_cache_.supported_pids[3] = pids_61_80.value();
         }
 
         if (pids_61_80.has_value() && (pids_61_80.value() & 1)) {
           // Группа 81-100 (PID 0x80)
-          auto pids_81_100 = getSupportedPIDs(SUPPORTED_PIDS_81_100);
+          auto pids_81_100 = GetSupportedPids(SUPPORTED_PIDS_81_100);
           if (pids_81_100.has_value()) {
             pid_support_cache_.supported_pids[4] = pids_81_100.value();
           }
 
           if (pids_81_100.has_value() && (pids_81_100.value() & 1)) {
             // Группа 101-120 (PID 0xA0)
-            auto pids_101_120 = getSupportedPIDs(SUPPORTED_PIDS_101_120);
+            auto pids_101_120 = GetSupportedPids(SUPPORTED_PIDS_101_120);
             if (pids_101_120.has_value()) {
               pid_support_cache_.supported_pids[5] = pids_101_120.value();
             }
 
             if (pids_101_120.has_value() && (pids_101_120.value() & 1)) {
               // Группа 121-140 (PID 0xC0)
-              auto pids_121_140 = getSupportedPIDs(SUPPORTED_PIDS_121_140);
+              auto pids_121_140 = GetSupportedPids(SUPPORTED_PIDS_121_140);
               if (pids_121_140.has_value()) {
                 pid_support_cache_.supported_pids[6] = pids_121_140.value();
               }

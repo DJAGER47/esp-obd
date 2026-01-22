@@ -530,13 +530,13 @@ class OBD2 final {
   static const uint8_t SERVICE_09_PERF_TRACK_COMPRESSION_IGNITION  = 0x0B;  // - 4-byte values
 #endif
 
-  std::optional<uint32_t> getSupportedPIDs(uint8_t pid);
-  void queryPID(uint8_t service, uint8_t pid);
+  std::optional<uint32_t> GetSupportedPids(uint8_t pid);
+  void QueryPid(uint8_t service, uint8_t pid);
   bool ProcessPid(uint8_t service, uint16_t pid, ResponseType& response);
   bool ProcessPidWithoutCheck(uint8_t service, uint16_t pid, ResponseType& response);
 
-  const char* getErrorDescription(NegativeResponseCode error_code) const;
-  bool isTemporaryError(NegativeResponseCode error_code) const;
+  const char* GetErrorDescription(NegativeResponseCode error_code) const;
+  bool IsTemporaryError(NegativeResponseCode error_code) const;
 
   void log_print(const char* format, ...);
   void log_print_buffer(uint32_t id, uint8_t* buffer, uint16_t len);

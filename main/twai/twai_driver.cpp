@@ -320,7 +320,18 @@ void TwaiDriver::DispatchMessage(const TwaiFrame& message) {
           // Помещаем сообщение в очередь подписчика
           BaseType_t xHigherPriorityTaskWoken = pdFALSE;
           if (xQueueSendToBackFromISR(queue, &message, &xHigherPriorityTaskWoken) != pdTRUE) {
-            ESP_LOGW(TAG, "Failed to send message to subscriber queue: queue full");
+            // Очередь полна, очищаем её вручную и пытаемся снова
+            TwaiFrame temp_frame;
+            while (xQueueReceiveFromISR(queue, &temp_frame, &xHigherPriorityTaskWoken) == pdTRUE) {
+              // Просто извлекаем все элементы из очереди
+            }
+
+            // Теперь пытаемся добавить новое сообщение
+            if (xQueueSendToBackFromISR(queue, &message, &xHigherPriorityTaskWoken) != pdTRUE) {
+              ESP_LOGW(TAG, "Failed to send message to subscriber queue even after clearing");
+            } else {
+              ESP_LOGW(TAG, "Subscriber queue was full, cleared and added new message");
+            }
           }
         }
       }

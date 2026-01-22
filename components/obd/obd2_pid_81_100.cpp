@@ -17,7 +17,7 @@
  * @return std::optional<uint32_t> Битовая маска поддерживаемых PID
  */
 std::optional<uint32_t> OBD2::supportedPIDs81_100() {
-  return getSupportedPIDs(SUPPORTED_PIDS_81_100);
+  return GetSupportedPids(SUPPORTED_PIDS_81_100);
 }
 
 /**
