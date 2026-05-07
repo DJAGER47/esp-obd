@@ -22,6 +22,7 @@ idf_component_register(SRCS "main.cpp"
                                    #  "ui2/"
 
                        REQUIRES driver
+                                esp_driver_twai
                                 phy_interface
                                 iso-tp
                                 obd

@@ -8,3 +8,5 @@ html_report/*
 report.json
 unity-app/build_sanitizers/*
 unity-app/tests/ecu-simulator/ecu_simulator.log*
+.vscode/settings.json
+.cache/*

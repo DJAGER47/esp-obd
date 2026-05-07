@@ -95,5 +95,6 @@
     "--background-index",
     "--query-driver=/home/plavrovskiy/.espressif/tools/riscv32-esp-elf/esp-14.2.0_20241119/riscv32-esp-elf/bin/riscv32-esp-elf-gcc",
     "--compile-commands-dir=/home/plavrovskiy/_My/esp_prj/obd2/build"
-  ]
+  ],
+  "idf.currentSetup": "/home/plavrovskiy/.espressif/v6.0.1/esp-idf"
 }

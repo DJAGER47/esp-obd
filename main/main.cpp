@@ -33,7 +33,8 @@ UI2* ui_instance_ptr = &ui_instance;
 #else
 #include "ui.h"
 // LCD_BK_LIGHT_PIN для ST7789
-static UI ui_instance(LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, GPIO_NUM_NC);
+static UI ui_instance(
+    LCD_SCLK_PIN, LCD_MOSI_PIN, LCD_RST_PIN, LCD_DC_PIN, LCD_CS_PIN, LCD_BK_LIGHT_PIN);  // GPIO_NUM_NC);
 UI* ui_instance_ptr = &ui_instance;
 #endif
 
@@ -65,7 +66,7 @@ void ServicesPoolingTask() {
     {"  81-100", [](OBD2* obd) { return obd->supportedPIDs81_100(); }},
     {" 101-120", [](OBD2* obd) { return obd->supportedPIDs101_120(); }},
     {" 121-140", [](OBD2* obd) { return obd->supportedPIDs121_140(); }},
-    {"Service9", [](OBD2* obd) { return obd->supportedPIDs_Service09(); }}
+    // {"Service9", [](OBD2* obd) { return obd->supportedPIDs_Service09(); }}
   };
   // clang-format on
   constexpr size_t kPidRangesCount = sizeof(pid_ranges) / sizeof(pid_ranges[0]);
